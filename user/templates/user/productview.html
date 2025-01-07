@@ -1,0 +1,354 @@
+{% extends "user/base.html" %}
+{% load static %}
+{% block content %}
+
+
+<style>
+        body {
+            background-color: #e6e6e6;
+        }
+        
+        .product-gallery {
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .thumbnail-images {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-right: 20px;
+        }
+        
+        .thumbnail-images img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            cursor: pointer;
+            border: 2px solid transparent;
+            background-color: #e6e6e6;
+        }
+        
+        .thumbnail-images img:hover {
+            border-color: #007bff;
+        }
+        
+        .main-image {
+            width: 100%;
+            height: auto;
+            max-width: 500px;
+        }
+        
+        .color-options {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .color-option {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 1px #ddd;
+        }
+        
+        .quantity-selector {
+            width: 120px;
+            display: flex;
+            align-items: center;
+            margin-top: 20px;
+        }
+        
+        .quantity-selector input {
+            width: 50px;
+            text-align: center;
+            border: 1px solid #ddd;
+            margin: 0 5px;
+        }
+        
+        .btn-add-cart {
+            background-color: #ff7043;
+            border: none;
+        }
+
+        .btn-add-cart:hover,
+        .btn-buy-now:hover {
+            background-color: #ff7043; /* Keep the original background color for Add to Cart */
+            border: none; /* Ensure no border appears on hover */
+            transform: none; /* Disable any movement */
+        }
+        
+        .btn-buy-now {
+            background-color: #e53935;
+            border: none;
+           
+        }
+        
+        
+        .delivery-info {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .similar-products {
+            margin-top: 40px;
+            margin-bottom: 60px; /* Add space between the product cards and the footer */
+        }
+        
+        .similar-products .card {
+            background-color: white;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .product-title {
+            color: #333;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+        
+        .price {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        
+        .color-label {
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        
+        /* Similar products card specific styles */
+        .card {
+            background-color: white;
+            transition: transform 0.2s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .delivery-info {
+            background: transparent;
+        }
+
+        .delivery-info .text-center p {
+            font-weight: bold;  /* Make text bold */
+        }
+        .delivery-info .p-3 {
+            background-color: #f8f9fa;  /* Set a light background color */
+        }
+        .delivery-info .bi {
+            color: #198754;  /* Set color for icons */
+        }
+        .delivery-info .text-center p {
+            color: #333;  /* Set text color */
+        }
+</style>
+
+<body>
+<div class="container mt-4">
+    <div class="row">
+        <!-- Product Images -->
+        <div class="col-md-6">
+            <div class="product-gallery d-flex">
+                <div class="thumbnail-images">
+                    <img src="{% static 'images/bestseller.png' %}" alt="Product view 1">
+                    <img src="{% static 'images/bestseller.png' %}" alt="Product view 2">
+                    <img src="{% static 'images/bestseller.png' %}" alt="Product view 3">
+                    <img src="{% static 'images/bestseller.png' %}" alt="Product view 4">
+                </div>
+                <div class="main-image-container">
+                    <img src="{% static 'images/bestseller.png' %}" alt="Truke BTG1" class="main-image">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Product Details -->
+        <div class="col-md-6">
+            <div class="product-info">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2>Truke BTG1</h2>
+                    <button class="btn btn-link"><i class="bi bi-heart"></i></button>
+                </div>
+                
+                <div class="rating mb-3">
+                    <i class="bi bi-star-fill text-warning"></i>
+                    <i class="bi bi-star-fill text-warning"></i>
+                    <i class="bi bi-star-fill text-warning"></i>
+                    <i class="bi bi-star-fill text-warning"></i>
+                    <i class="bi bi-star-half text-warning"></i>
+                    <span class="ms-2">4.5</span>
+                </div>
+                
+                <h3 class="mb-4">₹1999.00</h3>
+                
+                <div class="mb-4">
+                    <h6>Color:</h6>
+                    <div class="color-options">
+                        <div class="color-option" style="background-color: #333"></div>
+                        <div class="color-option" style="background-color: #666"></div>
+                        <div class="color-option" style="background-color: #999"></div>
+                        <div class="color-option" style="background-color: #ffc0cb"></div>
+                    </div>
+                </div>
+                
+                <div class="quantity-selector mb-4">
+                    <button class="btn btn-outline-secondary">-</button>
+                    <input type="number" value="2" min="1" class="form-control">
+                    <button class="btn btn-outline-secondary">+</button>
+                </div>
+                
+                <div class="d-flex gap-3 mb-4">
+                    <button class="btn btn-add-cart text-white flex-grow-1">Add to Cart</button>
+                    <button class="btn btn-buy-now text-white flex-grow-1">Buy Now</button>
+                </div>
+                
+                <div class="delivery-info d-flex gap-3">
+                    <!-- Box 1: Free Delivery -->
+                    <div class="p-3 border rounded text-center flex-grow-1">
+                        <i class="bi bi-truck fs-4"></i>
+                        <p class="mb-0 mt-2">Free Delivery</p>
+                    </div>
+                    <!-- Box 2: Return Policy -->
+                    <div class="p-3 border rounded text-center flex-grow-1">
+                        <i class="bi bi-arrow-return-left fs-4"></i>
+                        <p class="mb-0 mt-2">7 Days Return Policy</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    
+    <!-- Similar Products -->
+    <div class="similar-products">
+        <h4 class="mb-4">Similar Products</h4>
+        <div class="row row-cols-1 row-cols-md-4 g-4">
+            <!-- Similar product cards with same structure as your previous cards -->
+            <!-- Repeat this 4 times -->
+            <div class="col">
+                    <div class="card h-100">
+                        <div class="rating-stars p-2">
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star"></i>
+                        </div>
+                        <img src="{% static 'images/bestseller.png' %}" class="card-img-top" alt="BTG 1 Earbuds">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h5 class="product-title mb-0">BTG 1 Earbuds</h5>
+                                <span class="discount">24% off</span>
+                            </div>
+                            <div class="price-container mb-2">
+                                <span class="current-price">₹13999</span>
+                                <span class="original-price">₹5999</span>
+                                <button class="btn btn-outline-danger btn-sm">
+                                    <i class="bi bi-heart"></i>
+                                </button>
+                            </div>
+                            <p class="free-delivery mb-2">Free Delivery</p>
+                        </div>
+                    </div>
+                </div>
+
+            <div class="col">
+                <div class="card">
+                    <div class="rating-stars p-2">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star"></i>
+                    </div>
+                    <img src="{% static 'images/bestseller.png' %}" class="card-img-top" alt="BTG 1 Earbuds">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="product-title mb-0">BTG 1 Earbuds</h6>
+                            <span class="discount">15% off</span>
+                        </div>
+                        <div class="price-container mb-2">
+                            <span class="current-price">₹1999</span>
+                            <span class="original-price">₹2999</span>
+                            <button class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-heart"></i>
+                            </button>
+                        </div>
+                        <p class="free-delivery mb-0">Free Delivery</p>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="col">
+                <div class="card">
+                    <div class="rating-stars p-2">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star"></i>
+                    </div>
+                    <img src="{% static 'images/bestseller.png' %}" class="card-img-top" alt="BTG 1 Earbuds">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="product-title mb-0">BTG 1 Earbuds</h6>
+                            <span class="discount">15% off</span>
+                        </div>
+                        <div class="price-container mb-2">
+                            <span class="current-price">₹1999</span>
+                            <span class="original-price">₹2999</span>
+                            <button class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-heart"></i>
+                            </button>
+                        </div>
+                        <p class="free-delivery mb-0">Free Delivery</p>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="col">
+                <div class="card">
+                    <div class="rating-stars p-2">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star"></i>
+                    </div>
+                    <img src="{% static 'images/bestseller.png' %}" class="card-img-top" alt="BTG 1 Earbuds">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="product-title mb-0">BTG 1 Earbuds</h6>
+                            <span class="discount">15% off</span>
+                        </div>
+                        <div class="price-container mb-2">
+                            <span class="current-price">₹1999</span>
+                            <span class="original-price">₹2999</span>
+                            <button class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-heart"></i>
+                            </button>
+                        </div>
+                        <p class="free-delivery mb-0">Free Delivery</p>
+                    </div>
+                </div>
+            </div>
+
+
+            
+
+
+         </div>
+    </div>
+</div>
+
+
+{% endblock %}

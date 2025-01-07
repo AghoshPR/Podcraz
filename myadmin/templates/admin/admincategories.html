@@ -1,0 +1,53 @@
+{% extends "admin/adminbase.html" %}
+
+{% block title %}Podcraze{% endblock %}
+
+{% block content %}
+<div class="col main-content">
+    <div class="header">
+        <h2>Category</h2>
+        <div class="search-box">
+            <input type="text" placeholder="Search">
+        </div>
+    </div>
+
+    <table class="product-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Action</th>
+                
+            </tr>
+        </thead>
+        <tbody>
+            {% for category in Categories  %}
+            <tr>
+                <td>{{ category.id }}</td>
+                <td>{{ category.name }}</td>
+                <td>active</td>
+                <td>
+                    <a href="{% url 'admineditcategory' category.id %}"><button class="btn-edit">Edit</button></a>
+                    <a href="{% url 'admindeletecategory' category.id %}"><button class="btn-remove">Delete</button></a>
+                    
+                </td>
+            </tr>
+            {% endfor %}
+            
+        </tbody>
+    </table>
+
+    <a href="{% url 'adminaddcategory' %}">
+        <button class="btn-add">Add new Category</button>
+      </a>
+
+    <div class="pagination">
+        <div class="page-item">Previous</div>
+        <div class="page-item active">1</div>
+        <div class="page-item">2</div>
+        <div class="page-item">3</div>
+        <div class="page-item">Next</div>
+    </div>
+</div>
+{% endblock %}

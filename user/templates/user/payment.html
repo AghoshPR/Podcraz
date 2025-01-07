@@ -1,0 +1,169 @@
+
+
+
+<style>
+    body {
+        background-color: #f0f0f0;
+    }
+    
+    .payment-container {
+        background-color: #f0f0f0;
+        padding: 20px;
+        min-height: 70vh;
+        margin-bottom: 100px;
+    }
+
+    .section-title {
+        color: #333;
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+
+    .payment-option {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 15px 20px;
+        margin-bottom: 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        transition: border-color 0.2s;
+    }
+
+    .payment-option:hover {
+        border-color: #007bff;
+    }
+
+    .payment-radio {
+        margin-right: 15px;
+    }
+
+    .product-summary {
+        background-color: white;
+        border-radius: 4px;
+        padding: 20px;
+        height: fit-content;
+    }
+
+    .product-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .product-image {
+        width: 80px;
+        height: 80px;
+        margin-right: 15px;
+    }
+
+    .product-details {
+        flex-grow: 1;
+    }
+
+    .price-details {
+        margin-top: 20px;
+    }
+
+    .price-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+
+    .pay-now-btn {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 12px 40px;
+        border-radius: 4px;
+        margin-top: 20px;
+        font-weight: 500;
+    }
+
+    .form-check-input {
+        width: 20px;
+        height: 20px;
+    }
+</style>
+</head>
+<body>
+<div class="payment-container">
+    <div class="container">
+        <div class="row">
+            <!-- Payment Options Section -->
+            <div class="col-lg-8">
+                <h2 class="section-title">Payment</h2>
+                
+                <div>
+                    <label class="payment-option">
+                        <input type="radio" name="payment" class="form-check-input payment-radio">
+                        <span>UPI</span>
+                    </label>
+
+                    <label class="payment-option">
+                        <input type="radio" name="payment" class="form-check-input payment-radio">
+                        <span>Wallet</span>
+                    </label>
+
+                    <label class="payment-option">
+                        <input type="radio" name="payment" class="form-check-input payment-radio">
+                        <span>Credit/Debit Card</span>
+                    </label>
+
+                    <label class="payment-option">
+                        <input type="radio" name="payment" class="form-check-input payment-radio">
+                        <span>Net Banking</span>
+                    </label>
+
+                    <label class="payment-option">
+                        <input type="radio" name="payment" class="form-check-input payment-radio">
+                        <span>EMI</span>
+                    </label>
+
+                    <label class="payment-option">
+                        <input type="radio" name="payment" class="form-check-input payment-radio">
+                        <span>Cash On Delivery</span>
+                    </label>
+
+                    <button class="pay-now-btn">PAY NOW</button>
+                </div>
+            </div>
+
+            <!-- Product Summary Section -->
+            <div class="col-lg-4">
+                <div class="product-summary">
+                    <h5 class="mb-4">Products</h5>
+                    <div class="product-item">
+                        <img src="product-image.jpg" alt="Truke BTG1" class="product-image">
+                        <div class="product-details">
+                            <h6>Truke BTG1 wireless</h6>
+                            <small>Color: Black</small><br>
+                            <small>Quantity: 1</small><br>
+                            <strong>₹1999</strong>
+                        </div>
+                    </div>
+
+                    <div class="price-details">
+                        <div class="price-row">
+                            <span>Item Sub Total</span>
+                            <span>₹1999</span>
+                        </div>
+                        <div class="price-row">
+                            <span>Shipping</span>
+                            <span style="color: #28a745;">Free</span>
+                        </div>
+                        <hr>
+                        <div class="price-row">
+                            <strong>Total</strong>
+                            <strong>₹1999</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

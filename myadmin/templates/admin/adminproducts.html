@@ -1,0 +1,84 @@
+{% extends "admin/adminbase.html" %}
+
+{% block title %}Products - Podcraze Admin{% endblock %}
+
+{% block content %}
+<div class="col main-content">
+    <div class="header">
+        <h2>Products</h2>
+        <div class="search-box">
+            <input type="text" placeholder="Search">
+        </div>
+    </div>
+
+    <table class="product-table">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Brand</th>
+                <th>Varients</th>
+                <th>Category</th>
+                <th>Show varients</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Truke BT01</td>
+                <td>Truke</td>
+                <td>2</td>
+                
+                <td>Wireless Headphones</td>
+                
+               <td> <a href="{% url 'viewvarients' %}"><button class="btn-edit">view</button></a></td>
+                <td>
+                    <a href="{% url 'editproducts' %}"><button class="btn-edit">Edit</button></a>
+                    <button class="btn-remove">Remove</button>
+                    <a href="{% url 'productvarient' %}"><button class="btn-update">Add Varient</button></a>
+                    
+                </td>
+            </tr>
+            <tr>
+                <td>Truke BT01</td>
+                <td>Truke</td>
+                <td>2</td>
+                <td>Wireless Headphones</td>
+                <td><button class="btn-edit">view</button></td>
+                <td>
+                    <a href="{% url 'editproducts' %}"><button class="btn-edit">Edit</button></a>
+                    <button class="btn-remove">Remove</button>
+                    <a href="{% url 'productvarient' %}"><button class="btn-update">Add Varient</button></a>
+                    
+                </td>
+            </tr>
+            <tr>
+                <td>Truke BT01</td>
+                <td>Truke</td>
+                <td>2</td>
+                
+                <td>Wireless Headphones</td>
+                <td><button class="btn-edit">view</button></td>
+                <td>
+                    <a href="{% url 'editproducts' %}"><button class="btn-edit">Edit</button></a>
+                    <button class="btn-remove">Remove</button>
+                    <a href="{% url 'productvarient' %}"><button class="btn-update">Add Varient</button></a>
+                    
+                </td>
+            </tr>
+           
+        </tbody>
+    </table>
+
+    <a href="{% url 'adminaddproducts' %}">
+        <button class="btn-add">Add new Product</button>
+      </a>
+
+    <div class="pagination">
+        <div class="page-item">Previous</div>
+        <div class="page-item active">1</div>
+        <div class="page-item">2</div>
+        <div class="page-item">3</div>
+        <div class="page-item">Next</div>
+    </div>
+</div>
+{% endblock %}

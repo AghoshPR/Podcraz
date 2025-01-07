@@ -1,0 +1,140 @@
+{% extends "user/base.html" %}
+{%load static%}
+{% block content %}
+
+
+
+<div class="container mb-5">
+    <h2 class="fw-bold mb-4">Wishlist</h2>
+    <div class="row row-cols-1 row-cols-md-4 row-cols-lg-4 g-4 d-flex justify-content-start">
+        <!-- Product Card -->
+        <div class="col">
+            <div class="card h-100">
+                <div class="rating-stars p-2">
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star"></i>
+                </div>
+                <img src="{% static 'images/bestseller.png' %}" class="card-img-top" alt="BTG 1 Earbuds">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="product-title mb-0">BTG 1 Earbuds</h5>
+                        <span class="discount">24% off</span>
+                    </div>
+                    <div class="price-container mb-2">
+                        <span class="current-price">₹3999</span>
+                        <span class="original-price">₹5999</span>
+                        <div class="">
+                            <button class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-heart"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="free-delivery mb-2">Free Delivery</p>
+                   
+                </div>
+                
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card h-100">
+                <div class="rating-stars p-2">
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star"></i>
+                </div>
+                <img src="{% static 'images/bestseller.png' %}" class="card-img-top" alt="BTG 1 Earbuds">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="product-title mb-0">BTG 1 Earbuds</h5>
+                        <span class="discount">24% off</span>
+                    </div>
+                    <div class="price-container mb-2">
+                        <span class="current-price">₹3999</span>
+                        <span class="original-price">₹5999</span>
+                        <div class="">
+                            <button class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-heart"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="free-delivery mb-2">Free Delivery</p>
+                   
+                </div>
+                
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card h-100">
+                <div class="rating-stars p-2">
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star"></i>
+                </div>
+                <img src="{% static 'images/bestseller.png' %}" class="card-img-top" alt="BTG 1 Earbuds">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="product-title mb-0">BTG 1 Earbuds</h5>
+                        <span class="discount">24% off</span>
+                    </div>
+                    <div class="price-container mb-2">
+                        <span class="current-price">₹3999</span>
+                        <span class="original-price">₹5999</span>
+                        <div class="">
+                            <button class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-heart"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="free-delivery mb-2">Free Delivery</p>
+                   
+                </div>
+                
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card h-100">
+                <div class="rating-stars p-2">
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star"></i>
+                </div>
+                <img src="{% static 'images/bestseller.png' %}" class="card-img-top" alt="BTG 1 Earbuds">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="product-title mb-0">BTG 1 Earbuds</h5>
+                        <span class="discount">24% off</span>
+                    </div>
+                    <div class="price-container mb-2">
+                        <span class="current-price">13999</span>
+                        <span class="original-price">₹5999</span>
+                        <div class="">
+                            <button class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-heart"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="free-delivery mb-2">Free Delivery</p>
+                   
+                </div>
+                
+            </div>
+        </div>
+
+        <!-- Repeat the same structure for other cards -->
+    </div>
+</div>
+
+
+{% endblock %}

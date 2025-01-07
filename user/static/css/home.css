@@ -1,0 +1,216 @@
+#navitems {
+    margin-left: 325px;
+    gap: 25px;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.page-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex: 1; /* Take up all available space in the middle */
+}
+
+footer {
+    background-color: #f8f9fa;
+    padding: 20px 0;
+}
+
+
+footer {
+    position: relative;  /* Changed from fixed to relative */
+    bottom: 0;
+    width: 100%;
+    background-color: #f8f9fa;
+    padding: 20px 0;
+    margin-top: auto;  /* This pushes the footer down */
+}
+
+footer ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+.navbar-brand img {
+    height: 75px;
+    width: 75px;
+    
+    object-fit: contain;
+    margin: -8px 0; 
+}
+
+
+.navbar {
+    min-height: 70px;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.video-header {
+    position: relative;
+    height: 100vh;
+    overflow: hidden;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 0; /* Ensure this is behind the content */
+}
+
+.header-video {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    transform: translateX(-50%) translateY(-50%);
+    z-index: 0;
+    object-fit: cover;
+}
+
+.video-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1;
+}
+
+.content-wrapper {
+    position: relative;
+    z-index: 2;
+}
+
+
+
+
+/* card */
+
+.card {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+    background: white;
+    max-width: 280px; /* Consistent card width */
+    margin: 0 15px; /* Margin between cards */
+    height: 100%; /* Ensure all cards have the same height */
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card .rating-stars {
+    padding: 8px;
+}
+
+.rating-stars i {
+    color: #198754;
+    font-size: 0.9rem;
+}
+
+.card-img-top {
+    padding: 15px;
+    height: 200px; /* Consistent image height */
+    object-fit: contain;
+}
+
+.card-body {
+    padding: 12px;
+}
+
+.product-title {
+    font-size: 1rem;
+    margin-bottom: 6px;
+}
+
+.price-container {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.current-price {
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+.original-price {
+    text-decoration: line-through;
+    color: #6c757d;
+    font-size: 0.85rem;
+}
+
+.discount {
+    color: #22c55e;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.free-delivery {
+    font-size: 0.85rem;
+    color: #333;
+    margin-top: 6px;
+}
+
+/* Ensure the cards fit in a single row */
+.row {
+    display: flex;
+    overflow-x: auto; /* Allows horizontal scrolling if needed */
+    justify-content: flex-start;
+}
+
+
+/* brands */
+
+.featured-brands {
+   
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.brands-container {
+    display: flex; /* Arrange child divs side by side */
+    gap: 20px; /* Space between the child divs */
+}
+
+.brand-item {
+    flex: 1; /* Each div takes an equal portion of space */
+    aspect-ratio: 1 / 1; /* Make each div a perfect square */
+    display: flex; /* Flexbox for image alignment */
+    align-items: center; /* Vertically center the image */
+    justify-content: center; /* Horizontally center the image */
+    overflow: hidden; /* Ensure the image doesn't overflow the div */
+    background-color: #fff; /* Optional: White background for the div */
+    border-radius: 8px; /* Optional: Rounded corners */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: Shadow for aesthetics */
+}
+
+.brand-logo {
+    width: 100%; /* Image fills the container's width */
+    height: 100%; /* Image fills the container's height */
+    object-fit: cover; /* Ensures the image fully covers the div without distortion */
+}
+
+
+/* wishlist */
+.btn-outline-danger.active i {
+    color: red;
+    font-weight: bold;
+}
+
+.wishlist{
+    margin-left: 130px;
+
+}
+

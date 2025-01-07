@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Verification</title>
+    <script>
+        // This function updates the countdown timer
+        function startCountdown(seconds) {
+            let countdownElement = document.getElementById('countdown');
+            let remainingTime = seconds;
+
+            let interval = setInterval(function() {
+                if (remainingTime <= 0) {
+                    clearInterval(interval);
+                    countdownElement.innerHTML = "OTP Expired";
+                    // Optionally, you can disable the submit button or show a resend button
+                    document.getElementById('resend-button').style.display = "block";
+                } else {
+                    countdownElement.innerHTML = remainingTime + " seconds remaining";
+                    remainingTime--;
+                }
+            }, 1000);
+        }
+
+        // On page load, start the countdown with the remaining time from Django
+        window.onload = function() {
+            // Pass the remaining time from the Django context variable
+            let remainingTime = {{ remaining_time }};  // Django variable
+            if (remainingTime > 0) {
+                startCountdown(remainingTime);
+            } else {
+                document.getElementById('countdown').innerHTML = "OTP Expired";
+                document.getElementById('resend-button').style.display = "block";
+            }
+        };
+    </script>
+</head>
+<body>
+    <h1>Sign Up OTP</h1>
+    <form action="" method="post">
+        {% csrf_token %}
+        <label for="signup-otp">Enter OTP:</label>
+        <input type="text" name="signup-otp" id="signup-otp">
+        <button type="submit" name="action" value="submit">Submit</button>
+        <button type="submit" name="action" value="resend" id="resend-button" style="display: none;">Resend OTP</button>
+    </form>
+
+    <div>
+        <p id="countdown">
+            {% if remaining_time > 0 %}
+                {{ remaining_time }} seconds remaining
+            {% else %}
+                OTP Expired
+            {% endif %}
+        </p>
+    </div>
+</body>
+</html>

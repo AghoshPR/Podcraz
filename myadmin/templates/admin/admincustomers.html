@@ -1,0 +1,76 @@
+{% extends "admin/adminbase.html" %}
+
+{% block title %}Products - Podcraze Admin{% endblock %}
+
+{% block content %}
+<div class="col main-content">
+    <div class="header">
+        <h2>Customers</h2>
+        <div class="search-box">
+            <input type="text" placeholder="Search">
+        </div>
+    </div>
+
+    <table class="product-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Mobile</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>Aghosh</td>
+                <td>aghosh@gmail.com</td>
+                <td>9072185532</td>
+                <td>Active</td>
+                
+                <td>
+                    <button class="btn-edit">Unblock</button>
+                    <button class="btn-remove">Block</button>
+                </td>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>Aghosh</td>
+                <td>aghosh@gmail.com</td>
+                <td>9072185532</td>
+                <td>Active</td>
+                
+                <td>
+                    <button class="btn-edit">Unblock</button>
+                    <button class="btn-remove">Block</button>
+                </td>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>Aghosh</td>
+                <td>aghosh@gmail.com</td>
+                <td>9072185532</td>
+                <td>Active</td>
+                
+                <td>
+                    <button class="btn-edit">Unblock</button>
+                    <button class="btn-remove">Block</button>
+                </td>
+            </tr>
+            
+        </tbody>
+    </table>
+
+    
+
+    <div class="pagination">
+        <div class="page-item">Previous</div>
+        <div class="page-item active">1</div>
+        <div class="page-item">2</div>
+        <div class="page-item">3</div>
+        <div class="page-item">Next</div>
+    </div>
+</div>
+{% endblock %}
