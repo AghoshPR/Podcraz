@@ -19,7 +19,18 @@
     </style>
 </head>
 <body>
+
+    {% if messages %}
+    <div class="alert-container">
+        {% for message in messages %}
+            <div class="alert alert-danger">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+        {% endif %}
     <div class="container">
+
         <div class="row min-vh-100 align-items-center justify-content-center">
             <div class="col-12 col-sm-8 col-md-6 col-lg-4">
                 <div class="signup-container">
@@ -42,10 +53,10 @@
                             <input type="email" class="form-control custom-input" name="usr_email" placeholder="Email Address" required>
                         </div>
                         <div class="mt-2">
-                            <input type="tel" class="form-control custom-input" name="usr_phone" placeholder="Phone no" required>
+                            <input type="tel" class="form-control custom-input" name="usr_phone" pattern="\d{10}" title="Enter a valid 10-digit phone number"  placeholder="Phone no" required>
                         </div>
                         <div class="mt-2">
-                            <input type="password" class="form-control custom-input" name="usr_password" placeholder="Password" required>
+                            <input type="password" class="form-control custom-input" name="usr_password"  minlength="6" placeholder="Password" required>
                         </div>
                         <div class="mt-2 mb-3">
                             <input type="password" class="form-control custom-input" name="usr_cpassword" placeholder="Confirm Password" required>
@@ -53,10 +64,7 @@
                         
                         <button type="submit" class="btn btn-create w-100 mb-2">Register</button>
                         
-                        <a href="{% provider_login_url 'google' %}" class="btn btn-google w-100 mb-2">
-                            <img src="{% static 'images/google_icon.png' %}" alt="Google" width="16" height="16" class="me-2">
-                            Sign in with Google
-                        </a>
+                        
                         
                         <div class="text-center login-text">
                             Already have account? <a href="{% url 'userlogin' %}" class="login-link">Login</a>

@@ -1,0 +1,65 @@
+{% extends "admin/adminbase.html" %}
+
+{% block title %}Products - Podcraze Admin{% endblock %}
+
+{% block content %}
+<div class="col main-content">
+    <div class="header">
+        <h2>Edit Varients</h2>
+        <div class="search-box">
+            <input type="text" placeholder="Search">
+        </div>
+    </div>
+
+    <table class="product-table">
+        <thead>
+            <tr>
+                <th>Varient Number</th>
+                <th>Color</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>Black</td>
+                <td>Rs.1999</td>
+                <td>40</td>
+                
+                
+                <td>
+                    <a href=""><button class="btn-edit">Edit</button></a>
+                    <button class="btn-remove">Remove</button>
+                    
+                </td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>White</td>
+                <td>Rs.1999</td>
+                <td>40</td>
+                
+                
+                <td>
+                    <a href=""><button class="btn-edit">Edit</button></a>
+                    <button class="btn-remove">Remove</button>
+                    
+                </td>
+            </tr>
+            
+           
+           
+        </tbody>
+    </table>
+
+    <a href="">
+        <button class="btn-add">Save changes</button>
+      </a>
+
+  
+</div>
+
+
+{% endblock %}

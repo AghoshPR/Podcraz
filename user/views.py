@@ -14,6 +14,7 @@ from .models import *
 from django.contrib.auth.hashers import make_password
 from email.message import EmailMessage
 from decouple import config
+import re
 UserModel = get_user_model()
 
 
@@ -26,11 +27,18 @@ def userlogin(request):
         email = request.POST.get('usr')
         password = request.POST.get('password')
 
+
+        if not email or not password:
+            messages.error(request,"Email and Password are Required")
+
         user=authenticate(request,username=email,password=password)
         
         if user:
             login(request,user)
             return redirect('userhome')
+        else:
+            messages.error(request,"Invalid email or password")
+            return redirect('userlogin')
 
 
     return render(request,'user/login.html')
@@ -49,13 +57,30 @@ def signup(request):
             usrPassword=request.POST['usr_password']
             usrConfirmPassword=request.POST['usr_cpassword']
 
+            if not all([fname,lname,usrPhone,usrEmail,usrPassword,usrConfirmPassword]):
+                messages.error(request,"all fileds are Required!")
+                return render(request,'user/signup.html')
+            
+            email_validate=r'^[\w\.-]+@[\w\.-]+\.\w+$'
+            if not re.match(email_validate,usrEmail):
+                messages.error(request,"Invalid Email format.")
+                return render(request,'user/signup.html')
+
+            if User.objects.filter(email=usrEmail).exists():
+                messages.error(request, "User with this email already exists.")
+                return render(request,'user/signup.html')
+            
+            phone_validate=r'^\d{10}$'
+            if not re.match(phone_validate, usrPhone):
+                messages.error(request, "Invalid phone number.Must be 10 digits")
+                return render(request,'user/signup.html')
+
             if usrPassword != usrConfirmPassword:
                 messages.error(request,'Enter password correctly')
                 return render(request,'user/signup.html')
             
-            if User.objects.filter(email=usrEmail).exists():
-                messages.error(request,'User alredy exists')
-                return render(request,'user/signup.html')
+            
+            
             
             otp = ''.join(str(random.randint(0, 9)) for _ in range(4))
             request.session['reg_firstname'] = fname
@@ -127,6 +152,8 @@ def signup_otp(request):
                 
             else:
                 messages.error(request,'Ivalid OTP. Please Try Again')
+                return render(request, 'user/otp-signup.html')
+            
         elif action == 'resend':
             otp = ''.join(str(random.randint(0, 9)) for _ in range(4))
             request.session['reg_otp'] = otp
@@ -186,9 +213,7 @@ def reset_password(request):
     return render(request,'user/new_password.html')
 
 ########### user password and user new password ###############
-
-# @never_cache
-# @login_required(login_url='userlogin')
+@never_cache
 def userhome(request):
     return render(request,'user/homepage.html')
 

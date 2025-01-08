@@ -5,46 +5,43 @@
 {% block content %}
 <div class="col main-content">
     <div class="header">
-        <h2>Category</h2>
+        <h2>Brands</h2>
         <div class="search-box">
             <input type="text" placeholder="Search">
         </div>
     </div>
 
+   
     <table class="product-table">
         <thead>
             <tr>
-                <th>ID</th>
                 <th>Name</th>
-                <th>Status</th>
                 <th>Action</th>
-                
             </tr>
         </thead>
         <tbody>
-            {% for category in categories  %}
+            {% for brand in brands %}
             <tr>
-                <td>{{ category.id }}</td>
-                <td>{{ category.name }}</td>
-                <td>active</td>
+                <td>{{ brand.name }}</td>
                 <td>
                     <div class="action-buttons">
-                    <a href="{% url 'admineditcategory' category.id %}"><button class="btn-edit">Edit</button></a>
-                    <form action="{% url 'admindeletecategory' category.id %}" method="post">
-                        {% csrf_token %}
-                        <button type="submit" class="btn-remove">Delete</button>
-                    </form>
+                        <a href="{% url 'editbrands' brand.id %}">
+                            <button class="btn-edit">Edit</button>
+                        </a>
+                        <form action="{% url 'deletebrand' brand.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-remove">Remove</button>
+                        </form>
                     </div>
-                    
                 </td>
             </tr>
             {% endfor %}
-            
         </tbody>
     </table>
+    
 
-    <a href="{% url 'adminaddcategory' %}">
-        <button class="btn-add">Add new Category</button>
+    <a href="{% url 'addbrands' %}">
+        <button class="btn-add">Add New Brand</button>
       </a>
 
     <div class="pagination">

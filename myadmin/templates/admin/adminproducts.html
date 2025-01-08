@@ -16,56 +16,39 @@
             <tr>
                 <th>Product</th>
                 <th>Brand</th>
-                <th>Varients</th>
                 <th>Category</th>
-                <th>Show varients</th>
+                <th>Varient Count</th>
+                <th>Varients</th>
                 <th>Action</th>
             </tr>
         </thead>
         <tbody>
+            {% for product in products %}
             <tr>
-                <td>Truke BT01</td>
-                <td>Truke</td>
-                <td>2</td>
-                
-                <td>Wireless Headphones</td>
-                
-               <td> <a href="{% url 'viewvarients' %}"><button class="btn-edit">view</button></a></td>
+                <td>{{ product.name }}</td>
+                <td>{{ product.brand.name|default:"No brand assigned" }}</td>
+                <td>{{ product.product_category.name|default:"No category assigned" }}</td>
+                <td>{{ product.varient_count|default:"0" }}</td>
                 <td>
-                    <a href="{% url 'editproducts' %}"><button class="btn-edit">Edit</button></a>
-                    <button class="btn-remove">Remove</button>
-                    <a href="{% url 'productvarient' %}"><button class="btn-update">Add Varient</button></a>
-                    
+                    <a href="{% url 'viewvarients' product.id %}">
+                        <button class="btn-edit">View</button>
+                    </a>
+                </td>
+                <td>
+                    <a href=""><button class="btn-edit">Edit</button></a>
+                    <a href="{% url 'deleteproducts' product.id %}">
+                        <button class="btn-remove">Remove</button>
+                    </a>
+                    <a href="{% url 'productvarient'  product.id %}">
+                        <button class="btn-update">Add Variant</button>
+                    </a>
                 </td>
             </tr>
+            {% empty %}
             <tr>
-                <td>Truke BT01</td>
-                <td>Truke</td>
-                <td>2</td>
-                <td>Wireless Headphones</td>
-                <td><button class="btn-edit">view</button></td>
-                <td>
-                    <a href="{% url 'editproducts' %}"><button class="btn-edit">Edit</button></a>
-                    <button class="btn-remove">Remove</button>
-                    <a href="{% url 'productvarient' %}"><button class="btn-update">Add Varient</button></a>
-                    
-                </td>
+                <td colspan="6">No products available.</td>
             </tr>
-            <tr>
-                <td>Truke BT01</td>
-                <td>Truke</td>
-                <td>2</td>
-                
-                <td>Wireless Headphones</td>
-                <td><button class="btn-edit">view</button></td>
-                <td>
-                    <a href="{% url 'editproducts' %}"><button class="btn-edit">Edit</button></a>
-                    <button class="btn-remove">Remove</button>
-                    <a href="{% url 'productvarient' %}"><button class="btn-update">Add Varient</button></a>
-                    
-                </td>
-            </tr>
-           
+            {% endfor %}
         </tbody>
     </table>
 

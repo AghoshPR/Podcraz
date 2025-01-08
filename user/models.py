@@ -31,6 +31,12 @@ class ProductVariant(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     stock = models.IntegerField()
 
+class ProductImage(models.Model):
+    product_variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE)
+    image_path = models.ImageField(upload_to='product_images/')
+    is_deleted = models.BooleanField(default=False)
+
+
 # Cart Model
 class Cart(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -137,10 +143,6 @@ class Address(models.Model):
     order_address = models.BooleanField(default=False)
 
 
-class ProductImage(models.Model):
-    product_variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE)
-    image_path = models.TextField()
-    is_deleted = models.BooleanField(default=False)
 
 
 class Rating(models.Model):

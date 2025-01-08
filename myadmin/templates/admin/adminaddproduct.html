@@ -90,29 +90,36 @@
     <div class="add-product-form">
         
         
-        <form class="product-form">
+        <form class="product-form" method="post">
+            {% csrf_token %}
             <div class="form-group">
                 <label>Product Name</label>
-                <input type="text" class="form-control" value="Tesla BTD">
+                <input type="text" name="prd_name" class="form-control" value="Tesla BTD">
             </div>
 
             <div class="form-group">
-                <label>Brand</label>
-                <input type="text" class="form-control" value="Tesla">
+                <label>Brands</label>
+                <select name="prd_brand" class="form-control">
+                    {% for brand in brands %}
+                    <option value={{ brand.id }}>{{ brand.name}}</option>
+                    {% endfor %}
+                </select>
             </div>
 
            
 
             <div class="form-group">
                 <label>Category</label>
-                <select class="form-control">
-                    <option>Select Category</option>
+                <select name="prd_category" class="form-control">
+                    {% for category in categories %}
+                    <option value={{ category.id }}>{{ category.name}}</option>
+                    {% endfor %}
                 </select>
             </div>
 
             <div class="form-group">
                 <label>Description</label>
-                <textarea class="form-control" rows="4"></textarea>
+                <textarea class="form-control" name="description" rows="4"></textarea>
             </div>
 
             

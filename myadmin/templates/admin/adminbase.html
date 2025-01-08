@@ -8,141 +8,153 @@
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    {% block head %}{% endblock %}
     
     <style>
+        .action-buttons {
+            display: flex;
+            align-items: center;  
+            gap: 10px;  
+        }
+        
+        .action-buttons button {
+            margin: 0;  
+        }
+        
+        
         body {
-    background-color: #1a1a1a;
-}
-.admin-container {
-    padding: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-.sidebar {
-    background-color: black;
-    border-radius: 15px;
-    padding: 20px 0;
-    height: 90vh;
-   
-}
-
-.logo {
-    text-align: center;
-    padding: 20px 0;
-}
-.logo img {
-    width: 100px;
-}
-.nav-item {
-    padding: 10px 20px;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    transition: background-color 0.3s ease; /* Smooth transition */
-}
-.nav-item.active {
-    background-color: gray; /* Active color */
-    font-weight: bold;
-}
-
-.nav-item:hover {
-    background-color: #555; /* Add hover effect for items */
-}
-.main-content {
-    background-color: grey;
-    border-radius: 15px;
-    padding: 20px;
-    margin-left: 20px;
-}
-
-.nav-item.active {
-    background-color: gray; /* Active color */
-    font-weight: bold;
-}
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding: 10px;
-    background-color: #333;
-    border-radius: 10px;
-}
-.header h2 {
-    color: white;
-    margin: 0;
-}
-.search-box {
-    background: white;
-    border-radius: 5px;
-    padding: 5px 10px;
-    display: flex;
-    align-items: center;
-}
-.search-box input {
-    border: none;
-    outline: none;
-    background: transparent;
-    padding: 5px;
-    width: 200px;
-}
-.product-table {
-    width: 100%;
-    margin-top: 20px;
-}
-.product-table th {
-    background-color: #333;
-    color: white;
-    padding: 12px;
-}
-.product-table tr {
-    border-bottom: 1px solid #3a3a3a;
-}
-.product-table td {
-    padding: 12px;
-    color: white;
-}
-.btn-edit {
-    background-color: #ffd700;
-    color: black;
-    border: none;
-    padding: 5px 15px;
-    border-radius: 5px;
-    margin-right: 5px;
-}
-.btn-remove {
-    background-color: #ff4444;
-    color: white;
-    border: none;
-    padding: 5px 15px;
-    border-radius: 5px;
-}
-.btn-add {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 8px 20px;
-    border-radius: 5px;
-    margin-top: 20px;
-}
-.pagination {
-    margin-top: 20px;
-    display: flex;
-    justify-content: center;
-    gap: 5px;
-}
-.page-item {
-    background: #333;
-    color: white;
-    padding: 5px 12px;
-    border-radius: 5px;
-    cursor: pointer;
-}
-.page-item.active {
-    background: #007bff;
-}
+            background-color: #1a1a1a;
+        }
+        .admin-container {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .sidebar {
+            background-color: black;
+            border-radius: 15px;
+            padding: 20px 0;
+            height: 90vh;
+           
+        }
+        
+        .logo {
+            text-align: center;
+            padding: 20px 0;
+        }
+        .logo img {
+            width: 100px;
+        }
+        .nav-item {
+            padding: 10px 20px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease; /* Smooth transition */
+        }
+        .nav-item.active {
+            background-color: gray; /* Active color */
+            font-weight: bold;
+        }
+        
+        .nav-item:hover {
+            background-color: #555; /* Add hover effect for items */
+        }
+        .main-content {
+            background-color: grey;
+            border-radius: 15px;
+            padding: 20px;
+            margin-left: 20px;
+        }
+        
+        .nav-item.active {
+            background-color: gray; /* Active color */
+            font-weight: bold;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #333;
+            border-radius: 10px;
+        }
+        .header h2 {
+            color: white;
+            margin: 0;
+        }
+        .search-box {
+            background: white;
+            border-radius: 5px;
+            padding: 5px 10px;
+            display: flex;
+            align-items: center;
+        }
+        .search-box input {
+            border: none;
+            outline: none;
+            background: transparent;
+            padding: 5px;
+            width: 200px;
+        }
+        .product-table {
+            width: 100%;
+            margin-top: 20px;
+        }
+        .product-table th {
+            background-color: #333;
+            color: white;
+            padding: 12px;
+        }
+        .product-table tr {
+            border-bottom: 1px solid #3a3a3a;
+        }
+        .product-table td {
+            padding: 12px;
+            color: white;
+        }
+        .btn-edit {
+            background-color: #ffd700;
+            color: black;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 5px;
+            margin-right: 5px;
+        }
+        .btn-remove {
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 5px;
+        }
+        .btn-add {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .pagination {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+        }
+        .page-item {
+            background: #333;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .page-item.active {
+            background: #007bff;
+        }
     </style>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -172,6 +184,9 @@
                 </div>
                 <div class="nav-item">
                     <a href="{% url 'adminproducts' %}" class="text-decoration-none text-white">Products</a>
+                </div>
+                <div class="nav-item">
+                    <a href="{% url 'brands' %}" class="text-decoration-none text-white">Brands</a>
                 </div>
                 <div class="nav-item">
                     <a href="{% url 'admincustomers' %}" class="text-decoration-none text-white">Customers</a>

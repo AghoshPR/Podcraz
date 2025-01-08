@@ -70,7 +70,6 @@
         background: #444;
     }
     
-    
     .btn-primary {
         background: #007bff;
         color: white;
@@ -84,47 +83,24 @@
     .btn-primary:hover {
         background: #0056b3;
     }
-</style>
+    </style>
 <div class="content-wrapper">
-    <h1 class="page-title">Add Product Variant</h1>
+    <h1 class="page-title">Edit Brand</h1>
 
     <div class="add-product-form">
-        <form class="product-form" method="POST" enctype="multipart/form-data">
+        
+        
+        <form class="product-form" method="post">
             {% csrf_token %}
-
-            <input type="hidden" name="product_id" value="{{ product.id }}">
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" name="brand_name" class="form-control" value="{{ brand.name }}">
+            </div>
             
-            <div class="form-group">
-                <label>Color</label>
-                <input type="text" class="form-control" name="color" required>
-            </div>
-
-            <div class="form-group">
-                <label>Price</label>
-                <input type="text" class="form-control" name="price" required>
-            </div>
-
-            <div class="form-group">
-                <label>Stock</label>
-                <input type="number" class="form-control" name="stock" required>
-            </div>
-
-            <div class="form-group">
-                <label for="productImage1">Product Image 1</label>
-                <input type="file" id="productImage1" name="productImage1" accept="image/*">
-                
-                <label for="productImage2">Product Image 2</label>
-                <input type="file" id="productImage2" name="productImage2" accept="image/*">
-                
-                <label for="productImage3">Product Image 3</label>
-                <input type="file" id="productImage3" name="productImage3" accept="image/*">
-                
-                <label for="productImage4">Product Image 4</label>
-                <input type="file" id="productImage4" name="productImage4" accept="image/*">
-            </div>
 
             <div class="form-actions">
-                <button type="submit" class="btn btn-primary">Add Variant</button>
+                
+                <button type="submit" class="btn btn-primary">Save Changes</button>
             </div>
         </form>
     </div>
