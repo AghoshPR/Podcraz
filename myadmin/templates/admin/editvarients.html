@@ -1,65 +1,64 @@
 {% extends "admin/adminbase.html" %}
+{% load static %}
 
-{% block title %}Products - Podcraze Admin{% endblock %}
+{% block title %}Podcraze{% endblock %}
 
+{% block head %}
+
+<link rel="stylesheet" href="{% static 'css/editproductvariant.css' %}">
+{% endblock %}
 {% block content %}
-<div class="col main-content">
-    <div class="header">
-        <h2>Edit Varients</h2>
-        <div class="search-box">
-            <input type="text" placeholder="Search">
-        </div>
-    </div>
 
-    <table class="product-table">
-        <thead>
-            <tr>
-                <th>Varient Number</th>
-                <th>Color</th>
-                <th>Price</th>
-                <th>Stock</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>1</td>
-                <td>Black</td>
-                <td>Rs.1999</td>
-                <td>40</td>
-                
-                
-                <td>
-                    <a href=""><button class="btn-edit">Edit</button></a>
-                    <button class="btn-remove">Remove</button>
-                    
-                </td>
-            </tr>
-            <tr>
-                <td>2</td>
-                <td>White</td>
-                <td>Rs.1999</td>
-                <td>40</td>
-                
-                
-                <td>
-                    <a href=""><button class="btn-edit">Edit</button></a>
-                    <button class="btn-remove">Remove</button>
-                    
-                </td>
-            </tr>
+
+{% load custom_filters %}
+
+<div class="content-wrapper">
+    <h1 class="page-title">Edit Product Variant</h1>
+    <div class="add-product-form">
+        <form class="product-form" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
             
-           
-           
-        </tbody>
-    </table>
+            <div class="form-group">
+                <label>Color</label>
+                <input type="text" class="form-control" name="color" value="{{ variant.color }}" required>
+            </div>
 
-    <a href="">
-        <button class="btn-add">Save changes</button>
-      </a>
+            <div class="form-group">
+                <label>Price</label>
+                <input type="text" class="form-control" name="price" value="{{ variant.price }}" required>
+            </div>
 
-  
+            <div class="form-group">
+                <label>Stock</label>
+                <input type="number" class="form-control" name="stock" value="{{ variant.stock }}" required>
+            </div>
+
+            <div class="form-group">
+                {# Display existing images #}
+                {% for image in product_images %}
+                    <div class="image-upload-container">
+                        <label>Product Image {{ forloop.counter }}</label>
+                        {% if image.image_path %}
+                            <img src="{{ image.image_path.url }}" alt="Product Image {{ forloop.counter }}" 
+                                 style="max-width: 100px; max-height: 100px;">
+                        {% endif %}
+                        <input type="file" name="productImage{{ forloop.counter }}" accept="image/*">
+                    </div>
+                {% endfor %}
+                
+                {# Add remaining image upload fields #}
+                {% for i in remaining_image_slots %}
+                    <div class="image-upload-container">
+                        <label>Product Image {{ forloop.counter|add:product_images.count }}</label>
+                        <input type="file" name="productImage{{ forloop.counter|add:product_images.count }}" accept="image/*">
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
 </div>
-
-
 {% endblock %}

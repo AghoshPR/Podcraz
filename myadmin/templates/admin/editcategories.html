@@ -12,7 +12,7 @@
                     <h4 class="mb-0">Add Category</h4>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="">
+                    <form method="POST" action="{% url 'admineditcategory' category.id %}">
                         {% csrf_token %}
                         <div class="mb-3">
                             <label for="categoryName" class="form-label">Category Name</label>
@@ -45,13 +45,13 @@
 
 .form-control {
     border: 1px solid #444;
-    background-color: #fffcfc !important;
+    
 }
 
 .form-control:focus {
     background-color: #444 !important;
     border-color: #666;
-    color: white;
+    
     box-shadow: none;
 }
 

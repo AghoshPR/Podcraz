@@ -1,0 +1,66 @@
+{% extends "admin/adminbase.html" %}
+{% load static %}
+{% block title %}Podcraze{% endblock %}
+
+{% block head %}
+
+<link rel="stylesheet" href="{% static 'css/adminproduct.css' %}">
+{% endblock %}
+
+
+{% block content %}
+<div class="col main-content">
+    <div class="header">
+        <h2>Category</h2>
+        <div class="search-box">
+            <input type="text" placeholder="Search">
+        </div>
+    </div>
+
+    <table class="product-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Action</th>
+                
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>01</td>
+                <td>Wired Headphones</td>
+                <td>active</td>
+                <td>
+                    <a href="{% url 'editproducts' %}"><button class="btn-edit">Edit</button></a>
+                    <button class="btn-remove">Remove</button>
+                </td>
+            </tr>
+
+            <tr>
+                <td>02</td>
+                <td>Wireless Headphones</td>
+                <td>active</td>
+                <td>
+                    <a href="{% url 'editproducts' %}"><button class="btn-edit">Edit</button></a>
+                    <button class="btn-remove">Remove</button>
+                </td>
+            </tr>
+            
+        </tbody>
+    </table>
+
+    <a href="{% url 'adminaddproducts' %}">
+        <button class="btn-add">Add new Product</button>
+      </a>
+
+    <div class="pagination">
+        <div class="page-item">Previous</div>
+        <div class="page-item active">1</div>
+        <div class="page-item">2</div>
+        <div class="page-item">3</div>
+        <div class="page-item">Next</div>
+    </div>
+</div>
+{% endblock %}

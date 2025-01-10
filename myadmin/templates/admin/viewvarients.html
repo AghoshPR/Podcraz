@@ -31,7 +31,7 @@
                 
                 
                 <td>
-                    <a href="">
+                    <a href="{% url 'editvarients' variant.id %}">
                         <button class="btn-edit">Edit</button>
                     </a>
                     <form action="{% url 'deletevarient' variant.id %}" method="post" style="display:inline;">

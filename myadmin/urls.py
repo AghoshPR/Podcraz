@@ -6,19 +6,19 @@ urlpatterns = [
     
 
     path('login/',views.adminlogin,name='adminlogin'),
-    
     path('logout/',views.adminlogout,name='adminlogout'),
 
+#admin product
     path('products/',views.adminproducts,name='adminproducts'),
     path('addproducts/',views.adminaddproducts,name='adminaddproducts'),
-    path('editproducts/',views.editproducts,name='editproducts'),
+    path('editproducts/<int:product_id>/',views.editproducts,name='editproducts'),
     path('deleteproducts/<int:product_id>/',views.deleteproducts,name='deleteproducts'),
 
 
 
     path('productsvarient/<int:product_id>/',views.productvarient,name='productvarient'),
     path('viewvarient/<int:product_id>/',views.viewvarient,name='viewvarients'),
-    path('editvarient/',views.editvarient,name='editvarients'),
+    path('editvarient/<int:variant_id>',views.editvarient,name='editvarients'),
     path('deletevarient/<int:variant_id>/',views.deletevarient,name='deletevarient'),
 
 
@@ -29,10 +29,13 @@ urlpatterns = [
     
 
     path('customers/',views.admincustomers,name='admincustomers'),
+    path('block_user/<int:user_id>/', views.block_user, name='block_user'),
+    path('unblock_user/<int:user_id>/', views.unblock_user, name='unblock_user'),
+    path('deleteuser/<int:user_id>/', views.deletecustomers, name='delete_user'),
 
     path('category/',views.admincategory,name='admincategory'),
     path('addcategory/',views.adminaddcategory,name='adminaddcategory'),
-    path('editcategory/<int:id>/',views.admineditcategory,name='admineditcategory'),
+    path('editcategory/<int:category_id>/',views.admineditcategory,name='admineditcategory'),
     path('deletecategory/<int:id>/',views.admindeletecategory,name='admindeletecategory'),
    
     

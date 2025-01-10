@@ -83,12 +83,26 @@ def otp_verify(request):
             else:
                 messages.error(request, 'OTP has expired. Please request a new OTP.')
                 return render(request, 'user/otp-verify.html', {'remaining_time': 0})
+            
 
+
+        if not entered_otp:
+            messages.error(request, 'Please enter the OTP.')
+            return render(request, 'user/otp-verify.html')
+
+        if not entered_otp.isdigit():
+            messages.error(request, 'OTP must contain only numbers.')
+            return render(request, 'user/otp-verify.html')
+        
+        if len(entered_otp) != 4:
+            messages.error(request, 'OTP must be exactly 4 digits.')
+            return render(request, 'user/otp-verify.html')
 
         if entered_otp == original_otp:
             return redirect('reset_password')
         else:
             messages.error(request,'Invalid OTP. Please try again')
+
     
     time_otp=request.session.get('forgotpass_otp_time')
     otp_time_parsed=parse_datetime(time_otp)

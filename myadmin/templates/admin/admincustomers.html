@@ -3,6 +3,10 @@
 {% block title %}Products - Podcraze Admin{% endblock %}
 
 {% block content %}
+
+
+
+
 <div class="col main-content">
     <div class="header">
         <h2>Customers</h2>
@@ -23,21 +27,30 @@
             </tr>
         </thead>
         <tbody>
+            {% for user in users  %}
+                {% if not user.is_superuser %}
             <tr>
-                <td>1</td>
-                <td>Aghosh</td>
-                <td>aghosh@gmail.com</td>
-                <td>9072185532</td>
-                <td>Active</td>
+                <td>{{ user.id }}</td>
+                <td>{{ user.first_name }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.phone }}</td>
+                <td>{{ user.status }}</td>
                 
                 <td>
-                    <button class="btn-edit">Unblock</button>
-                    <button class="btn-remove">Block</button>
+                    {% if user.status == 'Blocked' %}
+                    <a href="{% url 'unblock_user' user.id %}" class="btn btn-success">Unblock</a>
+                    {% else %}
+                    <a href="{% url 'block_user' user.id %}" class="btn-remove">Block</a>
+                    {% endif %}
+                    <form action="{% url 'delete_user' user.id %}" method="POST" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-delete">Remove</button>
+                    </form>
                 </td>
             </tr>
             
-            
-            
+                {% endif %}
+            {% endfor %}
         </tbody>
     </table>
 

@@ -1,0 +1,66 @@
+.filter-sidebar {
+    background-color: #f8f9fa;
+    padding: 20px;
+    max-height: 400px; /* Limit height */
+    overflow-y: auto; /* Add scroll if content overflows */
+    border: 1px solid #ddd; /* Optional: Add a border for clarity */
+    border-radius: 8px; /* Optional: Rounded corners */
+}
+
+.card {
+    border: 1px solid #eee;
+    transition: transform 0.2s;
+    margin-bottom: 20px;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.product-image {
+    padding: 15px;
+    object-fit: contain;
+    max-height: 200px; /* Ensure images don't overflow */
+    width: 100%;
+}
+
+.rating {
+    color: #198754;
+}
+
+.wishlist-btn {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    background: white;
+    border-radius: 50%;
+    padding: 5px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pagination {
+    justify-content: center;
+    margin-top: 2rem;
+    margin-right: 25rem;
+}
+
+.product-title {
+    padding: 0 1rem;
+    margin-top: 0.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.price-container {
+    padding: 0 1rem;
+}
+
+.current-price {
+    font-weight: 600;
+    font-size: 1.25rem;
+}

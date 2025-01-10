@@ -1,0 +1,10 @@
+
+.action-buttons {
+    display: flex;
+    align-items: center;  
+    gap: 10px;  
+}
+
+.action-buttons button {
+    margin: 0;  
+}

@@ -1,5 +1,5 @@
 
-from django.shortcuts import render,HttpResponse,redirect
+from django.shortcuts import *
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import authenticate,login,logout,get_user_model
 from django.contrib.auth.models import User
@@ -33,12 +33,17 @@ def userlogin(request):
 
         user=authenticate(request,username=email,password=password)
         
+        
+        
         if user:
+            if user.status == 'Blocked':
+                messages.error(request,"Your account has been blocked. Please contact support.")
+                return redirect('userlogin')
+            
             login(request,user)
             return redirect('userhome')
         else:
-            messages.error(request,"Invalid email or password")
-            return redirect('userlogin')
+            messages.error(request, "Invalid email or password!")
 
 
     return render(request,'user/login.html')
@@ -47,7 +52,6 @@ def userlogin(request):
 def signup(request):
     if request.POST:
 
-        
 
         if request.POST:
             fname=request.POST['usr_fname']
@@ -70,14 +74,30 @@ def signup(request):
                 messages.error(request, "User with this email already exists.")
                 return render(request,'user/signup.html')
             
-            phone_validate=r'^\d{10}$'
+            phone_validate = r'^[1-9]\d{9}$'
             if not re.match(phone_validate, usrPhone):
-                messages.error(request, "Invalid phone number.Must be 10 digits")
-                return render(request,'user/signup.html')
+                messages.error(request, "Invalid phone number. Must be 10 digits and cannot start with 0.")
+                return render(request, 'user/signup.html')
 
             if usrPassword != usrConfirmPassword:
                 messages.error(request,'Enter password correctly')
                 return render(request,'user/signup.html')
+            
+            if len(usrPassword) < 8:
+                messages.error(request, "Password must be at least 8 characters long.")
+                return render(request, 'user/signup.html')
+            
+            if not re.search(r'[A-Za-z]', usrPassword):
+                messages.error(request, "Password must contain at least one letter.")
+                return render(request, 'user/signup.html')
+            
+            if not re.search(r'[0-9]', usrPassword):
+                messages.error(request, "Password must contain at least one number.")
+                return render(request, 'user/signup.html')
+            
+            if not re.search(r'[!@#$%^&*(),.?":{}|<>]', usrPassword):
+                messages.error(request, "Password must contain at least one special character.")
+                return render(request, 'user/signup.html')
             
             
             
@@ -124,6 +144,18 @@ def signup_otp(request):
             entered_otp=request.POST.get('signup-otp')
             original_otp=request.session.get('reg_otp')
             otp_time=request.session.get('reg_otp_time')
+
+            if not entered_otp:
+                messages.error(request, 'OTP field is required.')
+                return render(request, 'user/otp-signup.html')
+            
+            if not entered_otp.isdigit():
+                messages.error(request, 'OTP must contain only numbers.')
+                return render(request, 'user/otp-signup.html')
+            
+            if len(entered_otp) != 4:
+                messages.error(request, 'OTP must be exactly 4 digits.')
+                return render(request, 'user/otp-signup.html')
 
             otp_time_parsed = parse_datetime(otp_time)
             if not otp_time_parsed or now() > otp_time_parsed + timedelta(minutes=1):
@@ -203,6 +235,26 @@ def reset_password(request):
         new_pass=request.POST['new_pass']
         confirm_pass=request.POST['confirm_pass']
 
+        if not new_pass or not confirm_pass:
+            messages.error(request,"Both fileds are required")
+            return render(request,'user/new_password.html')
+        
+        if new_pass != confirm_pass:
+            messages.error(request,"Password do not match.")
+        
+        if len(new_pass) < 8:
+            messages.error(request, "Password must be at least 8 characters long.")
+            return render(request, 'user/new_password.html')
+        if not re.search(r'[A-Za-z]', new_pass):
+            messages.error(request, "Password must contain at least one letter.")
+            return render(request, 'user/new_password.html')
+        if not re.search(r'[0-9]', new_pass):
+            messages.error(request, "Password must contain at least one number.")
+            return render(request, 'user/new_password.html')
+        if not re.search(r'[!@#$%^&*(),.?":{}|<>]', new_pass):
+            messages.error(request, "Password must contain at least one special character.")
+            return render(request, 'user/new_password.html')
+
         if new_pass==confirm_pass:
             email = request.session.get('forgotpass_otpmail')
             user=User.objects.get(email=email)
@@ -226,10 +278,37 @@ def userlogout(request):
 
 
 def userproducts(request):
-    return render(request,'user/products.html')
 
-def userproductview(request):
-    return render(request,'user/productview.html')
+    categories=ProductCategory.objects.all()
+    brands=Brand.objects.all()
+    products=Product.objects.all()
+
+
+    context={
+        'categories':categories,
+        'brands':brands,
+        'products':products
+    }
+
+    return render(request,'user/products.html',context)
+
+def userproductview(request, product_id):
+   
+    product=get_object_or_404(Product, id=product_id)
+    product_variants=ProductVariant.objects.filter(product=product)
+    product_images=ProductImage.objects.filter(product_variant__product=product)
+
+
+    
+
+
+    context={
+        'product':product,
+        'product_variants':product_variants,
+        'product_images':product_images
+    }
+    
+    return render(request,'user/productview.html',context)
 
 def userwishlist(request):
     return render(request,'user/wishlist.html')

@@ -94,7 +94,14 @@
     </nav>
 
     <!-- Search Section -->
-    <div class="container my-4">
+
+    {% block breadcrumb %}
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">Home</li>
+      </ol>
+    </nav>
+    {% endblock %}
         <p class="text-center fs-5 fw-bold">"Choose the Best, Find Your Perfect Pair of Earbuds in Our Store."</p>
         <div class="d-flex justify-content-center">
             <div class="input-group" style="max-width: 600px;">
@@ -105,7 +112,11 @@
                 <button class="btn btn-dark px-4 rounded-end">Search</button>
             </div>
         </div>
+      
     </div>
+    
+   
+    
 
 
     <div class="banner my-4">
@@ -241,9 +252,6 @@
             </div>
         </div>
     </div>
-    
-    
-
     
 
     <!-- New Launches -->

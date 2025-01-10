@@ -1,8 +1,16 @@
 {% extends "admin/adminbase.html" %}
-
+{% load static %}
 {% block title %}Products - Podcraze Admin{% endblock %}
 
+{% block head %}
+
+<link rel="stylesheet" href="{% static 'css/adminproduct.css' %}">
+{% endblock %}
+
 {% block content %}
+
+
+
 <div class="col main-content">
     <div class="header">
         <h2>Products</h2>
@@ -28,14 +36,14 @@
                 <td>{{ product.name }}</td>
                 <td>{{ product.brand.name|default:"No brand assigned" }}</td>
                 <td>{{ product.product_category.name|default:"No category assigned" }}</td>
-                <td>{{ product.varient_count|default:"0" }}</td>
+                <td>{{ product.variant_count|default:"0" }}</td>
                 <td>
                     <a href="{% url 'viewvarients' product.id %}">
                         <button class="btn-edit">View</button>
                     </a>
                 </td>
                 <td>
-                    <a href=""><button class="btn-edit">Edit</button></a>
+                    <a href="{%  url 'editproducts' product.id  %}"><button class="btn-edit">Edit</button></a>
                     <a href="{% url 'deleteproducts' product.id %}">
                         <button class="btn-remove">Remove</button>
                     </a>

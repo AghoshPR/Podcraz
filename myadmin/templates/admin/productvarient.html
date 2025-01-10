@@ -1,89 +1,15 @@
 {% extends "admin/adminbase.html" %}
-
+{% load static %}
 {% block title %}Podcraze{% endblock %}
+{% block head %}
 
+<link rel="stylesheet" href="https://unpkg.com/cropperjs/dist/cropper.css">
+<link rel="stylesheet" href="{% static 'css/addproductvariant.css' %}">
+{% endblock %}
 {% block content %}
 
 <style>
-    .content-wrapper {
-        padding: 20px;
-    }
     
-    .page-title {
-        color: white;
-        margin-bottom: 20px;
-    }
-    
-    .add-product-form {
-        background: #333;
-        padding: 20px;
-        border-radius: 8px;
-    }
-    
-    .form-title {
-        color: white;
-        margin-bottom: 20px;
-        padding: 10px;
-        background: #444;
-        border-radius: 4px;
-    }
-    
-    .form-group {
-        margin-bottom: 20px;
-    }
-    
-    .form-group label {
-        display: block;
-        color: white;
-        margin-bottom: 5px;
-    }
-    
-    .form-control {
-        width: 100%;
-        padding: 8px;
-        background: #222;
-        border: none;
-        border-radius: 4px;
-        color: white;
-    }
-    
-    .image-upload-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 100px);
-        gap: 10px;
-    }
-    
-    .upload-box {
-        width: 100px;
-        height: 100px;
-        background: #222;
-        border-radius: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-    }
-    
-    .upload-placeholder {
-        width: 40px;
-        height: 40px;
-        background: #444;
-    }
-    
-    
-    .btn-primary {
-        background: #007bff;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 4px;
-        cursor: pointer;
-        float: right;
-    }
-    
-    .btn-primary:hover {
-        background: #0056b3;
-    }
 </style>
 <div class="content-wrapper">
     <h1 class="page-title">Add Product Variant</h1>
@@ -110,17 +36,29 @@
             </div>
 
             <div class="form-group">
-                <label for="productImage1">Product Image 1</label>
-                <input type="file" id="productImage1" name="productImage1" accept="image/*">
+                <div class="image-input-group">
+                    <label for="productImage1">Product Image 1</label>
+                    <input type="file" id="productImage1" class="product-image" name="productImage1" accept="image/*">
+                    <div id="preview1" class="preview-container"></div>
+                </div>
                 
-                <label for="productImage2">Product Image 2</label>
-                <input type="file" id="productImage2" name="productImage2" accept="image/*">
+                <div class="image-input-group">
+                    <label for="productImage2">Product Image 2</label>
+                    <input type="file" id="productImage2" class="product-image" name="productImage2" accept="image/*">
+                    <div id="preview2" class="preview-container"></div>
+                </div>
                 
-                <label for="productImage3">Product Image 3</label>
-                <input type="file" id="productImage3" name="productImage3" accept="image/*">
+                <div class="image-input-group">
+                    <label for="productImage3">Product Image 3</label>
+                    <input type="file" id="productImage3" class="product-image" name="productImage3" accept="image/*">
+                    <div id="preview3" class="preview-container"></div>
+                </div>
                 
-                <label for="productImage4">Product Image 4</label>
-                <input type="file" id="productImage4" name="productImage4" accept="image/*">
+                <div class="image-input-group">
+                    <label for="productImage4">Product Image 4</label>
+                    <input type="file" id="productImage4" class="product-image" name="productImage4" accept="image/*">
+                    <div id="preview4" class="preview-container"></div>
+                </div>
             </div>
 
             <div class="form-actions">
@@ -129,4 +67,92 @@
         </form>
     </div>
 </div>
+<div id="cropperModal" class="modal">
+    <div class="modal-content">
+        <div id="cropper-container" class="cropper-container"></div>
+        <button onclick="cropImage()">Crop</button>
+        <button onclick="closeCropPopup()">Close</button>
+    </div>
+</div>
+<script src="https://unpkg.com/cropperjs/dist/cropper.js"></script>
+    <script>
+        let cropper;
+        let currentInput;
+        let currentPreview;
+        const modal = document.getElementById('cropperModal');
+        const cropperContainer = document.getElementById('cropper-container');
+
+        // Add event listeners to all image inputs
+        document.querySelectorAll('.product-image').forEach(input => {
+            input.addEventListener('change', function(e) {
+                if (this.files && this.files[0]) {
+                    currentInput = this;
+                    const imageNumber = this.id.replace('productImage', '');
+                    currentPreview = document.getElementById('preview' + imageNumber);
+
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const image = new Image();
+                        image.src = e.target.result;
+                        image.onload = function() {
+                            modal.style.display = "block";
+                            cropperContainer.innerHTML = '';
+                            cropperContainer.appendChild(image);
+                            
+                            if (cropper) {
+                                cropper.destroy();
+                            }
+                            
+                            cropper = new Cropper(image, {
+                                aspectRatio: 800 / 600,
+                                viewMode: 2,
+                            });
+                        };
+                    };
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+        });
+
+        function closeCropPopup() {
+            modal.style.display = "none";
+            if (cropper) {
+                cropper.destroy();
+            }
+        }
+
+        function cropImage() {
+            const croppedCanvas = cropper.getCroppedCanvas({
+                width: 800,
+                height: 600
+            });
+            
+            // Convert to blob with compression
+            croppedCanvas.toBlob(function(blob) {
+                // Create a File object from the blob
+                const fileName = currentInput.files[0].name;
+                const croppedFile = new File([blob], fileName, { type: 'image/jpeg' });
+                
+                // Create a new FileList-like object
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(croppedFile);
+                currentInput.files = dataTransfer.files;
+                
+                // Show preview
+                currentPreview.innerHTML = '';
+                const previewImg = new Image();
+                previewImg.src = croppedCanvas.toDataURL('image/jpeg', 0.7);
+                currentPreview.appendChild(previewImg);
+                
+                closeCropPopup();
+            }, 'image/jpeg', 0.7);
+        }
+
+        // Close modal if user clicks outside
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closeCropPopup();
+            }
+        }
+    </script>
 {% endblock %}

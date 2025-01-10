@@ -1,6 +1,13 @@
 {% extends "admin/adminbase.html" %}
-
+{% load static %}
 {% block title %}Podcraze{% endblock %}
+
+{% block head %}
+
+<link rel="stylesheet" href="{% static 'css/admincategories.css' %}">
+{% endblock %}
+
+
 
 {% block content %}
 <div class="col main-content">
@@ -55,15 +62,5 @@
         <div class="page-item">Next</div>
     </div>
 </div>
-<style>
-    .action-buttons {
-    display: flex;
-    align-items: center;  
-    gap: 10px;  
-}
 
-.action-buttons button {
-    margin: 0;  
-}
-</style>
 {% endblock %}
