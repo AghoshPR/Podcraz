@@ -32,12 +32,13 @@
             {% csrf_token %}
             <div class="form-group">
                 <label>Product Name</label>
-                <input type="text" name="prd_name" class="form-control" value="Tesla BTD">
+                <input type="text" name="prd_name" class="form-control" value="Product name" title="Product name must be at least 3 characters long and cannot start with a space." required >
+
             </div>
 
             <div class="form-group">
                 <label>Brands</label>
-                <select name="prd_brand" class="form-control">
+                <select name="prd_brand" class="form-control" required>
                     {% for brand in brands %}
                     <option value={{ brand.id }}>{{ brand.name}}</option>
                     {% endfor %}

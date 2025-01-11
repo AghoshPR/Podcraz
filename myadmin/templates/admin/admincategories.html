@@ -33,10 +33,23 @@
             <tr>
                 <td>{{ category.id }}</td>
                 <td>{{ category.name }}</td>
-                <td>active</td>
+                <td>{{ category.status }}</td>
                 <td>
                     <div class="action-buttons">
                     <a href="{% url 'admineditcategory' category.id %}"><button class="btn-edit">Edit</button></a>
+
+                    <form action="{% url 'adminblockcategory' category.id %}">
+
+                       {% csrf_token %} 
+                       {% if category.status == 'Blocked' %}
+                       <button type="submit" class="btn-unblock">Unblock</button>
+                       {% else %}
+                       <button type="submit" class="btn-block">Block</button>
+                       {% endif %}
+
+                    </form>
+
+
                     <form action="{% url 'admindeletecategory' category.id %}" method="post">
                         {% csrf_token %}
                         <button type="submit" class="btn-remove">Delete</button>

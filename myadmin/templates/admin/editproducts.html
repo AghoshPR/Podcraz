@@ -13,15 +13,7 @@
 
 
     
-    {% if messages %}
-    <div class="alert-messages">
-        {% for message in messages %}
-        <div class="alert alert-danger">
-            {{ message }}
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
+   
 <div class="content-wrapper">
     <h1 class="page-title">Admin Edit Products</h1>
 
@@ -32,12 +24,12 @@
             {% csrf_token %}
             <div class="form-group">
                 <label>Product Name</label>
-                <input type="text" name='prd_name' class="form-control" value="{{ product.name }}">
+                <input type="text" name='prd_name' class="form-control" value="{{ product.name }}" required>
             </div>
 
             <div class="form-group">
                 <label>Brand</label>
-                <select class="form-control" name="prd_brand">
+                <select class="form-control" name="prd_brand" >
                     {% for brand in brands %}
                         <option value="{{ brand.id }}" {% if brand.id == product.brand.id %}selected{% endif %}>{{ brand.name }}</option>
                     {% endfor %}
@@ -57,7 +49,7 @@
 
             <div class="form-group">
                 <label>Description</label>
-                <textarea class="form-control" rows="4" name="description">{{ product.description }}</textarea>
+                <textarea class="form-control" rows="4" name="description" required>{{ product.description }}</textarea>
             </div>
 
            

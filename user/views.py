@@ -24,6 +24,7 @@ def userlogin(request):
 
     if request.POST:
 
+
         email = request.POST.get('usr')
         password = request.POST.get('password')
 
@@ -54,15 +55,23 @@ def signup(request):
 
 
         if request.POST:
-            fname=request.POST['usr_fname']
-            lname=request.POST['usr_lname']
-            usrPhone = request.POST['usr_phone']
-            usrEmail=request.POST['usr_email']
-            usrPassword=request.POST['usr_password']
-            usrConfirmPassword=request.POST['usr_cpassword']
+            fname = request.POST.get('usr_fname', '').strip()
+            lname = request.POST.get('usr_lname', '').strip()
+            usrPhone = request.POST.get('usr_phone', '').strip()
+            usrEmail = request.POST.get('usr_email', '').strip()
+            usrPassword = request.POST.get('usr_password', '').strip()
+            usrConfirmPassword = request.POST.get('usr_cpassword', '').strip()
 
             if not all([fname,lname,usrPhone,usrEmail,usrPassword,usrConfirmPassword]):
                 messages.error(request,"all fileds are Required!")
+                return render(request,'user/signup.html')
+            
+            if not fname.isalpha():
+                messages.error(request,"First name must only contain alphabets.")
+                return render(request,'user/signup.html')
+            
+            if not lname.isalpha():
+                messages.error(request,"Last name must only contain alphabets.")
                 return render(request,'user/signup.html')
             
             email_validate=r'^[\w\.-]+@[\w\.-]+\.\w+$'
@@ -267,6 +276,7 @@ def reset_password(request):
 ########### user password and user new password ###############
 @never_cache
 def userhome(request):
+
     return render(request,'user/homepage.html')
 
 
@@ -279,33 +289,39 @@ def userlogout(request):
 
 def userproducts(request):
 
-    categories=ProductCategory.objects.all()
+    categories=ProductCategory.objects.filter(status='Active')
     brands=Brand.objects.all()
-    products=Product.objects.all()
+    product_variants = ProductVariant.objects.filter(
+        product__product_category__status='Active'
+    )
 
 
     context={
         'categories':categories,
         'brands':brands,
-        'products':products
+        'product_variants':product_variants
     }
 
     return render(request,'user/products.html',context)
 
-def userproductview(request, product_id):
+def userproductview(request, variant_id):
    
-    product=get_object_or_404(Product, id=product_id)
-    product_variants=ProductVariant.objects.filter(product=product)
-    product_images=ProductImage.objects.filter(product_variant__product=product)
+   
+    product_variants=get_object_or_404(ProductVariant,id=variant_id)
+    product_images=ProductImage.objects.filter(product_variant=product_variants)
+
+    related_variants=ProductVariant.objects.filter(product=product_variants.product)
+    
 
 
     
 
 
     context={
-        'product':product,
+        
         'product_variants':product_variants,
-        'product_images':product_images
+        'product_images':product_images,
+        'related_variants':related_variants
     }
     
     return render(request,'user/productview.html',context)

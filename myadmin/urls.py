@@ -8,6 +8,9 @@ urlpatterns = [
     path('login/',views.adminlogin,name='adminlogin'),
     path('logout/',views.adminlogout,name='adminlogout'),
 
+
+    path('dashboard/',views.admindashboard,name='admindashboard'),
+
 #admin product
     path('products/',views.adminproducts,name='adminproducts'),
     path('addproducts/',views.adminaddproducts,name='adminaddproducts'),
@@ -36,6 +39,7 @@ urlpatterns = [
     path('category/',views.admincategory,name='admincategory'),
     path('addcategory/',views.adminaddcategory,name='adminaddcategory'),
     path('editcategory/<int:category_id>/',views.admineditcategory,name='admineditcategory'),
+    path('status/<int:category_id>/',views.adminblockcategory,name='adminblockcategory'),
     path('deletecategory/<int:id>/',views.admindeletecategory,name='admindeletecategory'),
    
     

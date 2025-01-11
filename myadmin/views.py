@@ -6,7 +6,7 @@ from django.db.models import *
 from django.core.exceptions import *
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
-import imghdr
+import imghdr,re
 
 # Create your views here.
 
@@ -83,8 +83,17 @@ def unblock_user(request, user_id):
 
 ################## product ######################
 
+@login_required(login_url='adminlogin')
+@never_cache
+def admindashboard(request):
+    return render(request,'admin/admindashboard.html')
 
+@login_required(login_url='adminlogin')
+@never_cache
 def adminproducts(request):
+
+    if not request.user.is_superuser:
+        return HttpResponse("You are restricted to enter this page")
 
     products = Product.objects.prefetch_related('productvariant_set').select_related('brand', 'product_category').annotate(variant_count=Count('productvariant'))
 
@@ -97,15 +106,19 @@ def adminproducts(request):
 def adminaddproducts(request):
 
     if request.POST:
-        name=request.POST.get('prd_name')
-        brand_id=request.POST.get('prd_brand')
-        category_id=request.POST.get('prd_category')
-        description=request.POST.get('description')
+        name=request.POST.get('prd_name','').strip()
+        brand_id=request.POST.get('prd_brand','').strip()
+        category_id=request.POST.get('prd_category','').strip()
+        description=request.POST.get('description','').strip()
 
         errors=[]
 
         if not name or len(name) < 3:
             errors.append("Product name must be at least 3 characters long.")
+
+        if not re.match(r'^[A-Za-z0-9\s]+$', name):  
+            errors.append("Product name can only contain letters, numbers.")
+
         if not brand_id or not Brand.objects.filter(id=brand_id).exists():
             errors.append("Please select a valid brand.")
         if not category_id or not ProductCategory.objects.filter(id=category_id).exists():
@@ -142,15 +155,19 @@ def editproducts(request,product_id):
     product=Product.objects.get(id=product_id)
     
     if request.POST:
-        name=request.POST.get('prd_name')
-        brand_id=request.POST.get('prd_brand')
-        category_id = request.POST.get('prd_category')
-        description = request.POST.get('description')
+        name=request.POST.get('prd_name','').strip()
+        brand_id=request.POST.get('prd_brand','').strip()
+        category_id = request.POST.get('prd_category','').strip()
+        description = request.POST.get('description','').strip()
 
 
         errors = []
         if not name or len(name) < 3:
             errors.append("Product name must be at least 3 characters long.")
+
+        if not re.match(r'^[A-Za-z0-9\s]+$', name):  
+            errors.append("Product name can only contain letters, numbers.")
+        
         if not brand_id or not Brand.objects.filter(id=brand_id).exists():
             errors.append("Please select a valid brand.")
         if not category_id or not ProductCategory.objects.filter(id=category_id).exists():
@@ -199,18 +216,23 @@ def deleteproducts(request,product_id):
 
 def productvarient(request,product_id):
     if request.POST:
-        variant_color=request.POST.get('color')
-        variant_price=request.POST.get('price')
-        variant_stock=request.POST.get('stock')
+        variant_color=request.POST.get('color','').strip()
+        variant_price=request.POST.get('price','').strip()
+        variant_stock=request.POST.get('stock','').strip()
 
         errors = []
 
         if not variant_color or len(variant_color) < 3:
             errors.append("Color must be at least 3 characters long.")
+
+        if not re.match(r'^[A-Za-z\s]+$', variant_color):  
+            errors.append("Color name can only contain letters.")
+
         if not variant_price or not variant_price.isdigit():
             errors.append("Price must be a valid number.")
+
         if not variant_stock or int(variant_stock) <= 0:
-            errors.append("Stock must be a positive number.")
+            errors.append("Stock must be a number.")
 
 
         img = [
@@ -220,8 +242,9 @@ def productvarient(request,product_id):
             request.FILES.get('productImage4')
         ]
 
-        if not any(img): 
-            errors.append("At least one product image is required.")
+        uploaded_images = [image for image in img if image]
+        if len(uploaded_images) != 4:
+            errors.append("Exactly 4 product images are required.")
         else:
             for image in img:
                 if image:
@@ -260,6 +283,8 @@ def productvarient(request,product_id):
     
     return render(request,'admin/productvarient.html')
 
+
+
 def viewvarient(request,product_id):
 
     prd_id=get_object_or_404(Product, id=product_id)
@@ -282,14 +307,17 @@ def editvarient(request, variant_id):
         return redirect('viewvarients', product_id=variant_id)
 
     if request.POST:
-        variant_color = request.POST.get('color')
-        variant_price = request.POST.get('price')
-        variant_stock = request.POST.get('stock')
+        variant_color = request.POST.get('color', '').strip()
+        variant_price = request.POST.get('price', '').strip()
+        variant_stock = request.POST.get('stock', '').strip()
 
         errors = []
 
         if not variant_color or len(variant_color) < 3:
             errors.append("Color must be at least 3 characters long.")
+        
+        elif not re.match(r'^[A-Za-z\s]+$', variant_color):  
+            errors.append("Color name can only contain letters.")
         
         try:
             variant_price = float(variant_price)
@@ -309,7 +337,9 @@ def editvarient(request, variant_id):
             request.FILES.get('productImage4')
         ]
 
-        # Validate new images if any are uploaded
+        
+
+        #  new images if any are uploaded
         for image in new_images:
             if image:
                 image_type = imghdr.what(image)
@@ -321,7 +351,7 @@ def editvarient(request, variant_id):
                 messages.error(request, error)
             return redirect('editvarients', variant_id=variant_id)
         
-        # Update variant details
+        # Update variant 
         variants.color = variant_color
         variants.price = variant_price
         variants.stock = variant_stock
@@ -373,21 +403,56 @@ def addbrands(request):
 
     if request.POST:
 
-        name=request.POST.get('brand_name')
-        if name:
-            Brand.objects.create(name=name)
-            return redirect('brands')
+        name = request.POST.get('brand_name', '').strip()
+
+        errors = []
+
+        
+        if not name:
+            errors.append("Brand name is required.")
+
+        elif not re.match(r'^[A-Za-z\s]+$', name):  
+            errors.append("Brand name can only contain letters and spaces.")
+
+        elif len(name) < 3:
+            errors.append("Brand name must be at least 3 characters long.")
+
+        elif Brand.objects.filter(name__iexact=name).exists():
+            errors.append("Brand name already exists.")
+
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+        else:
+                Brand.objects.create(name=name)
+                messages.success(request, "Brand added successfully.")
+                return redirect('brands')
     return render(request,'admin/addbrands.html')
 
 def editbrands(request, brand_id):
 
     brand= get_object_or_404(Brand,id=brand_id)
     if request.POST:
-        name=request.POST.get('brand_name')
-        if name:
-            brand.name=name
-            brand.save()
-            return redirect('brands')
+        name = request.POST.get('brand_name', '').strip()
+        errors = []
+
+        if not name:
+            errors.append("Brand name is required.")
+        elif not re.match(r'^[A-Za-z\s]+$', name):  
+            errors.append("Brand name can only contain letters.")
+        elif len(name) < 3:
+            errors.append("Brand name must be at least 3 characters long.")
+        elif Brand.objects.filter(name__iexact=name).exclude(id=brand_id).exists():
+            errors.append("Brand name already exists.")
+
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+        else:
+                brand.name=name
+                brand.save()
+                messages.success(request, "Brand updated successfully.")
+                return redirect('brands')
     return render(request,'admin/editbrands.html',{'brand':brand})
 
 def deletebrand(request, brand_id):
@@ -424,9 +489,24 @@ def admincategory(request):
 def adminaddcategory(request):
 
     if request.POST:
-        name=request.POST.get('categoryName')
-        if name:
+        name = request.POST.get('categoryName', '').strip()
+        errors = []
+
+        if not name:
+            errors.append("Category name is required.")
+        elif not re.match(r'^[A-Za-z\s]+$', name):  
+            errors.append("Category name can only contain letters and spaces.")
+        elif len(name) < 3:
+            errors.append("Category name must be at least 3 characters long.")
+        elif ProductCategory.objects.filter(name__iexact=name).exists():
+            errors.append("Category name already exists.")
+
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+        else:
             ProductCategory.objects.create(name=name)
+            messages.success(request, "Category added successfully.")
             return redirect('admincategory')
         
     return render(request,'admin/addcategories.html')
@@ -434,13 +514,44 @@ def adminaddcategory(request):
 def admineditcategory(request,category_id):
     category=get_object_or_404(ProductCategory, id=category_id)
     if request.POST:
-        category_name=request.POST.get('categoryName')
-        if category_name:
+
+        category_name = request.POST.get('categoryName', '').strip()
+        errors = []
+
+        if not category_name:
+            errors.append("Category name is required.")
+        elif not re.match(r'^[A-Za-z\s]+$', category_name):  # Only alphabets and spaces allowed
+            errors.append("Category name can only contain letters and spaces.")
+        elif len(category_name) < 3:
+            errors.append("Category name must be at least 3 characters long.")
+        elif ProductCategory.objects.filter(name__iexact=category_name).exclude(id=category_id).exists():
+            errors.append("Category name already exists.")
+
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+        else:
             category.name=category_name
             category.save()
+            messages.success(request, "Category updated successfully.")
             return redirect('admincategory')       
 
     return render(request,'admin/editcategories.html',{'category':category})
+
+def adminblockcategory(request,category_id):
+    category=get_object_or_404(ProductCategory,id=category_id)
+
+    if category.status == 'Active':
+        category.status = 'Blocked'
+        messages.success(request, f"Category '{category.name}' has been successfully blocked.")
+    else:
+        category.status ='Active'
+        messages.success(request, f"Category '{category.name}' has been successfully unblocked.")
+    category.save()
+    return redirect('admincategory')
+
+
+
 
 
 def admindeletecategory(request,id):

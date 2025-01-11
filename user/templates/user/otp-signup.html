@@ -4,17 +4,144 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OTP Verification</title>
+    <style>
+        body {
+            min-height: 100vh;
+            background: url('/static/images/background_img.jpg') no-repeat center center fixed;
+            background-size: cover;
+            position: relative;
+            font-family: Arial, sans-serif;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, rgba(0, 0, 0, 0.7), rgba(0, 35, 82, 0.7));
+            z-index: -1;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            padding: 1rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 1rem;
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.25);
+            color: white;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        label {
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .form-control {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            width: 100%;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-control:focus {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            color: white;
+            outline: none;
+            box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #0056b3, #00a0dc);
+            border: none;
+            color: white;
+            padding: 0.5rem;
+            width: 100%;
+            border-radius: 0.25rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 0.5rem;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(45deg, #00a0dc, #0056b3);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            background: transparent;
+            color: rgba(255, 255, 255, 0.8);
+            padding: 0.5rem;
+            width: 100%;
+            border-radius: 0.25rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-color: white;
+        }
+
+        .text-muted {
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .text-danger {
+            color: #ff6b6b !important;
+        }
+
+        .alert-container {
+            margin-bottom: 1rem;
+        }
+
+        .alert {
+            background-color: rgba(255, 0, 0, 0.1);
+            color: #ff6b6b;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            text-align: center;
+        }
+    </style>
     <script>
         // This function updates the countdown timer
         function startCountdown(seconds) {
             let countdownElement = document.getElementById('countdown');
             let remainingTime = seconds;
 
-            let interval = setInterval(function() {
+            let interval = setInterval(function () {
                 if (remainingTime <= 0) {
                     clearInterval(interval);
-                    countdownElement.innerHTML = "OTP Expired";
-                    // Optionally, you can disable the submit button or show a resend button
+                    countdownElement.innerHTML = "<span class='text-danger'>OTP Expired</span>";
                     document.getElementById('resend-button').style.display = "block";
                 } else {
                     countdownElement.innerHTML = remainingTime + " seconds remaining";
@@ -23,46 +150,49 @@
             }, 1000);
         }
 
-        // On page load, start the countdown with the remaining time from Django
-        window.onload = function() {
-            // Pass the remaining time from the Django context variable
-            let remainingTime = {{ remaining_time }};  // Django variable
+        window.onload = function () {
+            let remainingTime = {{ remaining_time }}; // Django variable
             if (remainingTime > 0) {
                 startCountdown(remainingTime);
             } else {
-                document.getElementById('countdown').innerHTML = "OTP Expired";
+                document.getElementById('countdown').innerHTML = "<span class='text-danger'>OTP Expired</span>";
                 document.getElementById('resend-button').style.display = "block";
             }
         };
     </script>
 </head>
 <body>
-    <h1>Sign Up OTP</h1>
     {% if messages %}
     <div class="alert-container">
         {% for message in messages %}
-            <div class="alert alert-danger">
-                {{ message }}
-            </div>
+        <div class="alert">
+            {{ message }}
+        </div>
         {% endfor %}
     </div>
-        {% endif %}
-    <form action="" method="post">
-        {% csrf_token %}
-        <label for="signup-otp">Enter OTP:</label>
-        <input type="text" name="signup-otp" id="signup-otp">
-        <button type="submit" name="action" value="submit">Submit</button>
-        <button type="submit" name="action" value="resend" id="resend-button" style="display: none;">Resend OTP</button>
-    </form>
+    {% endif %}
+    <div class="container">
+        <div class="card">
+            <h1>SignUp OTP</h1>
 
-    <div>
-        <p id="countdown">
-            {% if remaining_time > 0 %}
+            
+
+            <form action="" method="post">
+                {% csrf_token %}
+                <label for="signup-otp">Enter OTP:</label>
+                <input type="text" name="signup-otp" id="signup-otp" class="form-control">
+                <button type="submit" class="btn-primary" name="action" value="submit">Submit</button>
+                <button type="submit" class="btn-secondary" name="action" value="resend" id="resend-button" style="display: none;">Resend OTP</button>
+            </form>
+
+            <p id="countdown" class="text-muted">
+                {% if remaining_time > 0 %}
                 {{ remaining_time }} seconds remaining
-            {% else %}
-                OTP Expired
-            {% endif %}
-        </p>
+                {% else %}
+                <span class="text-danger">OTP Expired</span>
+                {% endif %}
+            </p>
+        </div>
     </div>
 </body>
 </html>

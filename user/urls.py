@@ -19,7 +19,7 @@ urlpatterns = [
 
     
     path('products/',views.userproducts,name='userproducts'),
-    path('productview/<int:product_id>/',views.userproductview,name='userproductview'),
+    path('productview/<int:variant_id>/',views.userproductview,name='userproductview'),
     path('wishlist/',views.userwishlist,name='userwishlist'),
     path('cart/',views.usercart,name='usercart'),
     path('checkout/',views.usercheckout,name='usercheckout'),

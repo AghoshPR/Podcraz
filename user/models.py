@@ -19,6 +19,14 @@ class User(AbstractUser):
 # ProductCategory Model
 class ProductCategory(models.Model):
     name = models.CharField(max_length=255)
+    status = models.CharField(
+        max_length=10,
+        choices=[('Active', 'Active'), ('Blocked', 'Blocked')],
+        default='Active'  # Default status is Active
+    )
+
+    def __str__(self):
+        return self.name
 
 # Brand Model
 class Brand(models.Model):

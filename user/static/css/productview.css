@@ -30,7 +30,25 @@ body {
 .main-image {
     width: 100%;
     height: auto;
-    max-width: 500px;
+    max-width: 100%;  /* Ensures the image fits within the container */
+    transition: transform 0.8s ease; /* Smooth transition */
+    object-fit: contain; /* Ensures the image scales properly within the container */
+}
+
+.main-image-container {
+    width: 500px;  /* Increased width */
+    height: 500px; /* Increased height */
+    overflow: hidden; /* To prevent images from overflowing the container */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid #ddd;
+    background-color: #fff;
+    position: relative; /* Ensured relative positioning */
+}
+
+.main-image-container:hover .main-image {
+    transform: scale(1.2); /* Scale the image on hover */
 }
 
 .color-options {
@@ -69,33 +87,15 @@ body {
 
 .btn-add-cart:hover,
 .btn-buy-now:hover {
-    background-color: #ff7043; /* Keep the original background color for Add to Cart */
-    border: none; /* Ensure no border appears on hover */
-    transform: none; /* Disable any movement */
+    background-color: #ff7043;
+    border: none;
+    transform: none;
 }
 
 .btn-buy-now {
     background-color: #e53935;
     border: none;
-   
 }
-
-.main-image-container {
-    width: 400px;  /* Adjust width as needed */
-    height: 400px; /* Adjust height as needed */
-    overflow: hidden; /* To prevent images from overflowing the container */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.main-image {
-    width: 100%;
-    height: 100%;
-    object-fit: contain; /* Ensures the image scales properly within the container */
-}
-
-
 
 .delivery-info {
     border: 1px solid #ddd;
@@ -106,7 +106,7 @@ body {
 
 .similar-products {
     margin-top: 40px;
-    margin-bottom: 60px; /* Add space between the product cards and the footer */
+    margin-bottom: 60px;
 }
 
 .similar-products .card {
@@ -133,12 +133,6 @@ body {
     font-weight: 500;
 }
 
-/* Similar products card specific styles */
-.card {
-    background-color: white;
-    transition: transform 0.2s;
-}
-
 .card:hover {
     transform: translateY(-5px);
 }
@@ -147,68 +141,18 @@ body {
     background: transparent;
 }
 
-.delivery-info .text-center p {
-    font-weight: bold;  /* Make text bold */
-}
 .delivery-info .p-3 {
-    background-color: #f8f9fa;  /* Set a light background color */
+    background-color: #f8f9fa
 }
-.delivery-info .bi {
-    color: #198754;  /* Set color for icons */
-}
-.delivery-info .text-center p {
-    color: #333;  /* Set text color */
-}
-
-
-
-
-
-
-
-
-/* new */
-
-.slideshow-items {
-    width: 500px;
-  }
-  .slideshow-thumbnails {
-    width: 100px;
-  }
-  #slideshow-items-container {
-    display: inline-block;
-    position: relative;
-  }
-  
-  #lens {
-    border: 1px solid #000;
-    position: absolute;
-    visibility: hidden;  /* Initially hidden */
-    z-index: 999;
-    background: rgba(0, 0, 0, 0.5);
+.color-box {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin: 5px;
+    border: 5px solid transparent;
+    cursor: pointer;
 }
 
-#result {
-    border: 1px solid #000;
-    position: absolute;
-    visibility: hidden;  /* Initially hidden */
-    z-index: 999;
-    background-repeat: no-repeat;
-    background-size: contain;
+.selected-color {
+    border-color: #000;  /* Highlight selected color with a border */
 }
-  
-  .main-image {
-    width: 100%;
-  }
-  
-  #lens, .slideshow-items, .slideshow-thumbnails, #result {
-    border: solid var(--light-grey-2) 1px;
-  }
-  
-  .slideshow-thumbnails {
-    opacity: 0.5;
-  }
-  
-  .slideshow-thumbnails.active {
-    opacity: 1;
-  }

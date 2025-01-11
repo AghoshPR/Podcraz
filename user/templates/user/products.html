@@ -49,11 +49,11 @@
 <div class="col-md-9">
     <div class="row row-cols-1 row-cols-md-3 g-4">
         <!-- Product Cards -->
-        {% for product in products %}
+        {% for variant in product_variants %}
         <div class="col">
             <div class="card h-100">
                 <!-- Wrap the entire product card in a link -->
-                <a href="{% url 'userproductview' product.id%}" class="text-decoration-none text-dark">
+                <a href="{% url 'userproductview' variant.id %}" class="text-decoration-none text-dark">
                     <!-- Display Product Rating -->
                     <div class="rating-stars p-2">
                         <i class="bi bi-star-fill"></i>
@@ -63,23 +63,18 @@
                         <i class="bi bi-star"></i>
                     </div>
                     <!-- Display Product Image and Details -->
-                    {% with product.productvariant_set.first as variant %}
-                        {% if variant %}
-                            <img src="{{ variant.productimage_set.first.image_path.url }}" class="card-img-top" alt="{{ product.name }}">
-                            <h5 class="product-title">{{ product.name }}</h5>
-                            <div class="price-container mb-2 d-flex align-items-center">
-                                <span class="current-price">₹{{ variant.price }}</span>
-                                <span class="discount ms-2">24% off</span>
-                            </div>
+                    {% with variant.productimage_set.first as image %}
+                        {% if image %}
+                            <img src="{{ image.image_path.url }}" class="card-img-top" alt="{{ variant.product.name }}">
                         {% else %}
-                            <img src="{% static 'images/default.png' %}" class="card-img-top" alt="{{ product.name }}">
-                            <h5 class="product-title">{{ product.name }}</h5>
-                            <div class="price-container mb-2 d-flex align-items-center">
-                                <span class="current-price">₹0.00</span>
-                                <span class="discount ms-2">24% off</span>
-                            </div>
+                            <img src="{% static 'images/default.png' %}" class="card-img-top" alt="{{ variant.product.name }}">
                         {% endif %}
                     {% endwith %}
+                    <h5 class="product-title">{{ variant.product.name }}</h5>
+                    <div class="price-container mb-2 d-flex align-items-center">
+                        <span class="current-price">₹{{ variant.price }}</span>
+                        <span class="discount ms-2">24% off</span>
+                    </div>
                     <!-- Card Body -->
                     <div class="card-body pt-0">
                         <p class="free-delivery mb-2">Free Delivery</p>
@@ -90,6 +85,7 @@
         {% endfor %}
     </div>
 </div>
+
 
 
             <!-- Pagination -->

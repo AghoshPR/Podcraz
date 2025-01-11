@@ -1,17 +1,22 @@
 {% extends "user/base.html" %}
 {% load static %}
 {% block head %}
-
 <link rel="stylesheet" href="{% static 'css/productview.css' %}">
 {% endblock %}
 
-
 {% block content %}
-
 <body>
+    <style>
+        .color-box {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin: 5px;
+    border: 5px solid transparent;
+    cursor: pointer;
+}
 
-    
-    
+  </style>
     <div class="container mt-4">
         <div class="row">
             <!-- Product Images -->
@@ -32,18 +37,25 @@
                 </div>
                 <div class="product-description mb-4">
                     <h6>Description:</h6>
-                    <p>{{ product.description }}</p>
+                    <p>{{ product_variants.product.description }}</p>
                 </div>
             </div>
-            
+
             <!-- Product Details -->
             <div class="col-md-6">
                 <div class="product-info">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h2>{{product.name}}</h2>
+                        <h2>{{product_variants.product.name}}</h2>
+                        
+                            {% if product_variants.stock <= 1 %}
+                            <span class="badge bg-danger ms-1">Out of Stock</span>
+                            {% elif product_variants.stock < 10 %}
+                            <span class="badge bg-danger ms-1">Limited Stock</span>
+                            {% endif %}
                         <button class="btn btn-link"><i class="bi bi-heart"></i></button>
+                        
                     </div>
-                    
+
                     <div class="rating mb-3">
                         <i class="bi bi-star-fill text-warning"></i>
                         <i class="bi bi-star-fill text-warning"></i>
@@ -52,35 +64,58 @@
                         <i class="bi bi-star-half text-warning"></i>
                         <span class="ms-2">4.5</span>
                     </div>
+
                     
-                    {% for variant in product_variants %}
-                        <h3 class="mb-4">Price: ₹{{ variant.price }}</h3>
+                        <h3 class="mb-4">Price: ₹{{ product_variants.price }}</h3>
                         <div class="mb-4">
-                            <h6>Color: {{ variant.color }}</h6>
+                            <h6>Color: {{ product_variants.color }}</h6>
                         </div>
-                    {% endfor %}
-    
-                    <div class="mb-4">
-                        <h6>Color:</h6>
-                        <div class="color-options">
-                            <div class="color-option" style="background-color: #333"></div>
-                            <div class="color-option" style="background-color: #666"></div>
-                            <div class="color-option" style="background-color: #999"></div>
-                            <div class="color-option" style="background-color: #ffc0cb"></div>
-                        </div>
-                    </div>
                     
+
+                        <div class="mb-4">
+                            <h6>Color:</h6>
+                            <div class="color-options d-flex">
+                                {% if related_variants %}
+                                    {% for related_variant in related_variants %}
+                                        <div>
+                                            {% if related_variant.id == product_variants.id %}
+                                                <div 
+                                                    class="color-box selected-color" 
+                                                    style="background-color: {{ related_variant.color }};" 
+                                                    aria-selected="true" 
+                                                    title="Selected color: {{ related_variant.color_name }}">
+                                                </div>
+                                            {% else %}
+                                                <a href="{% url 'userproductview' related_variant.id %}" 
+                                                   title="Switch to {{ related_variant.color_name }}">
+                                                    <div 
+                                                        class="color-box border border-primary" 
+                                                        style="background-color: {{ related_variant.color }};">
+                                                    </div>
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <p>No color options available.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+
+                    
+
                     <div class="quantity-selector mb-4">
                         <button class="btn btn-outline-secondary">-</button>
                         <input type="number" value="2" min="1" class="form-control">
                         <button class="btn btn-outline-secondary">+</button>
                     </div>
-                    
+
                     <div class="d-flex gap-3 mb-4">
                         <button class="btn btn-add-cart text-white flex-grow-1">Add to Cart</button>
                         <button class="btn btn-buy-now text-white flex-grow-1">Buy Now</button>
                     </div>
-                    
+
                     <div class="delivery-info d-flex gap-3">
                         <!-- Box 1: Free Delivery -->
                         <div class="p-3 border rounded text-center flex-grow-1">
@@ -93,11 +128,10 @@
                             <p class="mb-0 mt-2">7 Days Return Policy</p>
                         </div>
                     </div>
-    
                 </div>
             </div>
         </div>
-        
+
         <!-- Similar Products -->
         <div class="similar-products">
             <h4 class="mb-4">Similar Products</h4>
@@ -129,68 +163,15 @@
                         </div>
                     </div>
                 </div>
-                <div class="col">
-                    <div class="card h-100">
-                        <div class="rating-stars p-2">
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star"></i>
-                        </div>
-                        <img src="{% static 'images/bestseller.png' %}" class="card-img-top" alt="BTG 1 Earbuds">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h5 class="product-title mb-0">BTG 1 Earbuds</h5>
-                                <span class="discount">24% off</span>
-                            </div>
-                            <div class="price-container mb-2">
-                                <span class="current-price">₹13999</span>
-                                <span class="original-price">₹5999</span>
-                                <button class="btn btn-outline-danger btn-sm">
-                                    <i class="bi bi-heart"></i>
-                                </button>
-                            </div>
-                            <p class="free-delivery mb-2">Free Delivery</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="card h-100">
-                        <div class="rating-stars p-2">
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star"></i>
-                        </div>
-                        <img src="{% static 'images/bestseller.png' %}" class="card-img-top" alt="BTG 1 Earbuds">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h5 class="product-title mb-0">BTG 1 Earbuds</h5>
-                                <span class="discount">24% off</span>
-                            </div>
-                            <div class="price-container mb-2">
-                                <span class="current-price">₹13999</span>
-                                <span class="original-price">₹5999</span>
-                                <button class="btn btn-outline-danger btn-sm">
-                                    <i class="bi bi-heart"></i>
-                                </button>
-                            </div>
-                            <p class="free-delivery mb-2">Free Delivery</p>
-                        </div>
-                    </div>
-                </div>
                 <!-- Repeat similar blocks for other similar products -->
             </div>
         </div>
     </div>
-    
+
     <script>
         function changeMainImage(imageUrl) {
             document.getElementById("main-image").src = imageUrl;
         }
     </script>
-
-
+</body>
 {% endblock %}
