@@ -1,5 +1,5 @@
 #navitems {
-    margin-left: 325px;
+    margin-left: 180px;
     gap: 25px;
 }
 
@@ -17,7 +17,7 @@ html, body {
 }
 
 main {
-    flex: 1; 
+    flex: 1; /* Take up all available space in the middle */
 }
 
 footer {
@@ -70,10 +70,7 @@ footer ul {
     color: rgba(255, 255, 255, 0.9);
 }
 
-#navItems {
-    margin-left: 350px; 
-    gap: 30px;
-}
+
 
 .navbar-toggler {
     font-size: 1.5rem; 

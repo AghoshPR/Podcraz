@@ -1,13 +1,15 @@
 {% extends "user/base.html" %}
 {% load static %}
 {% block head %}
+
 <link rel="stylesheet" href="{% static 'css/productview.css' %}">
 {% endblock %}
 
 {% block content %}
+{% csrf_token %}
 <body>
     <style>
-        .color-box {
+    .color-box {
     width: 40px;
     height: 40px;
     border-radius: 50%;
@@ -15,11 +17,37 @@
     border: 5px solid transparent;
     cursor: pointer;
 }
+.quantity-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.quantity-selector input {
+    width: 60px;
+    text-align: center;
+}
+
+.cart-toggle {
+    transition: all 0.3s ease;
+}
+
+.cart-toggle:disabled {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.toast {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
 
   </style>
     <div class="container mt-4">
         <div class="row">
             <!-- Product Images -->
+             
             <div class="col-md-6">
                 <div class="product-gallery d-flex">
                     <div class="thumbnail-images">
@@ -45,15 +73,16 @@
             <div class="col-md-6">
                 <div class="product-info">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h2>{{product_variants.product.name}}</h2>
-                        
-                            {% if product_variants.stock <= 1 %}
-                            <span class="badge bg-danger ms-1">Out of Stock</span>
-                            {% elif product_variants.stock < 10 %}
-                            <span class="badge bg-danger ms-1">Limited Stock</span>
-                            {% endif %}
-                        <button class="btn btn-link"><i class="bi bi-heart"></i></button>
-                        
+                        <h2>
+                            {{ product_variants.product.name }}
+                            <button 
+                                class="btn btn-link p-0 wishlist-toggle ms-2 align-middle" 
+                                data-variant-id="{{ product_variants.id }}" 
+                                data-is-wishlisted="{% if product_variants.id in user_wishlist %}true{% else %}false{% endif %}">
+                                <i class="bi {% if product_variants.id in user_wishlist %}bi-heart-fill text-danger{% else %}bi-heart{% endif %}" 
+                                   style="font-size: 1.5rem;"></i>
+                            </button>
+                        </h2>
                     </div>
 
                     <div class="rating mb-3">
@@ -105,16 +134,20 @@
 
                     
 
-                    <div class="quantity-selector mb-4">
-                        <button class="btn btn-outline-secondary">-</button>
-                        <input type="number" value="2" min="1" class="form-control">
-                        <button class="btn btn-outline-secondary">+</button>
-                    </div>
+                        <div class="quantity-selector mb-4">
+                            <button class="btn btn-outline-secondary decrease-quantity">-</button>
+                            <input type="number" value="1" min="1" max="4" class="form-control quantity-input" readonly>
+                            <button class="btn btn-outline-secondary increase-quantity">+</button>
+                        </div>
 
-                    <div class="d-flex gap-3 mb-4">
-                        <button class="btn btn-add-cart text-white flex-grow-1">Add to Cart</button>
-                        <button class="btn btn-buy-now text-white flex-grow-1">Buy Now</button>
-                    </div>
+                        <div class="d-flex gap-3 mb-4">
+                            <button 
+                                class="btn btn-primary cart-toggle flex-grow-1" 
+                                data-variant-id="{{ product_variants.id }}">
+                                Add to Cart
+                            </button>
+                            <button class="btn btn-buy-now text-white flex-grow-1">Buy Now</button>
+                        </div>
 
                     <div class="delivery-info d-flex gap-3">
                         <!-- Box 1: Free Delivery -->
@@ -172,6 +205,115 @@
         function changeMainImage(imageUrl) {
             document.getElementById("main-image").src = imageUrl;
         }
+    
+        // Quantity Control
+        let quantity = 1;
+        const quantityInput = document.querySelector('.quantity-input');
+        
+        document.querySelector('.decrease-quantity').addEventListener('click', () => {
+            if (quantity > 1) {
+                quantity--;
+                quantityInput.value = quantity;
+            }
+        });
+        
+        document.querySelector('.increase-quantity').addEventListener('click', () => {
+            if (quantity < 4) {
+                quantity++;
+                quantityInput.value = quantity;
+            }
+        });
+    
+        // Wishlist Toggle
+        document.querySelector('.wishlist-toggle').addEventListener('click', function(e) {
+            e.preventDefault();
+            const variantId = this.dataset.variantId;
+            const isWishlisted = this.dataset.isWishlisted === 'true';
+            const icon = this.querySelector('i');
+    
+            fetch("{% url 'toggle_wishlist' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                },
+                body: JSON.stringify({
+                    variant_id: variantId,
+                    action: isWishlisted ? 'remove' : 'add',
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Toggle icon
+                    icon.classList.toggle('bi-heart');
+                    icon.classList.toggle('bi-heart-fill');
+                    icon.classList.toggle('text-danger');
+                    this.dataset.isWishlisted = (!isWishlisted).toString();
+                    
+                    // Show toast message
+                    showToast(data.message);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    
+        // Add to Cart
+        document.querySelector('.cart-toggle').addEventListener('click', function(e) {
+            e.preventDefault();
+            const variantId = this.dataset.variantId;
+            
+            fetch("{% url 'add_to_cart' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                },
+                body: JSON.stringify({
+                    product_variant_id: variantId,
+                    quantity: quantity
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Show success message
+                    showToast(data.message);
+                    
+                    // Change button text temporarily
+                    const originalText = this.innerHTML;
+                    this.innerHTML = '<i class="bi bi-check2"></i> Added to Cart';
+                    this.disabled = true;
+                    
+                    setTimeout(() => {
+                        this.innerHTML = originalText;
+                        this.disabled = false;
+                    }, 2000);
+                } else {
+                    showToast(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error adding to cart', 'error');
+            });
+        });
+    
+        // Toast notification function
+        function showToast(message, type = 'success') {
+            const toast = new bootstrap.Toast(document.getElementById('wishlistToast'));
+            const toastMessage = document.getElementById('wishlistToastMessage');
+            toastMessage.textContent = message;
+            toastMessage.className = type === 'success' ? 'text-success' : 'text-danger';
+            toast.show();
+        }
     </script>
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="wishlistToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-body">
+                <span id="wishlistToastMessage"></span>
+            </div>
+        </div>
+    </div>
 </body>
 {% endblock %}

@@ -3,15 +3,18 @@
 
 {% block head %}
 <link rel="stylesheet" href="{% static 'css/products.css' %}">
+
+
+<meta name="csrf-token" content="{{ csrf_token }}">
 {% endblock %}
 
-
-
 {% block content %}
-
-
-
 <div class="container-fluid py-4">
+    
+    <form method="post">
+        {% csrf_token %}
+    </form>
+    
     <div class="row">
         <!-- Sidebar Filters -->
         <div class="col-md-3">
@@ -21,7 +24,7 @@
                     {% for category in categories %}
                     <li>
                         <input class="form-check-input" type="checkbox" id="category_{{ category.id }}">
-                        <a href="#" class="text-decoration-none text-dark">{{ category.name }}</a>
+                        <label for="category_{{ category.id }}" class="text-dark">{{ category.name }}</label>
                     </li>
                     {% endfor %}
                 </ul>
@@ -30,8 +33,8 @@
                 <ul class="list-unstyled">
                     {% for brand in brands %}
                     <li>
-                        <input class="form-check-input" type="checkbox" id="brand{{ brand.id }}">
-                        <a href="#" class="text-decoration-none text-dark">{{ brand.name }}</a>
+                        <input class="form-check-input" type="checkbox" id="brand_{{ brand.id }}">
+                        <label for="brand_{{ brand.id }}" class="text-dark">{{ brand.name }}</label>
                     </li>
                     {% endfor %}
                 </ul>
@@ -44,52 +47,73 @@
             </div>
         </div>
         
+        <!-- Product Grid -->
+        <div class="col-md-9">
+            
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                <!-- Product Cards -->
+                {% for variant in product_variants %}
+                <div class="col">
+                    <div class="card h-100">
+                        <!-- Wrap the entire product card in a link -->
+                        <a href="{% url 'userproductview' variant.id %}" class="text-decoration-none text-dark">
+                            <!-- Display Product Rating -->
+                            <div class="rating-stars p-2">
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star"></i>
+                            </div>
+                            
+                            <!-- Display Product Image and Details -->
+                            {% with variant.productimage_set.first as image %}
+                            {% if image %}
+                                <img src="{{ image.image_path.url }}" class="card-img-top" alt="{{ variant.product.name }}">
+                            {% else %}
+                                <img src="{% static 'images/default.png' %}" class="card-img-top" alt="{{ variant.product.name }}">
+                            {% endif %}
+                            {% endwith %}
+                            <h5 class="product-title">{{ variant.product.name }}</h5>
+                            <div class="price-container mb-2 d-flex align-items-center">
+                                <span class="current-price">₹{{ variant.price }}</span>
+                                <span class="discount ms-2">24% off</span>
+                            </div>
+                            <div class="card-body pt-0">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <p class="free-delivery mb-0">Free Delivery</p>
+                                    <button 
+                                        class="btn btn-link p-0 cart-toggle" 
+                                        data-variant-id="{{ variant.id }}">
+                                        <i class="bi bi-cart-plus" style="font-size: 1.5rem; color: #0d6efd;"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </a>
 
-<!-- Product Grid -->
-<div class="col-md-9">
-    <div class="row row-cols-1 row-cols-md-3 g-4">
-        <!-- Product Cards -->
-        {% for variant in product_variants %}
-        <div class="col">
-            <div class="card h-100">
-                <!-- Wrap the entire product card in a link -->
-                <a href="{% url 'userproductview' variant.id %}" class="text-decoration-none text-dark">
-                    <!-- Display Product Rating -->
-                    <div class="rating-stars p-2">
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star"></i>
+                        
+
+                        <!-- Wishlist Button -->
+                        <div class="wishlist-btn position-absolute" style="right: 10px; top: 10px; z-index: 1;">
+                            <button 
+                                class="btn btn-link p-0 wishlist-toggle" 
+                                data-variant-id="{{ variant.id }}" 
+                                data-is-wishlisted="{% if variant.id in user_wishlist %}true{% else %}false{% endif %}">
+                                <i class="bi {% if variant.id in user_wishlist %}bi-heart-fill text-danger{% else %}bi-heart{% endif %}" 
+                                style="font-size: 1.5rem;"></i>
+                            </button>
+                        </div>
+
+
+                        
+
                     </div>
-                    <!-- Display Product Image and Details -->
-                    {% with variant.productimage_set.first as image %}
-                        {% if image %}
-                            <img src="{{ image.image_path.url }}" class="card-img-top" alt="{{ variant.product.name }}">
-                        {% else %}
-                            <img src="{% static 'images/default.png' %}" class="card-img-top" alt="{{ variant.product.name }}">
-                        {% endif %}
-                    {% endwith %}
-                    <h5 class="product-title">{{ variant.product.name }}</h5>
-                    <div class="price-container mb-2 d-flex align-items-center">
-                        <span class="current-price">₹{{ variant.price }}</span>
-                        <span class="discount ms-2">24% off</span>
-                    </div>
-                    <!-- Card Body -->
-                    <div class="card-body pt-0">
-                        <p class="free-delivery mb-2">Free Delivery</p>
-                    </div>
-                </a>
+                </div>
+                {% endfor %}
             </div>
-        </div>
-        {% endfor %}
-    </div>
-</div>
-
-
-
+            
             <!-- Pagination -->
-            <nav aria-label="Product navigation">
+            <nav aria-label="Product navigation" class="mt-4">
                 <ul class="pagination">
                     <li class="page-item"><a class="page-link" href="#">Previous</a></li>
                     <li class="page-item active"><a class="page-link" href="#">1</a></li>
@@ -102,4 +126,118 @@
     </div>
 </div>
 
+<!-- Wishlist Toggle Script -->
+<script>
+    
+    document.querySelectorAll('.wishlist-toggle').forEach(button => {
+        button.addEventListener('click', function (e) {
+            e.preventDefault();
+    
+            const variantId = this.dataset.variantId;
+            const isWishlisted = this.dataset.isWishlisted === 'true';
+            const icon = this.querySelector('i');
+    
+            fetch("{% url 'toggle_wishlist' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                },
+                body: JSON.stringify({
+                    variant_id: variantId,
+                    action: isWishlisted ? 'remove' : 'add',
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Toggle icon
+                    icon.classList.toggle('bi-heart');
+                    icon.classList.toggle('bi-heart-fill');
+                    icon.classList.toggle('text-danger');
+                    this.dataset.isWishlisted = (!isWishlisted).toString();
+    
+                    // Highlight button
+                    if (!isWishlisted) {
+                        this.classList.add('wishlist-active'); // Add class to highlight
+                    } else {
+                        this.classList.remove('wishlist-active'); // Remove highlight
+                    }
+    
+                    // Display feedback
+                    const toast = new bootstrap.Toast(document.getElementById('wishlistToast'));
+                    document.getElementById('wishlistToastMessage').textContent = data.message;
+                    toast.show();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    });
+    
+    
+    //fetching cart items
+
+    document.querySelectorAll('.cart-toggle').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation(); // Stop event from bubbling up to the card link
+            
+            const variantId = this.dataset.variantId;
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const icon = this.querySelector('i');
+    
+            fetch("{% url 'add_to_cart' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify({
+                    product_variant_id: variantId,
+                    quantity: 1
+                }),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    // Show success toast
+                    const toast = new bootstrap.Toast(document.getElementById('wishlistToast'));
+                    document.getElementById('wishlistToastMessage').textContent = data.message;
+                    toast.show();
+    
+                    // Change cart icon temporarily
+                    icon.classList.remove('bi-cart-plus');
+                    icon.classList.add('bi-cart-check-fill');
+                    setTimeout(() => {
+                        icon.classList.remove('bi-cart-check-fill');
+                        icon.classList.add('bi-cart-plus');
+                    }, 2000);
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+               
+            });
+        });
+    });
+
+
+
+</script>
+
+<!-- Toast Notification -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="wishlistToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-body">
+            <span id="wishlistToastMessage"></span>
+        </div>
+    </div>
+</div>
 {% endblock %}

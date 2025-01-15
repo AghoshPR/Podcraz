@@ -1,0 +1,173 @@
+{% extends "user/base.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+    /* ... existing styles from base ... */
+    
+    .sidebar {
+        background: white;
+        border-radius: 10px;
+        padding: 25px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    .nav-link {
+        color: #333;
+        padding: 10px 15px;
+        border-radius: 5px;
+        transition: all 0.3s ease;
+    }
+
+    .nav-link:hover {
+        background: #f8f9fa;
+    }
+
+    .nav-link.active {
+        background: #f8f9fa;
+        font-weight: 500;
+    }
+
+    .nav-link i {
+        width: 20px;
+    }
+
+    .logout-btn {
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 5px;
+        width: 100%;
+        margin-top: 20px;
+    }
+
+    .logout-btn:hover {
+        background: #c82333;
+    }
+
+    .return-card {
+        background: white;
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+    }
+
+    .product-details {
+        display: flex;
+        align-items: flex-start;
+        gap: 30px;
+        margin-bottom: 30px;
+    }
+
+    .product-image {
+        width: 200px;
+        height: 200px;
+        padding: 20px;
+        background: white;
+        border-radius: 10px;
+        border: 1px solid #eee;
+    }
+
+    .product-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .order-info {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .info-box {
+        background: #f8f9fa;
+        padding: 10px 15px;
+        border-radius: 5px;
+        font-size: 14px;
+    }
+
+    .reason-textarea {
+        width: 100%;
+        min-height: 120px;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        padding: 15px;
+        margin-top: 10px;
+        resize: vertical;
+    }
+
+    .confirm-btn {
+        background: #007bff;
+        color: white;
+        padding: 10px 25px;
+        border-radius: 5px;
+        border: none;
+        float: right;
+    }
+
+    .confirm-btn:hover {
+        background: #0056b3;
+    }
+</style>
+
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 mb-4">
+            <div class="sidebar">
+                <h5 class="mb-4">Account</h5>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="#"><i class="fas fa-user me-2"></i>Profile</a>
+                    <a class="nav-link" href="#"><i class="fas fa-map-marker-alt me-2"></i>Addresses</a>
+                    <a class="nav-link active" href="#"><i class="fas fa-box me-2"></i>Orders</a>
+                    <a class="nav-link" href="#"><i class="fas fa-wallet me-2"></i>Wallet</a>
+                    <a class="nav-link" href="#"><i class="fas fa-ticket me-2"></i>Coupon</a>
+                    <a class="nav-link" href="#"><i class="fas fa-lock me-2"></i>Change Password</a>
+                </nav>
+                <button class="logout-btn">LOGOUT</button>
+            </div>
+        </div>
+
+        <!-- Return Form -->
+        <div class="col-md-9">
+            <div class="return-card">
+                <div class="product-details">
+                    <div class="product-image">
+                        <img src="{% static 'images/truke-btg1.png' %}" alt="Truke BTG1">
+                    </div>
+                    <div>
+                        <h5>Truke BTG1</h5>
+                        <div class="order-info mt-3">
+                            <div class="info-box">
+                                <small>Price</small>
+                                <div>₹535</div>
+                            </div>
+                            <div class="info-box">
+                                <small>Ordered on</small>
+                                <div>25/01/2024</div>
+                            </div>
+                            <div class="info-box">
+                                <small>Delivered on</small>
+                                <div>29/01/2024</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="return-form">
+                    <label for="return-reason">Reason for returning the product</label>
+                    <textarea id="return-reason" 
+                              class="reason-textarea" 
+                              placeholder="Please describe why you want to return this product..."></textarea>
+                    
+                    <button class="confirm-btn mt-3">Confirm Return</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

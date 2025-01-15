@@ -20,9 +20,45 @@ urlpatterns = [
     
     path('products/',views.userproducts,name='userproducts'),
     path('productview/<int:variant_id>/',views.userproductview,name='userproductview'),
-    path('wishlist/',views.userwishlist,name='userwishlist'),
+
+
+    path('wishlist/', views.userwishlist, name='userwishlist'),
+    path('toggle-wishlist/', views.toggle_wishlist, name='toggle_wishlist'),
+
+    path('about/',views.about,name='about'),
     path('cart/',views.usercart,name='usercart'),
+    path('add_to_cart/', views.add_to_cart, name='add_to_cart'),
+    path('update-cart-item/', views.update_cart_item, name='update_cart_item'),
+    path('remove-cart-item/', views.remove_cart_item, name='remove_cart_item'),
     path('checkout/',views.usercheckout,name='usercheckout'),
+
+
+    path('profile/',views.myprofile,name='myprofile'),
+
+
+    path('address/',views.address,name='address'),
+    path('addaddress/',views.add_address,name='add_address'),
+    path('editaddress/<int:address_id>',views.editaddress,name='edit_address'),
+    path('deleteaddress/<int:address_id>',views.delete_address,name='delete_address'),
+    path('defaultaddress/<int:address_id>',views.set_default,name='set_default'),
+
+
+    path('order/',views.order,name='order'),
+    path('orderreturn/',views.order_return,name='order_return'),
+
+
+    path('orderview/',views.orderview,name='orderview'),
+
+
+    path('wallet/',views.wallet,name='wallet'),
+
+
+    path('coupon/',views.coupon,name='coupon'),
+
+    path('changepassword/',views.changepass,name='changepass'),
+
+
+
     
 
 

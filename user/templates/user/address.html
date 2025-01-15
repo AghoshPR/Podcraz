@@ -1,0 +1,194 @@
+{% extends "user/base.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+    body {
+        background-color: #f0f0f0;
+    }
+    .sidebar {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .sidebar-menu {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .sidebar-menu li {
+        padding: 8px 0;
+        border-bottom: 1px solid #dee2e6;
+    }
+    .sidebar-menu li:last-child {
+        border-bottom: none;
+    }
+    .sidebar-menu a {
+        color: #333;
+        text-decoration: none;
+        display: block;
+        padding: 8px 15px;
+        border-radius: 4px;
+    }
+    .main-content {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+    }
+    .address-card {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        position: relative;
+    }
+    .address-actions {
+        position: absolute;
+        right: 15px;
+        top: 15px;
+    }
+    .address-actions button {
+        background: none;
+        border: none;
+        color: #6c757d;
+        padding: 5px;
+        cursor: pointer;
+    }
+    .add-address-btn {
+        background-color: transparent;
+        border: 1px solid #dee2e6;
+        color: #333;
+        padding: 8px 20px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+    }
+    .set-default-btn {
+        background-color: transparent;
+        border: 1px solid #007bff;
+        color: #007bff;
+        padding: 5px 15px;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    .default-badge {
+        display: inline-block;
+        padding: 3px 8px;
+        background-color: #e9ecef;
+        border-radius: 4px;
+        font-size: 12px;
+        margin-bottom: 10px;
+    }
+    .logout-btn {
+        background-color: #ff4444;
+        color: white;
+        border: none;
+        padding: 8px;
+        border-radius: 4px;
+        width: 100%;
+    }
+</style>
+
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="sidebar">
+                <h5 class="mb-4">Account</h5>
+                <ul class="sidebar-menu">
+                    <li><a href="{% url 'myprofile' %}">Profile</a></li>
+                    <li><a href="{% url 'address'  %}" class="active">Addresses</a></li>
+                    <li><a href="{% url 'order' %}">Orders</a></li>
+                    <li><a href="{% url 'wallet' %}">Wallet</a></li>
+                    <li><a href="{% url 'coupon' %}">Coupon</a></li>
+                    <li><a href="{% url 'changepass' %}">Change Password</a></li>
+                </ul>
+                <button class="logout-btn mt-4">LOGOUT</button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <div class="main-content">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="mb-0">Addresses</h5>
+                    <a href="{% url 'add_address' %}">
+                        <button class="add-address-btn">
+                            + ADDRESS
+                        </button>
+                    </a>
+                </div>
+
+                <!-- Default Address -->
+                {% if default_address %}
+                <div class="address-card">
+                    <div class="default-badge mb-2">DEFAULT ADDRESS</div>
+                    <div class="address-actions">
+                        <a href="{% url 'edit_address' default_address.id %}">
+                            <button class="me-2">
+                                ✏️
+                            </button>
+                        </a>
+                        <form method="POST" action="{% url 'delete_address' default_address.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="me-2" onclick="return confirm('Are you sure you want to delete this address?');">
+                                🗑️
+                            </button>
+                        </form>
+                    </div>
+                    <p class="mb-1"><strong>{{ default_address.address }}</strong></p>
+                    <p class="mb-1">{{ default_address.city }}</p>
+                    <p class="mb-1">{{ default_address.state }}</p>
+                    <p class="mb-1">{{ default_address.pin_code }}</p>
+                    <p class="mb-0">Mobile: {{ default_address.phone }}</p>
+                </div>
+                {% endif %} 
+
+                <!-- Saved Addresses -->
+
+                {% if other_addresses %}
+                <h6 class="mb-3">SAVED ADDRESSES</h6>
+
+                {% for address in other_addresses %}
+                <div class="address-card">
+                    <div class="address-actions">
+                        <!-- Edit Button -->
+                        <a href="{% url 'edit_address' address.id %}">
+                            <button class="me-2">
+                                ✏️
+                            </button>
+                        </a>
+                        <!-- Delete Button -->
+                        <form method="POST" action="{% url 'delete_address' address.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="me-2" onclick="return confirm('Are you sure you want to delete this address?');">
+                                🗑️
+                            </button>
+                        </form>
+                    </div>
+                    <p class="mb-1"><strong>{{ address.address }}</strong></p>
+                    <p class="mb-1">{{ address.city }}</p>
+                    <p class="mb-1">{{ address.state }}</p>
+                    <p class="mb-1">{{ address.pin_code }}</p>
+                    <p class="mb-1">Mobile: {{ address.phone }}</p>
+                    <form method="POST" action="{% url 'set_default' address.id %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="set-default-btn mt-2">SET DEFAULT</button>
+                    </form>
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                {% if not default_address and not other_addresses %}
+                    <div class="text-center py-4">
+                        <p>No addresses found. Add your first address!</p>
+                    </div>
+                {% endif %}
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

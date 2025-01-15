@@ -1,140 +1,133 @@
 {% extends "user/base.html" %}
-{%load static%}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/products.css' %}">
+
+{% endblock %}
+
 {% block content %}
-
-
+{% csrf_token %}
 
 <div class="container mb-5">
     <h2 class="fw-bold mb-4">Wishlist</h2>
-    <div class="row row-cols-1 row-cols-md-4 row-cols-lg-4 g-4 d-flex justify-content-start">
-        <!-- Product Card -->
-        <div class="col">
+    <div id="wishlistContainer" class="row row-cols-1 row-cols-md-3 g-4">
+        {% for product in products %}
+        <div class="col" id="product-card-{{ product.id }}">
             <div class="card h-100">
-                <div class="rating-stars p-2">
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star"></i>
-                </div>
-                <img src="{% static 'images/bestseller.png' %}" class="card-img-top" alt="BTG 1 Earbuds">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h5 class="product-title mb-0">BTG 1 Earbuds</h5>
-                        <span class="discount">24% off</span>
+                <!-- Wrap the entire product card in a link -->
+                <a href="{% url 'userproductview' product.id %}" class="text-decoration-none text-dark">
+                    <!-- Display Product Rating -->
+                    {% comment %} <div class="rating-stars p-2">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star"></i>
+                    </div> {% endcomment %}
+                    
+                    <!-- Display Product Image and Details -->
+                    {% with product.productimage_set.first as image %}
+                    {% if image %}
+                        <img src="{{ image.image_path.url }}" class="card-img-top" alt="{{ product.product.name }}">
+                    {% else %}
+                        <img src="{% static 'images/default.png' %}" class="card-img-top" alt="{{ product.product.name }}">
+                    {% endif %}
+                    {% endwith %}
+                    
+                    <h5 class="product-title">{{ product.product.name }}</h5>
+                    <div class="price-container mb-2 d-flex align-items-center">
+                        <span class="current-price">₹{{ product.price }}</span>
+                        <span class="discount ms-2">24% off</span>
                     </div>
-                    <div class="price-container mb-2">
-                        <span class="current-price">₹3999</span>
-                        <span class="original-price">₹5999</span>
-                        <div class="">
-                            <button class="btn btn-outline-danger btn-sm">
-                                <i class="bi bi-heart"></i>
+                    <div class="card-body pt-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <p class="free-delivery mb-0">Free Delivery</p>
+                            <button 
+                                class="btn btn-link p-0 cart-toggle" 
+                                data-variant-id="{{ variant.id }}">
+                                <i class="bi bi-cart-plus" style="font-size: 1.5rem; color: #0d6efd;"></i>
                             </button>
                         </div>
                     </div>
-                    <p class="free-delivery mb-2">Free Delivery</p>
-                   
+                </a>
+
+                <!-- Wishlist Button -->
+                <div class="wishlist-btn position-absolute" style="right: 10px; top: 10px; z-index: 1;">
+                    <button 
+                        class="btn btn-link p-0 wishlist-toggle" 
+                        data-variant-id="{{ product.id }}" 
+                        data-is-wishlisted="true">
+                        <i class="bi bi-heart-fill text-danger" style="font-size: 1.5rem;"></i>
+                    </button>
                 </div>
-                
             </div>
         </div>
-
-        <div class="col">
-            <div class="card h-100">
-                <div class="rating-stars p-2">
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star"></i>
-                </div>
-                <img src="{% static 'images/bestseller.png' %}" class="card-img-top" alt="BTG 1 Earbuds">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h5 class="product-title mb-0">BTG 1 Earbuds</h5>
-                        <span class="discount">24% off</span>
-                    </div>
-                    <div class="price-container mb-2">
-                        <span class="current-price">₹3999</span>
-                        <span class="original-price">₹5999</span>
-                        <div class="">
-                            <button class="btn btn-outline-danger btn-sm">
-                                <i class="bi bi-heart"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <p class="free-delivery mb-2">Free Delivery</p>
-                   
-                </div>
-                
-            </div>
+        {% empty %}
+        <div class="col-12 text-center">
+            <p id="emptyWishlistMessage">No products in your wishlist.</p>
         </div>
-
-        <div class="col">
-            <div class="card h-100">
-                <div class="rating-stars p-2">
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star"></i>
-                </div>
-                <img src="{% static 'images/bestseller.png' %}" class="card-img-top" alt="BTG 1 Earbuds">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h5 class="product-title mb-0">BTG 1 Earbuds</h5>
-                        <span class="discount">24% off</span>
-                    </div>
-                    <div class="price-container mb-2">
-                        <span class="current-price">₹3999</span>
-                        <span class="original-price">₹5999</span>
-                        <div class="">
-                            <button class="btn btn-outline-danger btn-sm">
-                                <i class="bi bi-heart"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <p class="free-delivery mb-2">Free Delivery</p>
-                   
-                </div>
-                
-            </div>
-        </div>
-
-        <div class="col">
-            <div class="card h-100">
-                <div class="rating-stars p-2">
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star"></i>
-                </div>
-                <img src="{% static 'images/bestseller.png' %}" class="card-img-top" alt="BTG 1 Earbuds">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h5 class="product-title mb-0">BTG 1 Earbuds</h5>
-                        <span class="discount">24% off</span>
-                    </div>
-                    <div class="price-container mb-2">
-                        <span class="current-price">13999</span>
-                        <span class="original-price">₹5999</span>
-                        <div class="">
-                            <button class="btn btn-outline-danger btn-sm">
-                                <i class="bi bi-heart"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <p class="free-delivery mb-2">Free Delivery</p>
-                   
-                </div>
-                
-            </div>
-        </div>
-
-        <!-- Repeat the same structure for other cards -->
+        {% endfor %}
     </div>
 </div>
 
+<!-- Toast Notification -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="wishlistToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-body">
+            <span id="wishlistToastMessage"></span>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('.wishlist-toggle').forEach(button => {
+        button.addEventListener('click', function (e) {
+            e.preventDefault();
+
+            const variantId = this.dataset.variantId;
+            const isWishlisted = this.dataset.isWishlisted === "true";
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            fetch("{% url 'toggle_wishlist' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify({
+                    variant_id: variantId,
+                    action: isWishlisted ? 'remove' : 'add',
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const productCard = document.getElementById(`product-card-${variantId}`);
+                    const toast = new bootstrap.Toast(document.getElementById('wishlistToast'));
+
+                    if (isWishlisted) {
+                        // Remove the product card from the DOM
+                        productCard.remove();
+
+                        // Check if there are any products left
+                        const remainingProducts = document.querySelectorAll('.col');
+                        if (remainingProducts.length === 0) {
+                            const container = document.getElementById('wishlistContainer');
+                            container.innerHTML = '<div class="col-12 text-center"><p id="emptyWishlistMessage">No products in your wishlist.</p></div>';
+                        }
+
+                        // Show toast message
+                        document.getElementById('wishlistToastMessage').textContent = 'Removed from wishlist';
+                        toast.show();
+                    }
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    });
+</script>
 
 {% endblock %}

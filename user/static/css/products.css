@@ -7,6 +7,42 @@
     border-radius: 8px; /* Optional: Rounded corners */
 }
 
+.wishlist-btn {
+    transition: all 0.2s ease;
+}
+
+.wishlist-btn:hover {
+    transform: scale(1.1);
+}
+
+.wishlist-btn .bi-heart {
+    color: #6c757d;
+}
+
+.wishlist-btn .bi-heart-fill {
+    color: #dc3545;
+}
+.wishlist-active {
+    border: 2px solid red;
+    border-radius: 50%;
+    background-color: rgba(255, 0, 0, 0.1);
+}
+.cart-toggle {
+    transition: all 0.3s ease;
+}
+
+.cart-toggle:disabled {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.toast {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+
 .card {
     border: 1px solid #eee;
     transition: transform 0.2s;
@@ -16,6 +52,24 @@
 .card:hover {
     transform: translateY(-5px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+
+.cart-btn {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    z-index: 1;
+}
+
+.action-buttons {
+    position: absolute;
+    top: 10px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 10px;
+    z-index: 1;
 }
 
 .product-image {

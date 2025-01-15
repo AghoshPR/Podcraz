@@ -1,0 +1,140 @@
+{% extends "user/base.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+    
+    .navbar-brand img {
+        height: 40px;
+    }
+    
+    .sidebar {
+        background-color: white;
+        height: 100%;
+        padding: 20px;
+        border-radius: 10px;
+    }
+    
+    .sidebar .nav-link {
+        color: #333;
+        padding: 8px 15px;
+        margin: 5px 0;
+        border-radius: 5px;
+    }
+    
+    .sidebar .nav-link:hover,
+    .sidebar .nav-link.active {
+        background-color: #f8f9fa;
+    }
+    
+    .wallet-card {
+        background: white;
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+    }
+
+    .balance-section {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .balance-amount {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+
+    .transaction-table {
+        width: 100%;
+        margin-top: 20px;
+    }
+
+    .transaction-table th,
+    .transaction-table td {
+        padding: 12px;
+    }
+
+    .credit {
+        color: #28a745;
+    }
+
+    .debit {
+        color: #dc3545;
+    }
+</style>
+
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 mb-4">
+            <div class="sidebar">
+                <h5 class="mb-4">Account</h5>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="#"><i class="fas fa-user me-2"></i>Profile</a>
+                    <a class="nav-link" href="#"><i class="fas fa-map-marker-alt me-2"></i>Addresses</a>
+                    <a class="nav-link" href="#"><i class="fas fa-box me-2"></i>Orders</a>
+                    <a class="nav-link active" href="#"><i class="fas fa-wallet me-2"></i>Wallet</a>
+                    <a class="nav-link" href="#"><i class="fas fa-ticket me-2"></i>Coupon</a>
+                    <a class="nav-link" href="#"><i class="fas fa-lock me-2"></i>Change Password</a>
+                </nav>
+                <button class="btn btn-danger mt-4 w-100">Logout</button>
+            </div>
+        </div>
+
+        <!-- Wallet Details -->
+        <div class="col-md-9">
+            <div class="wallet-card">
+                <div class="balance-section">
+                    <h6>Balance</h6>
+                    <div class="balance-amount">₹1234.99</div>
+                    <div class="row justify-content-center">
+                        <div class="col-md-6">
+                            <input type="number" class="form-control mb-2" placeholder="Enter amount">
+                            <button class="btn btn-danger w-100">ADD FUND</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <h6>Recent Transactions:</h6>
+                    <div class="table-responsive">
+                        <table class="table transaction-table">
+                            <thead>
+                                <tr>
+                                    <th>Transaction ID</th>
+                                    <th>Type</th>
+                                    <th>Date</th>
+                                    <th>Payment Method</th>
+                                    <th>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>#01</td>
+                                    <td>Credit</td>
+                                    <td>18-02-2024</td>
+                                    <td>UPI</td>
+                                    <td class="credit">+200.00</td>
+                                </tr>
+                                <tr>
+                                    <td>#02</td>
+                                    <td>Debit</td>
+                                    <td>18-02-2024</td>
+                                    <td>UPI</td>
+                                    <td class="debit">-200.00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,141 @@
+{% extends "user/base.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+    /* ... existing styles from base ... */
+    
+    .sidebar {
+        background: white;
+        border-radius: 10px;
+        padding: 25px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    .nav-link {
+        color: #333;
+        padding: 10px 15px;
+        border-radius: 5px;
+        transition: all 0.3s ease;
+    }
+
+    .nav-link:hover {
+        background: #f8f9fa;
+    }
+
+    .nav-link.active {
+        background: #f8f9fa;
+        font-weight: 500;
+    }
+
+    .nav-link i {
+        width: 20px;
+    }
+
+    .logout-btn {
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 5px;
+        width: 100%;
+        margin-top: 20px;
+    }
+
+    .logout-btn:hover {
+        background: #c82333;
+    }
+
+    .password-card {
+        background: white;
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+    }
+
+    .password-form {
+        margin-top: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-control {
+        width: 100%;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    }
+
+    .save-btn {
+        background: #007bff;
+        color: white;
+        padding: 10px 25px;
+        border-radius: 5px;
+        border: none;
+        float: right;
+    }
+
+    .save-btn:hover {
+        background: #0056b3;
+    }
+</style>
+
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 mb-4">
+            <div class="sidebar">
+                <h5 class="mb-4">Account</h5>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="{% url 'myprofile' %}"><i class="fas fa-user me-2"></i>Profile</a>
+                    <a class="nav-link" href="{% url 'address'  %}"><i class="fas fa-map-marker-alt me-2"></i>Addresses</a>
+                    <a class="nav-link" href="{% url 'order' %}"><i class="fas fa-box me-2"></i>Orders</a>
+                    <a class="nav-link" href="{% url 'wallet' %"><i class="fas fa-wallet me-2"></i>Wallet</a>
+                    <a class="nav-link" href="{% url 'coupon' %}"><i class="fas fa-ticket me-2"></i>Coupon</a>
+                    <a class="nav-link active" href="#"><i class="fas fa-lock me-2"></i>Change Password</a>
+                </nav>
+                <button class="logout-btn">LOGOUT</button>
+            </div>
+        </div>
+
+        <!-- Change Password Form -->
+        <div class="col-md-9">
+            <div class="password-card">
+                <h5>Change Password</h5>
+                <div class="password-form">
+                    <div class="form-group">
+                        <input type="password" 
+                               class="form-control" 
+                               placeholder="Current Password">
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="password" 
+                               class="form-control" 
+                               placeholder="New Password">
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="password" 
+                               class="form-control" 
+                               placeholder="Re-enter Password">
+                    </div>
+                    
+                    <button class="save-btn">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

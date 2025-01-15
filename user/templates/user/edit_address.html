@@ -1,0 +1,238 @@
+{% extends "user/base.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+    body {
+        background-color: #f0f0f0;
+    }
+    .sidebar {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .sidebar-menu {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .sidebar-menu li {
+        padding: 8px 0;
+        border-bottom: 1px solid #dee2e6;
+    }
+    .sidebar-menu li:last-child {
+        border-bottom: none;
+    }
+    .sidebar-menu a {
+        color: #333;
+        text-decoration: none;
+        display: block;
+        padding: 8px 15px;
+        border-radius: 4px;
+    }
+    .main-content {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+    }
+    .logout-btn {
+        background-color: #ff4444;
+        color: white;
+        border: none;
+        padding: 8px;
+        border-radius: 4px;
+        width: 100%;
+    }
+
+    /* Form specific styles */
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #333;
+        font-weight: 500;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    
+    .form-control:focus {
+        border-color: #007bff;
+        outline: none;
+    }
+    
+    .checkbox-group {
+        margin-top: 15px;
+    }
+    
+    .checkbox-group label {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+    }
+    
+    .checkbox-group input[type="checkbox"] {
+        margin-right: 10px;
+    }
+    
+    .btn-group {
+        margin-top: 25px;
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+    
+    .btn-cancel {
+        background-color: transparent;
+        border: 1px solid #dee2e6;
+        color: #333;
+        padding: 8px 20px;
+        border-radius: 4px;
+        text-decoration: none;
+    }
+    
+    .btn-save {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 4px;
+    }
+    
+    .btn-cancel:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .btn-save:hover {
+        background-color: #0056b3;
+    }
+</style>
+
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="sidebar">
+                <h5 class="mb-4">Account</h5>
+                <ul class="sidebar-menu">
+                    <li><a href="#">Profile</a></li>
+                    <li><a href="#" class="active">Addresses</a></li>
+                    <li><a href="#">Orders</a></li>
+                    <li><a href="#">Wallet</a></li>
+                    <li><a href="#">Coupon</a></li>
+                    <li><a href="#">Change Password</a></li>
+                </ul>
+                <button class="logout-btn mt-4">LOGOUT</button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <div class="main-content">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="mb-0">Edit Address</h5>
+                </div>
+
+                <form method="POST" action="{% url 'edit_address' user_address.id %}">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Full Address</label>
+                                <textarea name="edit_address" 
+                                          class="form-control" 
+                                          rows="3" 
+                                          placeholder="House/Flat/Block No., Street, Area"
+                                          required>{{ user_address.address }}</textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Phone Number</label>
+                                <input type="tel" 
+                                       name="edit_phone" 
+                                       class="form-control" 
+                                       placeholder="Enter phone number"
+                                       value="{{ user_address.phone }}"
+                                       required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>City</label>
+                                <input type="text" 
+                                       name="edit_city" 
+                                       class="form-control" 
+                                       value="{{ user_address.city }}"
+                                       placeholder="Enter city"
+                                       required>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>State</label>
+                                <input type="text" 
+                                       name="edit_state" 
+                                       class="form-control" 
+                                       value="{{ user_address.state }}"
+                                       placeholder="Enter state"
+                                       required>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>PIN Code</label>
+                                <input type="text" 
+                                       name="edit_pin_code" 
+                                       class="form-control" 
+                                       value="{{ user_address.pin_code }}"
+                                       placeholder="Enter PIN code"
+                                       required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" name="edit_is_default" {% if user_address.is_default %}checked{% endif %} >
+                            Set as default address
+                        </label>
+                    </div>
+
+                    <div class="btn-group">
+                        <a href="{% url 'address' %}" class="btn-cancel">Cancel</a>
+                        <button type="submit" class="btn-save">Save Address</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if messages %}
+<div class="messages">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}

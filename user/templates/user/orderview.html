@@ -1,0 +1,184 @@
+{% extends "user/base.html" %}
+{% load static %}
+{% block content %}
+
+
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+    
+    .navbar-brand img {
+        height: 40px;
+    }
+    
+    .sidebar {
+        background-color: white;
+        height: 100%;
+        padding: 20px;
+        border-radius: 10px;
+    }
+    
+    .sidebar .nav-link {
+        color: #333;
+        padding: 8px 15px;
+        margin: 5px 0;
+        border-radius: 5px;
+    }
+    
+    .sidebar .nav-link:hover,
+    .sidebar .nav-link.active {
+        background-color: #f8f9fa;
+    }
+    
+    .order-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+    }
+    
+    .product-img {
+        max-width: 120px;
+        border-radius: 8px;
+    }
+    
+    .status-tracker {
+        position: relative;
+        padding: 20px 0;
+    }
+    
+    .progress {
+        height: 4px;
+        position: absolute;
+        width: 100%;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 1;
+    }
+    
+    .status-step {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .status-circle {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: white;
+        border: 2px solid #28a745;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 10px;
+    }
+    
+    .status-circle.completed {
+        background: #28a745;
+        color: white;
+    }
+    
+    .status-label {
+        font-size: 14px;
+        text-align: center;
+    }
+</style>
+</head>
+<body>
+
+
+<!-- Main Content -->
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 mb-4">
+            <div class="sidebar">
+                <h5 class="mb-4">Account</h5>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="#"><i class="fas fa-user me-2"></i>Profile</a>
+                    <a class="nav-link" href="#"><i class="fas fa-map-marker-alt me-2"></i>Addresses</a>
+                    <a class="nav-link active" href="#"><i class="fas fa-box me-2"></i>Orders</a>
+                    <a class="nav-link" href="#"><i class="fas fa-wallet me-2"></i>Wallet</a>
+                    <a class="nav-link" href="#"><i class="fas fa-ticket me-2"></i>Coupon</a>
+                    <a class="nav-link" href="#"><i class="fas fa-lock me-2"></i>Change Password</a>
+                </nav>
+                <button class="btn btn-danger mt-4 w-100">Logout</button>
+            </div>
+        </div>
+
+        <!-- Order Details -->
+        <div class="col-md-9">
+            <div class="order-card">
+                <div class="row">
+                    <div class="col-md-3">
+                        <img src="product.jpg" alt="Truke BTG1" class="product-img img-fluid">
+                    </div>
+                    <div class="col-md-5">
+                        <h6 class="text-muted">Order ID: #1UPI00001</h6>
+                        <h5 class="mb-3">Truke BTG1</h5>
+                        <a href="#" class="btn btn-primary">Download Invoice</a>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="order-summary">
+                            <p class="d-flex justify-content-between mb-2">
+                                <span>Total Price:</span>
+                                <strong>₹1999</strong>
+                            </p>
+                            <p class="d-flex justify-content-between mb-2">
+                                <span>Delivery Charge:</span>
+                                <strong>₹0</strong>
+                            </p>
+                            <p class="d-flex justify-content-between mb-2">
+                                <span>Platform Fee:</span>
+                                <strong>₹0</strong>
+                            </p>
+                            <hr>
+                            <p class="d-flex justify-content-between mb-2">
+                                <span>Total Order Price:</span>
+                                <strong>₹1999</strong>
+                            </p>
+                            <p class="mb-2"><strong>Mode of Payment:</strong> UPI</p>
+                            <p class="mb-0"><strong>Delivery Address:</strong><br>
+                                Kariath House, Keechery,<br>Thrissur - 680546</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Status -->
+            <div class="order-card">
+                <h5 class="mb-4">Order Status</h5>
+                <div class="status-tracker">
+                    <div class="progress">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 66%"></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-4 status-step">
+                            <div class="status-circle completed">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="status-label">Processing</div>
+                        </div>
+                        <div class="col-4 status-step">
+                            <div class="status-circle completed">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="status-label">Shipped</div>
+                        </div>
+                        <div class="col-4 status-step">
+                            <div class="status-circle">
+                                <i class="fas fa-times"></i>
+                            </div>
+                            <div class="status-label">Delivered</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+   
+
+{% endblock %}
