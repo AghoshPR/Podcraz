@@ -1,7 +1,7 @@
 {% extends "user/base.html" %}
 {%load static%}
 {% block content %}
-
+{% csrf_token %}
 <style>
     body {
         background-color: #f0f0f0;
@@ -75,70 +75,148 @@
         border-radius: 4px;
         margin-top: 15px;
     }
+    .coupon-section {
+        position: relative;
+        display: inline-block;
+        cursor: pointer;
+    }
+    
+    .coupon-list {
+        display: none;
+        position: absolute;
+        background-color: white;
+        border: 1px solid #ddd;
+        width: 200px;
+        top: 100%;
+        left: 0;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .coupon-list ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .coupon-list li {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+    }
+    
+    .coupon-list li:last-child {
+        border-bottom: none;
+    }
+    
+    .coupon-section:hover .coupon-list {
+        display: block;
+    }
+    
+    .coupon-section .coupon-label, .coupon-section .dropdown-arrow {
+        font-size: 14px;
+        padding: 10px;
+        display: inline-block;
+    }
+    
+    .coupon-section:hover .dropdown-arrow {
+        transform: rotate(180deg);
+        transition: transform 0.3s ease;
+    }
 </style>
 </head>
 <body>
 <div class="checkout-container">
+    <h2 class="mb-4">Delivery Address</h2>
     <div class="container">
         <div class="row">
             <div class="col-lg-8">
-                <h2 class="mb-4">Delivery Address</h2>
+                
                 
                 <div class="address-container">
-                    <button class="add-address-btn">+ ADDRESS</button>
+                    <a href="{% url 'add_address' %}">
+                        <button class="add-address-btn">+ ADD NEW ADDRESS</button>
+                    </a>
                     
+                    {% if default_address %}
                     <div class="address-card">
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="address" checked>
+                            <input class="form-check-input" type="radio"  value="{{ default_address.id }}" name="address" checked>
                             <label class="form-check-label">
-                                <strong>Default Address</strong><br>
-                                Aghosh PR<br>
-                                Puthur House<br>
-                                Thrissur<br>
-                                680546<br>
-                                Mobile: 9827349849
+                                <div class="default-badge mb-2">DEFAULT ADDRESS</div>
+                                <strong>{{ default_address.address }}</strong><br>
+                                {{ default_address.city }}<br>
+                                {{ default_address.state }}<br>
+                                {{ default_address.pin_code }}<br>
+                                Mobile: {{ default_address.phone }}
                             </label>
                         </div>
                     </div>
+                    {% endif %}
 
+                    {% if other_addresses %}
                     <h6 class="mt-4 mb-3">Saved Addresses</h6>
+
+                    {% for address in other_addresses %}
                     <div class="address-card">
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="address">
+                            <input class="form-check-input" 
+                                   type="radio" 
+                                   name="address" 
+                                   value="{{ address.id }}">
                             <label class="form-check-label">
-                                <strong>Aghosh PR</strong><br>
-                                Puthur House<br>
-                                Thrissur<br>
-                                680546<br>
-                                Mobile: 9827349849
+                                <strong>{{ address.address }}</strong><br>
+                                {{ address.city }}<br>
+                                {{ address.state }}<br>
+                                {{ address.pin_code }}<br>
+                                Mobile: {{ address.phone }}
                             </label>
                         </div>
                     </div>
+                    {% endfor %}
+                    {% endif %}
+
+                    {% if not default_address and not other_addresses %}
+                    <div class="alert alert-warning">
+                        No addresses found. Please add an address to continue.
+                    </div>
+                    {% endif %}
+
                 </div>
             </div>
 
             <div class="col-lg-4">
                 <div class="product-summary">
                     <h5 class="mb-4">Products</h5>
+
+                    {% for item in cart_items %}
+
                     <div class="product-item">
-                        <img src="{% static "images/bestseller.png" %}" alt="Truke BTG1" class="product-image">
+                        <img src="{{ item.product_variant.productimage_set.first.image_path.url }}" alt="{{ item.product_variant.product.name }}" class="product-image">
+                        
                         <div class="product-details">
-                            <h6>Truke BTG1 wireless</h6>
-                            <small>Color: Black</small><br>
-                            <small>Quantity: 1</small><br>
-                            <strong>₹1999</strong>
+                            <h6>{{ item.product_variant.product.name }}</h6>
+                            <small>Color: {{ item.product_variant.color }}</small><br>
+                            <small>Quantity: {{ item.quantity }}</small><br>
+                            <strong>₹ {{ item.total_price|floatformat:2 }}</strong>
                         </div>
                     </div>
+                    {% endfor %}
 
                     <div class="coupon-section">
-                        <span>Coupon code</span>
-                        <span>▼</span>
+                        <span class="coupon-label">Coupon code</span>
+                        <span class="dropdown-arrow">▼</span>
+                        <div class="coupon-list">
+                            <ul>
+                                <li>COUPON10 - 10% OFF</li>
+                                <li>FREESHIP - Free Shipping</li>
+                                <li>DISCOUNT20 - 20% OFF</li>
+                            </ul>
+                        </div>
                     </div>
 
                     <div class="price-details">
                         <div class="price-row">
                             <span>Item Sub Total</span>
-                            <span>₹1999</span>
+                            <span>₹ {{ total_price|floatformat:2 }}</span>
                         </div>
                         <div class="price-row">
                             <span>Shipping</span>
@@ -147,16 +225,51 @@
                         <hr>
                         <div class="price-row">
                             <strong>Total</strong>
-                            <strong>₹1999</strong>
+                            <strong>₹ {{ total_price|floatformat:2 }}</strong>
                         </div>
                     </div>
 
-                    <button class="continue-btn">CONTINUE</button>
+                    <button class="continue-btn" id="placeOrderBtn">CONTINUE</button>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const placeOrderBtn = document.getElementById('placeOrderBtn');
+        
+        placeOrderBtn.addEventListener('click', function() {
+            const selectedAddress = document.querySelector('input[name="address"]:checked');
+            
+            if (!selectedAddress) {
+                alert('Please select a delivery address');
+                return;
+            }
+    
+            const formData = new FormData();
+            formData.append('address_id', selectedAddress.value);
+            formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+    
+            fetch("", {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    window.location.href = data.redirect_url;
+                } else {
+                    alert(data.message || 'Error placing order');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while placing your order');
+            });
+        });
+    });
+    </script>
 
 {% endblock %}

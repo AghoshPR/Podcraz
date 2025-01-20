@@ -88,14 +88,21 @@ class Order(models.Model):
         ('shipped', 'Shipped'),
         ('delivered', 'Delivered'),
         ('cancelled', 'Cancelled'),
+        ('return_pending', 'Return Pending'),  
+        ('return_approved', 'Return Approved'), 
+        ('return_rejected', 'Return Rejected'), 
+        ('Approved','Approved'),
+        ('Rejected','Rejected'),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES)
     created_at = models.DateTimeField(auto_now_add=True)
     address = models.ForeignKey('Address', on_delete=models.CASCADE) #on_delete=models.PROTECT
     payment_method = models.ForeignKey('PaymentMethod', on_delete=models.SET_NULL, null=True)
+    cancellation_reason = models.TextField(null=True, blank=True)
+    return_reason = models.TextField(null=True, blank=True)
 
 # OrderItem Model
 class OrderItem(models.Model):
@@ -104,6 +111,7 @@ class OrderItem(models.Model):
     quantity = models.PositiveIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=50)
+    
 
 # PaymentMethod Model
 class PaymentMethod(models.Model):

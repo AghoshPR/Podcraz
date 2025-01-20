@@ -30,6 +30,9 @@ urlpatterns = [
     path('add_to_cart/', views.add_to_cart, name='add_to_cart'),
     path('update-cart-item/', views.update_cart_item, name='update_cart_item'),
     path('remove-cart-item/', views.remove_cart_item, name='remove_cart_item'),
+
+
+    
     path('checkout/',views.usercheckout,name='usercheckout'),
 
 
@@ -42,12 +45,18 @@ urlpatterns = [
     path('deleteaddress/<int:address_id>',views.delete_address,name='delete_address'),
     path('defaultaddress/<int:address_id>',views.set_default,name='set_default'),
 
+    
+    path('payment/',views.payment,name='payment'),
 
-    path('order/',views.order,name='order'),
-    path('orderreturn/',views.order_return,name='order_return'),
+    path('ordersuccess/',views.ordersuccess,name='order_success'),
+    path('ordercancel/<int:order_id>/',views.cancel_order,name='cancel_order'),
+    path('orderreturn/<int:order_id>/',views.order_return,name='order_return'),
+
+    path('order/',views.myorder,name='myorder'),
+    
 
 
-    path('orderview/',views.orderview,name='orderview'),
+    path('orderview/<int:order_id>/',views.orderview,name='orderview'),
 
 
     path('wallet/',views.wallet,name='wallet'),
@@ -55,7 +64,7 @@ urlpatterns = [
 
     path('coupon/',views.coupon,name='coupon'),
 
-    path('changepassword/',views.changepass,name='changepass'),
+    path('changepassword/',views.user_changepass,name='user_changepass'),
 
 
 

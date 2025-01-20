@@ -2,92 +2,116 @@
 {% load static %}
 {% block content %}
 
+
 <style>
-    /* ... existing styles from base ... */
     
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+/* Sidebar styling */
+.sidebar {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.sidebar h5 {
+    color: #333;
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+}
+
+.sidebar .nav-link {
+    color: #666;
+    padding: 0.5rem 0;
+    transition: color 0.3s ease;
+}
+
+.sidebar .nav-link:hover {
+    color: #007bff;
+}
+
+.sidebar .nav-link.active {
+    color: #007bff;
+    font-weight: 500;
+}
+
+.sidebar .nav-link i {
+    width: 20px;
+    margin-right: 10px;
+}
+
+/* Logout button styling */
+.logout-btn {
+    width: 100%;
+    background-color: #ff4444;
+    color: white;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 4px;
+    margin-top: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+.logout-btn:hover {
+    background-color: #ff3333;
+}
+
+/* Password card styling */
+.password-card {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.password-card h5 {
+    color: #333;
+    margin-bottom: 1.5rem;
+}
+
+/* Form styling */
+.password-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-control {
+    border: 1px solid #ddd;
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    width: 100%;
+}
+
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+}
+
+/* Save button styling */
+.save-btn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 4px;
+    width: 100%;
+    transition: background-color 0.3s ease;
+}
+
+.save-btn:hover {
+    background-color: #0056b3;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
     .sidebar {
-        background: white;
-        border-radius: 10px;
-        padding: 25px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
     }
-
-    .nav-link {
-        color: #333;
-        padding: 10px 15px;
-        border-radius: 5px;
-        transition: all 0.3s ease;
-    }
-
-    .nav-link:hover {
-        background: #f8f9fa;
-    }
-
-    .nav-link.active {
-        background: #f8f9fa;
-        font-weight: 500;
-    }
-
-    .nav-link i {
-        width: 20px;
-    }
-
-    .logout-btn {
-        background: #dc3545;
-        color: white;
-        border: none;
-        padding: 10px;
-        border-radius: 5px;
-        width: 100%;
-        margin-top: 20px;
-    }
-
-    .logout-btn:hover {
-        background: #c82333;
-    }
-
-    .password-card {
-        background: white;
-        border-radius: 10px;
-        padding: 30px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        margin-bottom: 20px;
-    }
-
-    .password-form {
-        margin-top: 20px;
-    }
-
-    .form-group {
-        margin-bottom: 20px;
-    }
-
-    .form-control {
-        width: 100%;
-        border: 1px solid #dee2e6;
-        border-radius: 5px;
-        padding: 15px;
-        margin-bottom: 15px;
-    }
-
-    .form-control:focus {
-        outline: none;
-        border-color: #007bff;
-        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
-    }
-
-    .save-btn {
-        background: #007bff;
-        color: white;
-        padding: 10px 25px;
-        border-radius: 5px;
-        border: none;
-        float: right;
-    }
-
-    .save-btn:hover {
-        background: #0056b3;
-    }
+}
 </style>
 
 <div class="container py-4">
@@ -99,8 +123,8 @@
                 <nav class="nav flex-column">
                     <a class="nav-link" href="{% url 'myprofile' %}"><i class="fas fa-user me-2"></i>Profile</a>
                     <a class="nav-link" href="{% url 'address'  %}"><i class="fas fa-map-marker-alt me-2"></i>Addresses</a>
-                    <a class="nav-link" href="{% url 'order' %}"><i class="fas fa-box me-2"></i>Orders</a>
-                    <a class="nav-link" href="{% url 'wallet' %"><i class="fas fa-wallet me-2"></i>Wallet</a>
+                    <a class="nav-link" href="{% url 'myorder' %}"><i class="fas fa-box me-2"></i>Orders</a>
+                    <a class="nav-link" href="{% url 'wallet' %}"><i class="fas fa-wallet me-2"></i>Wallet</a>
                     <a class="nav-link" href="{% url 'coupon' %}"><i class="fas fa-ticket me-2"></i>Coupon</a>
                     <a class="nav-link active" href="#"><i class="fas fa-lock me-2"></i>Change Password</a>
                 </nav>
@@ -112,27 +136,36 @@
         <div class="col-md-9">
             <div class="password-card">
                 <h5>Change Password</h5>
-                <div class="password-form">
-                    <div class="form-group">
-                        <input type="password" 
-                               class="form-control" 
-                               placeholder="Current Password">
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="password-form">
+                        <div class="form-group">
+                            <input type="password" 
+                                   class="form-control" 
+                                   name="current_password"
+                                   placeholder="Current Password" 
+                                   required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <input type="password" 
+                                   class="form-control" 
+                                   name="new_password"
+                                   placeholder="New Password" 
+                                   required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <input type="password" 
+                                   class="form-control" 
+                                   name="confirm_password"
+                                   placeholder="Re-enter Password" 
+                                   required>
+                        </div>
+                        
+                        <button type="submit" class="save-btn">Save Changes</button>
                     </div>
-                    
-                    <div class="form-group">
-                        <input type="password" 
-                               class="form-control" 
-                               placeholder="New Password">
-                    </div>
-                    
-                    <div class="form-group">
-                        <input type="password" 
-                               class="form-control" 
-                               placeholder="Re-enter Password">
-                    </div>
-                    
-                    <button class="save-btn">Save Changes</button>
-                </div>
+                </form>
             </div>
         </div>
     </div>

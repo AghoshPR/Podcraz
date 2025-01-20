@@ -75,7 +75,7 @@
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
                                 <li><a class="dropdown-item" href="{% url 'myprofile' %}">My Profile</a></li>
-                                <li><a class="dropdown-item" href="#">My Orders</a></li>
+                                <li><a class="dropdown-item" href="{% url 'myorder' %}">My Orders</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item text-danger" href="{% url 'userlogout' %}">Logout</a></li>
                             </ul>
@@ -104,6 +104,7 @@
       </ol>
     </nav>
     {% endblock %}
+    
         <p class="text-center fs-5 fw-bold">"Choose the Best, Find Your Perfect Pair of Earbuds in Our Store."</p>
         <div class="d-flex justify-content-center">
             <div class="input-group" style="max-width: 600px;">

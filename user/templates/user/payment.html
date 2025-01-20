@@ -1,4 +1,6 @@
-
+{% extends "user/base.html" %}
+{%load static%}
+{% block content %}
 
 
 <style>
@@ -91,6 +93,7 @@
 </style>
 </head>
 <body>
+    {% csrf_token %}
 <div class="payment-container">
     <div class="container">
         <div class="row">
@@ -99,37 +102,34 @@
                 <h2 class="section-title">Payment</h2>
                 
                 <div>
+                    
                     <label class="payment-option">
-                        <input type="radio" name="payment" class="form-check-input payment-radio">
-                        <span>UPI</span>
-                    </label>
-
-                    <label class="payment-option">
-                        <input type="radio" name="payment" class="form-check-input payment-radio">
+                        <input type="radio" name="payment_method" value="wallet" class="form-check-input payment-radio">
                         <span>Wallet</span>
                     </label>
-
+                    
                     <label class="payment-option">
-                        <input type="radio" name="payment" class="form-check-input payment-radio">
+                        <input type="radio" name="payment_method" value="card" class="form-check-input payment-radio">
                         <span>Credit/Debit Card</span>
                     </label>
-
+                    
                     <label class="payment-option">
-                        <input type="radio" name="payment" class="form-check-input payment-radio">
+                        <input type="radio" name="payment_method" value="netbanking" class="form-check-input payment-radio">
                         <span>Net Banking</span>
                     </label>
-
+                    
                     <label class="payment-option">
-                        <input type="radio" name="payment" class="form-check-input payment-radio">
+                        <input type="radio" name="payment_method" value="emi" class="form-check-input payment-radio">
                         <span>EMI</span>
                     </label>
-
+                    
                     <label class="payment-option">
-                        <input type="radio" name="payment" class="form-check-input payment-radio">
+                        <input type="radio" name="payment_method" value="cod" class="form-check-input payment-radio">
                         <span>Cash On Delivery</span>
                     </label>
+                    
 
-                    <button class="pay-now-btn">PAY NOW</button>
+                    <button class="pay-now-btn"  id="payNowBtn" >PAY NOW</button>
                 </div>
             </div>
 
@@ -137,20 +137,24 @@
             <div class="col-lg-4">
                 <div class="product-summary">
                     <h5 class="mb-4">Products</h5>
+
+                    {% for item in cart_items %}
+
                     <div class="product-item">
-                        <img src="product-image.jpg" alt="Truke BTG1" class="product-image">
+                        <img src="{{ item.product_variant.productimage_set.first.image_path.url }}" alt="{{ item.product_variant.product.name }}" class="product-image">
                         <div class="product-details">
-                            <h6>Truke BTG1 wireless</h6>
-                            <small>Color: Black</small><br>
-                            <small>Quantity: 1</small><br>
-                            <strong>₹1999</strong>
+                            <h6>{{ item.product_variant.product.name }}</h6>
+                            <small>Color: {{ item.product_variant.color }}</small><br>
+                            <small>Quantity: {{ item.quantity }}</small><br>
+                            <strong>₹ {{ item.total_price }}</strong>
                         </div>
                     </div>
+                    {% endfor %}
 
                     <div class="price-details">
                         <div class="price-row">
                             <span>Item Sub Total</span>
-                            <span>₹1999</span>
+                            <span>₹ {{ total_price | floatformat:2 }}</span>
                         </div>
                         <div class="price-row">
                             <span>Shipping</span>
@@ -159,7 +163,7 @@
                         <hr>
                         <div class="price-row">
                             <strong>Total</strong>
-                            <strong>₹1999</strong>
+                            <strong>₹ {{ total_price | floatformat:2 }}</strong>
                         </div>
                     </div>
                 </div>
@@ -167,3 +171,42 @@
         </div>
     </div>
 </div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const payNowBtn = document.getElementById('payNowBtn');
+        
+        payNowBtn.addEventListener('click', function() {
+            const selectedPayment = document.querySelector('input[name="payment_method"]:checked');
+            
+            if (!selectedPayment) {
+                alert('Please select a payment method');
+                return;
+            }
+    
+            const formData = new FormData();
+            formData.append('payment_method', selectedPayment.value);
+            formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+    
+            fetch("{% url 'payment' %}", {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    window.location.href = data.redirect_url;
+                } else {
+                    alert(data.message || 'Error processing payment');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while processing your payment');
+            });
+        });
+    });
+    </script>
+
+{% endblock %}

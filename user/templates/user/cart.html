@@ -231,7 +231,7 @@
                         <strong>Total</strong>
                         <strong class="cart-total">₹{{ total_price|floatformat:2 }}</strong>
                     </div>
-                    <button class="place-order-btn">PLACE ORDER</button>
+                    <a href="{% url 'usercheckout' %}"><button class="place-order-btn">PLACE ORDER</button></a>
                 </div>
             </div>
         </div>

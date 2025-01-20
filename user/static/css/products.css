@@ -1,10 +1,30 @@
 .filter-sidebar {
     background-color: #f8f9fa;
     padding: 20px;
-    max-height: 400px; /* Limit height */
-    overflow-y: auto; /* Add scroll if content overflows */
-    border: 1px solid #ddd; /* Optional: Add a border for clarity */
-    border-radius: 8px; /* Optional: Rounded corners */
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.filter-sidebar h5 {
+    margin-bottom: 15px;
+    color: #333;
+    font-weight: 600;
+}
+
+.filter-sidebar ul li {
+    margin-bottom: 10px;
+}
+
+.filter-sidebar .form-select {
+    margin-bottom: 15px;
+}
+
+.filter-sidebar .form-check-input {
+    margin-right: 8px;
+}
+
+.filter-sidebar label {
+    cursor: pointer;
 }
 
 .wishlist-btn {

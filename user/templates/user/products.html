@@ -6,7 +6,34 @@
 
 
 <meta name="csrf-token" content="{{ csrf_token }}">
+
+
 {% endblock %}
+
+
+{% block search %}
+    <!-- Search Section -->
+    <div class="container my-4">
+        <p class="text-center fs-5 fw-bold">"Choose the Best, Find Your Perfect Pair of Earbuds in Our Store."</p>
+        <form method="get" action="" class="d-flex justify-content-center">
+            <div class="input-group" style="max-width: 600px;">
+                <span class="input-group-text bg-white border-end-0">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input 
+                    type="text" 
+                    name="q" 
+                    class="form-control border-start-0" 
+                    placeholder="Search for products..."
+                    value="">
+                <button type="submit" class="btn btn-dark px-4 rounded-end">Search</button>
+            </div>
+        </form>
+    </div>
+    {% endblock %}
+    
+
+
 
 {% block content %}
 <div class="container-fluid py-4">
@@ -16,41 +43,83 @@
     </form>
     
     <div class="row">
+        
         <!-- Sidebar Filters -->
         <div class="col-md-3">
-            <div class="filter-sidebar">
+            <form method="get" action="{% url 'userproducts' %}">
+                <!-- Sort Options -->
+                
+                {% if selected_categories or selected_brands or price_range or sort %}
+                <div class="mb-4">
+                    <a href="{% url 'userproducts' %}" class="btn btn-outline-danger btn-sm">
+                        Clear All Filters
+                    </a>
+                </div>
+                {% endif %}
+                
+
+                <!-- Categories -->
                 <h5>Categories</h5>
                 <ul class="list-unstyled">
                     {% for category in categories %}
                     <li>
-                        <input class="form-check-input" type="checkbox" id="category_{{ category.id }}">
+                        <input class="form-check-input" type="checkbox" name="category" 
+                            value="{{ category.id }}" id="category_{{ category.id }}"
+                            {% if category.id|stringformat:"i" in selected_categories %}checked{% endif %}
+                            onchange="this.form.submit()">
                         <label for="category_{{ category.id }}" class="text-dark">{{ category.name }}</label>
                     </li>
                     {% endfor %}
                 </ul>
-        
+
+                <!-- Brands -->
                 <h5 class="mt-4">Brand</h5>
                 <ul class="list-unstyled">
                     {% for brand in brands %}
                     <li>
-                        <input class="form-check-input" type="checkbox" id="brand_{{ brand.id }}">
+                        <input class="form-check-input" type="checkbox" name="brand" 
+                            value="{{ brand.id }}" id="brand_{{ brand.id }}"
+                            {% if brand.id|stringformat:"i" in selected_brands %}checked{% endif %}
+                            onchange="this.form.submit()">
                         <label for="brand_{{ brand.id }}" class="text-dark">{{ brand.name }}</label>
                     </li>
                     {% endfor %}
                 </ul>
-        
-                <h5 class="mt-4">Price</h5>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="price1">
-                    <label class="form-check-label" for="price1">1000 - 5000</label>
+
+                <div class="mb-4">
+                    <h5>Sort By</h5>
+                    <select name="sort" class="form-select" onchange="this.form.submit()">
+                        <option value="" {% if not request.GET.sort %}selected{% endif %}>Default</option>
+                        <option value="price_low" {% if request.GET.sort == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+                        <option value="price_high" {% if request.GET.sort == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+                        <option value="newest" {% if request.GET.sort == 'newest' %}selected{% endif %}>New Arrivals</option>
+                        <option value="name_asc" {% if request.GET.sort == 'name_asc' %}selected{% endif %}>Name: A to Z</option>
+                        <option value="name_desc" {% if request.GET.sort == 'name_desc' %}selected{% endif %}>Name: Z to A</option>
+                    </select>
                 </div>
-            </div>
+
+                <!-- Price Range -->
+                <h5 class="mt-4">Price Range</h5>
+                <select name="price_range" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Prices</option>
+                    <option value="0-1000" {% if request.GET.price_range == '0-1000' %}selected{% endif %}>Under ₹1000</option>
+                    <option value="1000-5000" {% if request.GET.price_range == '1000-5000' %}selected{% endif %}>₹1000 - ₹5000</option>
+                    <option value="5000-10000" {% if request.GET.price_range == '5000-10000' %}selected{% endif %}>₹5000 - ₹10000</option>
+                    <option value="10000+" {% if request.GET.price_range == '10000+' %}selected{% endif %}>Above ₹10000</option>
+                </select>
+
+                <!-- Search query hidden field -->
+                {% if request.GET.q %}
+                <input type="hidden" name="q" value="{{ request.GET.q }}">
+                {% endif %}
+            </form>
         </div>
         
         <!-- Product Grid -->
         <div class="col-md-9">
             
             <div class="row row-cols-1 row-cols-md-3 g-4">
+                
                 <!-- Product Cards -->
                 {% for variant in product_variants %}
                 <div class="col">

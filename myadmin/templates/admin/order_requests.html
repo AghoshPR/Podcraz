@@ -1,0 +1,117 @@
+{% extends "admin/adminbase.html" %}
+
+{% block title %}Orders - Podcraze Admin{% endblock %}
+
+{% block content %}
+<div class="col main-content">
+    <div class="header">
+        <h2>Order Requests</h2>
+        <div class="search-box">
+            <input type="text" placeholder="Search">
+        </div>
+    </div>
+
+    <table class="product-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Image</th>
+                <th>Product</th>
+                <th>Customer</th>
+                <th>Reason</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in return_requests %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>
+                    {% with item=order.items.first %}
+                        {% if item.product_variant.productimage_set.first %}
+                            <img src="{{ item.product_variant.productimage_set.first.image_path.url }}" 
+                                 alt="{{ item.product_variant.product.name }}" 
+                                 class="product-thumbnail">
+                        {% else %}
+                            <img src="" 
+                                 alt="No Image" 
+                                 class="product-thumbnail">
+                        {% endif %}
+                    {% endwith %}
+                </td>
+                <td>{{ order.items.first.product_variant.product.name }}</td>
+                <td>{{ order.user.first_name }}</td>
+                <td>{{ order.return_reason }}</td>
+                <td>
+                    <span class="status-badge status-{{ order.status|lower }}">
+                        {{ order.status|title }}
+                    </span>
+                </td>
+                <td>
+                    <form method="POST" action="{% url 'request_handle' order.id %}" class="d-flex gap-2">
+                        {% csrf_token %}
+                        <button type="submit" name="action" value="approve" class="btn btn-success btn-sm">
+                            Approve
+                        </button>
+                        <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm">
+                            Reject
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="text-center">No return requests found</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="pagination">
+        <div class="page-item">Previous</div>
+        <div class="page-item active">1</div>
+        <div class="page-item">2</div>
+        <div class="page-item">3</div>
+        <div class="page-item">Next</div>
+    </div>
+</div>
+
+<style>
+    .product-thumbnail {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+
+    .status-badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.85em;
+        font-weight: 500;
+    }
+
+    .status-pending {
+        background-color: #ffd700;
+        color: #000;
+    }
+
+    .status-return_approved {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .status-return_rejected {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    /* Remove the custom action-buttons class as we're using Bootstrap classes instead */
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+</style>
+
+{% endblock %}

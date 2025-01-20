@@ -1,0 +1,111 @@
+{% extends "admin/adminbase.html" %}
+
+{% block title %}Edit Orders - Admin{% endblock %}
+
+{% block content %}
+
+
+
+<div class="p-4">
+    <!-- Edit Orders Header -->
+    <div class="bg-dark rounded p-3 mb-3">
+        <h5 class="mb-0 text-white">Edit Orders</h5>
+    </div>
+
+    <!-- Products Section -->
+    <div class="bg-light rounded mb-3">
+        <div class="bg-dark rounded-top p-2">
+            <div class="row align-items-center mx-0">
+                <div class="col-4 text-white px-3">Products</div>
+                <div class="col-4 text-white text-center">Quantity</div>
+                <div class="col-4 text-white px-3">Price</div>
+            </div>
+        </div>
+        <div class="p-3">
+            {% for item in order_items %}
+            <div class="row align-items-center mx-0 mb-2">
+                <div class="col-4 text-black px-3">{{ item.product_variant.product.name }}</div>
+                <div class="col-4 text-black text-center">{{ item.quantity }}</div>
+                <div class="col-4 text-black px-3">₹ {{ item.price }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Customer Details Section -->
+        <div class="col-md-8 pe-3">
+            <div class="bg-light rounded">
+                <div class="bg-dark rounded-top p-2">
+                    <h6 class="mb-0 text-white">Customer Details</h6>
+                </div>
+                <div class="p-3 text-white">
+                    <div class="row">
+                        <div class="col-3 text-black">Customer Id</div>
+                        <div class="col-9 text-black">{{ user.id }}</div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-3 text-black">Customer Name</div>
+                        <div class="col-9 text-black">{{ user.first_name }}</div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-3 text-black">Mobile Number</div>
+                        <div class="col-9 text-black">{{ user.phone }}</div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-3 text-black">Type of Payment</div>
+                        <div class="col-9 text-black">{{ order.payment_method.name }}</div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-3 text-black">Address</div>
+                        <div class="col-9 text-black">
+                            {{ order.address.address }}<br>
+                            {{ order.address.city }}, {{ order.address.state }} - {{ order.address.pin_code }}<br>
+                            Phone: {{ order.address.phone }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Update Section -->
+        <div class="col-md-4">
+            <div class="bg-light rounded">
+                <div class="bg-dark rounded-top p-2">
+                    <h6 class="mb-0 text-white">Order Update</h6>
+                </div>
+                <div class="p-3">
+                    <div class="text-black mb-3">
+                        <div>Ordered On: {{ order.created_at|date:"d/m/Y" }}</div>
+                    </div>
+                    <div class="text-black mb-3">
+                        <div>Current State: 
+                            <span class="
+                                {% if order.status == 'pending' %}text-warning{% endif %}
+                                {% if order.status == 'shipped' %}text-primary{% endif %}
+                                {% if order.status == 'cancelled' %}text-danger{% endif %}
+                                {% if order.status == 'delivered' %}text-success{% endif %}
+                            ">
+                                {{ order.status|title }}
+                            </span>
+                        </div>
+                    </div>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="text-black mb-4">
+                            <div>Order Status:
+                                <select name="status" class="form-select form-select-sm d-inline-block ms-2 bg-dark text-white border-0" style="width: auto;">
+                                    {% for key, value in order.STATUS_CHOICES %}
+                                    <option value="{{ key }}" {% if key == order.status %}selected{% endif %}>{{ value }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Update</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,8 +1,8 @@
 
 from django.shortcuts import *
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import *
 from django.contrib.auth import authenticate,login,logout,get_user_model
-from django.contrib.auth.models import User
+
 from django.contrib import messages
 from django.http import *
 from django.views.decorators.cache import never_cache
@@ -17,7 +17,8 @@ from django.contrib.auth.hashers import make_password
 from email.message import EmailMessage
 from decouple import config
 import re,json
-UserModel = get_user_model()
+from django.urls import reverse
+User = get_user_model()
 
 
 ########### user login and signup ###############
@@ -235,6 +236,15 @@ def signup_otp(request):
 
 ########### user login and signup ###############
 
+
+#################Search##############
+
+
+#################Search##############
+
+
+
+
 ########### user password and user new password ###############
 
 def forgot_pass(request):
@@ -289,29 +299,142 @@ def userlogout(request):
 def about(request):
     return render(request,'user/about.html')
 
+@login_required
+def user_changepass(request):
+    
+    if request.POST:
+        current_password = request.POST.get('current_password')
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+
+        user = request.user
+
+
+        if not check_password(current_password,user.password):
+            messages.error(request, 'Current password is incorrect')
+            return render(request,'user/changepass.html')
+        
+        if len(new_password) < 8:
+            messages.error(request, 'Password must be at least 8 characters long')
+            return render(request, 'user/changepass.html')
+        
+        if not re.search(r'[A-Z]', new_password):  
+            messages.error(request, 'Password must contain at least one uppercase letter')
+            return render(request, 'user/changepass.html')
+        
+        if not re.search(r'[a-z]', new_password):  
+            messages.error(request, 'Password must contain at least one lowercase letter')
+            return render(request, 'user/changepass.html')
+        
+        if not re.search(r'[0-9]', new_password):  
+            messages.error(request, 'Password must contain at least one digit')
+            return render(request, 'user/changepass.html')
+        
+        if not re.search(r'[!@#$%^&*(),.?":{}|<>]', new_password):  # At least one special character
+            messages.error(request, 'Password must contain at least one special character')
+            return render(request, 'user/changepass.html')
+        
+        if new_password != confirm_password:
+            messages.error(request, 'New passwords do not match')
+            return render(request,'user/changepass.html')
+        
+        user.set_password(new_password)
+        user.save()
+
+        messages.success(request, 'Password changed successfully. Please login again.')
+        return redirect('userlogin')
+        
+
+        
+
+    return render(request,'user/changepass.html')
+
 
 
 def userproducts(request):
 
-    categories=ProductCategory.objects.filter(status='Active')
-
-    brands=Brand.objects.all()
+    
 
     product_variants = ProductVariant.objects.filter(
         product__product_category__status='Active'
     ).prefetch_related('productimage_set','wishlists')
 
 
+    search_query = request.GET.get('q','')
+
+    if search_query:
+
+        product_variants = product_variants.filter(
+            product__name__icontains=search_query
+        )
+    else:
+        product_variants = ProductVariant.objects.filter(
+            product__product_category__status='Active'
+        ).prefetch_related('productimage_set', 'wishlists')
+
+
+    #soring
+
+    selected_categories = request.GET.getlist('category')
+    selected_brands = request.GET.getlist('brand')
+    price_range = request.GET.get('price_range')
+    sort = request.GET.get('sort')
+
+    if selected_categories:
+        product_variants = product_variants.filter(product__product_category__id__in=selected_categories)
+
+    
+    if selected_brands:
+        product_variants = product_variants.filter(product__brand__id__in=selected_brands)
+
+
+    if price_range:
+        if price_range == '0-1000':
+            product_variants = product_variants.filter(price__lte=1000)
+        elif price_range == '1000-5000':
+            product_variants = product_variants.filter(price__gt=1000, price__lte=5000)
+        elif price_range == '5000-10000':
+            product_variants = product_variants.filter(price__gt=5000, price__lte=10000)
+        elif price_range == '10000+':
+            product_variants = product_variants.filter(price__gt=10000)
+
+
+
+    if sort:
+        if sort == 'price_low':
+            product_variants = product_variants.order_by('price')
+        elif sort == 'price_high':
+            product_variants = product_variants.order_by('-price')
+        elif sort == 'newest':
+            product_variants = product_variants.order_by('-product__created_at')
+        elif sort == 'name_asc':
+            product_variants = product_variants.order_by('product__name')
+        elif sort == 'name_desc':
+            product_variants = product_variants.order_by('-product__name')
+
+
+    #sorting end
+
+
     user_wishlist = []
     if request.user.is_authenticated:
         user_wishlist = Wishlist.objects.filter(user=request.user).values_list('product_variants', flat=True)
 
+    categories=ProductCategory.objects.filter(status='Active')
+
+    brands=Brand.objects.all()
 
     context={
         'categories':categories,
         'brands':brands,
         'product_variants':product_variants,
         'user_wishlist': user_wishlist,
+
+        'selected_categories': selected_categories,
+        'selected_brands': selected_brands,
+        'price_range': price_range,
+        'sort': sort,
+        'search_query': search_query,
     }
 
     return render(request,'user/products.html',context)
@@ -503,8 +626,7 @@ def remove_cart_item(request):
     },status=400)
 
 
-def usercheckout(request):
-    return render(request,'user/checkout.html')
+
 
 
 @login_required
@@ -540,24 +662,21 @@ def address(request):
 @login_required
 def add_address(request):
     if request.method == 'POST':
-        address = request.POST.get('address')
-        phone = request.POST.get('phone')
-        city = request.POST.get('city')
-        state = request.POST.get('state')
-        pin_code = request.POST.get('pin_code')
+        address = request.POST.get('address','').strip()
+        phone = request.POST.get('phone','').strip()
+        city = request.POST.get('city','').strip()
+        state = request.POST.get('state','').strip()
+        pin_code = request.POST.get('pin_code','').strip()
         is_default = request.POST.get('is_default') == 'on'
 
         if not all([address, phone, city, state, pin_code]):
             messages.error(request, 'All fields are required.')
             return redirect('add_address')
 
-        if not phone.isdigit() or len(phone) < 10:
-            messages.error(request, 'Invalid phone number.')
+        if not pin_code.isdigit() or len(pin_code) != 6 or pin_code == "0" * len(pin_code):
+            messages.error(request, 'Invalid PIN code. PIN code cannot be all zeros and must be exactly 6 digits.')
             return redirect('add_address')
 
-        if not pin_code.isdigit() or len(pin_code) != 6:
-            messages.error(request, 'Invalid PIN code.')
-            return redirect('add_address')
 
         if is_default:
             Address.objects.filter(user=request.user, is_default=True).update(is_default=False)
@@ -644,18 +763,266 @@ def set_default(request,address_id):
     return redirect('address')
 
 
+def usercheckout(request):
+
+    if not request.user.is_authenticated:
+        return redirect('userlogin')
+
+    cart = Cart.objects.get(user=request.user)
+    cart_items = CartItem.objects.filter(cart=cart)
+    total_price = sum(item.total_price for item in cart_items)
+
+
+    addresses=Address.objects.filter(user=request.user)
+    default_address=addresses.filter(is_default=True).first()
+    other_addresses = addresses.filter(is_default=False)
+
+    if request.method == 'POST':
+        address_id = request.POST.get('address_id')
+        if not address_id:
+            return JsonResponse({'status': 'error', 'message': 'No address selected'})
+        
+        request.session['selected_address_id'] = address_id  # Store the address in the session
+        return JsonResponse({'status': 'success', 'redirect_url': reverse('payment')})
+        
+
+    context={
+        'cart_items': cart_items,
+        'total_price': total_price,
+        'default_address': default_address,
+        'other_addresses': other_addresses,
+    }
+
+    return render(request,'user/checkout.html',context)
+
+
+def payment(request):
+
+    if not request.user.is_authenticated:
+        return redirect('userlogin')
+    
+    try:
+        cart = Cart.objects.get(user=request.user)
+        cart_items = CartItem.objects.filter(cart=cart)
+        total_price = sum(item.total_price for item in cart_items)
+
+    except Cart.DoesNotExist:
+
+        messages.error(request, "Cart not found.")
+        return redirect('usercart')
+
+    
+   
+
+    selected_address_id = request.session.get('selected_address_id')
+    if not selected_address_id:
+        messages.error(request, 'No delivery address selected.')
+        return redirect('usercheckout')
+    
+
+    try:
+        selected_address = Address.objects.get(id=selected_address_id, user=request.user)
+
+    except Address.DoesNotExist:
+        messages.error(request, 'Invalid address selected.')
+        return redirect('usercheckout')
+    
+
+    if request.POST:
+        method = request.POST.get('payment_method')
+        valid_methods= [ 'card','wallet','netbanking','emi','cod' ]
+
+        if not method:
+            return JsonResponse({
+                'status': 'error', 
+                'message': 'Please select a payment method.'
+            })
+        
+        if method not in valid_methods:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Invalid payment method selected.'
+            })
+        
+        
+        payment_method,_ = PaymentMethod.objects.get_or_create(name=method)
+        
+        
+        try:
+            order = Order.objects.create(
+                user = request.user,
+                total_price=total_price,
+                status='pending',
+                address=selected_address,
+                payment_method=payment_method
+            )
+
+            for cart_item in cart_items:
+                variant = cart_item.product_variant
+                if variant.stock < cart_item.quantity:
+                    raise ValueError(f'Not enough stock for {variant.product.name}')
+                
+                variant.stock -= cart_item.quantity
+                variant.save()
+
+                OrderItem.objects.create(
+                    order=order,
+                    product_variant=cart_item.product_variant,
+                    quantity=cart_item.quantity,
+                    price=cart_item.price,
+                    status='pending'
+                )
+            cart_items.delete()
+
+            if 'selected_address_id' in request.session:
+                del request.session['selected_address_id']
+            
+            return JsonResponse({
+                'status': 'success',
+                'redirect_url': reverse('order_success'),
+                'message': 'Order placed successfully!'
+            })
+        
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            })
+
+
+    
+
+
+       
+
+    context = {
+        'cart_items': cart_items,
+        'total_price': total_price,             
+    }
+        
+    
+
+
+
+    return render(request,'user/payment.html',context)
+
+
+def ordersuccess(request):
+    return render(request,'user/order_success.html')
+
+
+
+def myorder(request):
+
+    user = request.user
+    orders = (
+        Order.objects.filter(user=user)
+        .prefetch_related('items__product_variant__product',
+                          'items__product_variant__productimage_set')
+        .order_by('-created_at')
+    )
+    
+    context = {
+        'orders':orders
+    }
+
+    return render(request,'user/order.html',context)
+
+def orderview(request,order_id):
+
+    order = get_object_or_404(
+        Order.objects.prefetch_related(
+            'items__product_variant__product',
+            'items__product_variant__productimage_set'
+        ),
+        id=order_id,
+        user=request.user
+    )
+
+    status_updates = [
+        {'status':'Order Placed','date':order.created_at},
+        
+    ]
+
+    if order.status in ['processing','shipped','delivered','cancelled']:
+
+        if order.status in ['shipped', 'delivered']:
+            status_updates.append({'status': 'Shipped', 'date': order.created_at + timedelta(days=2)})
+
+        if order.status == 'delivered':
+            status_updates.append({'status': 'Delivered', 'date': now()})
+
+        if order.status == 'cancelled':
+            status_updates.append({'status': 'Cancelled', 'date': now()})
+
+
+    possible_statuses = {
+        'processing': ['processing', 'shipped', 'delivered'],
+        'shipped': ['shipped', 'delivered'],
+        'delivered': ['delivered'],
+        'cancelled': ['cancelled']
+    }
+
+
+    context = {
+        'order': order,
+        'status_updates': status_updates,
+        'possible_statuses': possible_statuses
+
+    }
+
+    return render(request,'user/orderview.html',context)
+
+
+def cancel_order(request,order_id):
+    if request.POST:
+        cancellation_reason = request.POST.get('cancellation_reason','')
+        order = get_object_or_404(Order, id=order_id, user=request.user)
+
+        if order.status in ['pending','processing','shipped','delivered']:
+            order.status = 'cancelled'
+            order.cancellation_reason =cancellation_reason
+            order.save()
+
+            messages.success(request, 'Your order has been successfully cancelled.')
+        else:
+            messages.error(request, 'This order cannot be cancelled.')
+
+    return redirect('myorder')
 
 
 
 
-def order(request):
-    return render(request,'user/order.html')
 
-def order_return(request):
-    return render(request,'user/order_return.html')
+def order_return(request, order_id):
+    order = get_object_or_404(Order, id=order_id,user=request.user)
 
-def orderview(request):
-    return render(request,'user/orderview.html')
+    if request.POST:
+        reason = request.POST.get('return_reason', '').strip()
+
+        if reason and order.status == 'delivered':
+            order.return_reason = reason
+            order.status = 'return_pending'
+            order.save()
+            messages.success(request, 'Return request submitted successfully')
+        else:
+            if not reason:
+                messages.error(request, 'Please provide a valid return reason.')
+            else:
+                messages.error(request, 'Only delivered orders can be returned.')
+        
+        return redirect('myorder')
+    
+    messages.error(request, 'Invalid request.')
+    return redirect('myorder')
+
+
+
+
+
+    
+
+
 
 def wallet(request):
     return render(request,'user/wallet.html')
@@ -663,5 +1030,3 @@ def wallet(request):
 def coupon(request):
     return render(request,'user/coupon.html')
 
-def changepass(request):
-    return render(request,'user/changepass.html')

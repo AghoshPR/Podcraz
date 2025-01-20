@@ -92,8 +92,8 @@ def admindashboard(request):
 @never_cache
 def adminproducts(request):
 
-    if not request.user.is_superuser:
-        return HttpResponse("You are restricted to enter this page")
+    # if not request.user.is_superuser:
+    #     return HttpResponse("You are restricted to enter this page")
 
     products = Product.objects.prefetch_related('productvariant_set').select_related('brand', 'product_category').annotate(variant_count=Count('productvariant'))
 
@@ -473,7 +473,7 @@ def deletecustomers(request,user_id):
 
     if user:
         user.delete()
-        messages.success(request, "f'User {user.first_name} has been deleted successfully.")
+        messages.success(request, f' {user.username} has been deleted successfully.')
     else:
         messages.error(request,"You do not have permission to delete this user.")
     
@@ -559,6 +559,109 @@ def admindeletecategory(request,id):
     if request.POST:
         category.delete()
         return redirect('admincategory')
+    
+
+
+def adminorders(request):
+
+    orders = (
+        Order.objects.all()
+        .prefetch_related('items__product_variant__product', 'items__product_variant__productimage_set')
+        .order_by('-created_at')
+    )
+
+    context = {
+        'orders': orders
+    }
+
+    return render(request,'admin/adminorder.html',context)
+
+
+
+def adminorders_details(request,order_id):
+
+    
+    order = get_object_or_404(Order, id=order_id)
+    order_items = order.items.all()
+    user = order.user
+    
+
+    if request.POST:
+        new_status = request.POST.get('status')
+
+        if new_status in dict(Order.STATUS_CHOICES):
+            order.status = new_status
+            order.save()
+            messages.success(request, f"Order status updated to {new_status}.")
+        
+        else:
+            messages.error(request, "Invalid status selected.")
+
+    context = { 
+        "order": order,
+        "order_items": order_items,
+        "user": user,
+    }
+    
+    return render(request,'admin/adminorder_details.html', context)
+
+
+
+def adminorders_delete(request,prd_id):
+    prd_order=get_object_or_404(Order,id=prd_id)
+    prd_order.delete()
+    return redirect('adminorders')
+
+
+
+    
+
+
+def orderrequests(request):
+
+    cancel_requests = Order.objects.filter(
+
+        status__in = ['pending','processing','shipped'], cancellation_reason__isnull = False
+    ).select_related('user').prefetch_related('items__product_variant__product__productimage_set')
+
+
+    return_requests = Order.objects.filter(
+        return_reason__isnull=False
+    ).select_related(
+        'user'
+    ).prefetch_related(
+        'items__product_variant__productimage_set', 
+        'items__product_variant__product'
+    ).order_by('-created_at')
+
+
+    context = {
+        'cancel_requests': cancel_requests,
+        'return_requests':return_requests
+    }
+
+    return render(request,'admin/order_requests.html',context)
+
+
+def request_handle(request, order_id):
+
+    if request.POST:
+        order = get_object_or_404(Order,id=order_id)
+
+        action = request.POST.get('action')
+
+        if action == 'approve':
+            order.status = 'return_approved'
+            messages.success(request, 'Return request approved successfully')
+        elif action == 'reject':
+            order.status = 'return_rejected'
+            messages.success(request, 'Return request Rejected successfully')
+        
+        order.save()
+        return redirect('orderrequests')
+
+
+    return redirect('orderrequests')
 
 
 

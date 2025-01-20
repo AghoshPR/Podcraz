@@ -62,6 +62,17 @@
         position: relative;
         z-index: 2;
     }
+    .status-circle.completed {
+        background-color: #28a745; /* Green */
+    }
+    
+    .status-circle.cancelled {
+        background-color: #dc3545; /* Red */
+    }
+    
+    .status-circle i {
+        color: white;
+    }
     
     .status-circle {
         width: 30px;
@@ -97,9 +108,9 @@
             <div class="sidebar">
                 <h5 class="mb-4">Account</h5>
                 <nav class="nav flex-column">
-                    <a class="nav-link" href="#"><i class="fas fa-user me-2"></i>Profile</a>
-                    <a class="nav-link" href="#"><i class="fas fa-map-marker-alt me-2"></i>Addresses</a>
-                    <a class="nav-link active" href="#"><i class="fas fa-box me-2"></i>Orders</a>
+                    <a class="nav-link" href="{% url 'myprofile' %}"><i class="fas fa-user me-2"></i>Profile</a>
+                    <a class="nav-link" href="{% url 'address' %}"><i class="fas fa-map-marker-alt me-2"></i>Addresses</a>
+                    <a class="nav-link active" href="{% url 'myorder' %}"><i class="fas fa-box me-2"></i>Orders</a>
                     <a class="nav-link" href="#"><i class="fas fa-wallet me-2"></i>Wallet</a>
                     <a class="nav-link" href="#"><i class="fas fa-ticket me-2"></i>Coupon</a>
                     <a class="nav-link" href="#"><i class="fas fa-lock me-2"></i>Change Password</a>
@@ -112,70 +123,112 @@
         <div class="col-md-9">
             <div class="order-card">
                 <div class="row">
+                    {% for item in order.items.all %}
                     <div class="col-md-3">
-                        <img src="product.jpg" alt="Truke BTG1" class="product-img img-fluid">
+                        <img src="{{ item.product_variant.productimage_set.first.image_path.url }}" alt="{{ item.product_variant.product.name }}" class="product-img img-fluid">
                     </div>
                     <div class="col-md-5">
-                        <h6 class="text-muted">Order ID: #1UPI00001</h6>
-                        <h5 class="mb-3">Truke BTG1</h5>
-                        <a href="#" class="btn btn-primary">Download Invoice</a>
+                        <h6 class="text-muted">Order ID: #{{ order.id }} </h6>
+                        <h5 class="mb-3">{{ item.product_variant.product.name }}</h5>
+                        <p>Quantity: {{ item.quantity }}</p>
+                        <p>Price: ₹{{ item.price }}</p>
+                        <hr>
+                        
                     </div>
+                    
                     <div class="col-md-4">
                         <div class="order-summary">
-                            <p class="d-flex justify-content-between mb-2">
-                                <span>Total Price:</span>
-                                <strong>₹1999</strong>
-                            </p>
-                            <p class="d-flex justify-content-between mb-2">
-                                <span>Delivery Charge:</span>
-                                <strong>₹0</strong>
-                            </p>
-                            <p class="d-flex justify-content-between mb-2">
-                                <span>Platform Fee:</span>
-                                <strong>₹0</strong>
-                            </p>
-                            <hr>
-                            <p class="d-flex justify-content-between mb-2">
-                                <span>Total Order Price:</span>
-                                <strong>₹1999</strong>
-                            </p>
-                            <p class="mb-2"><strong>Mode of Payment:</strong> UPI</p>
-                            <p class="mb-0"><strong>Delivery Address:</strong><br>
-                                Kariath House, Keechery,<br>Thrissur - 680546</p>
+                            
+                            
                         </div>
                     </div>
+                    {% endfor %}
+                </div>
+            
+                <!-- Show Delivery Charge only once for the entire order -->
+                <div class="order-summary">
+                    <p class="d-flex justify-content-between mb-2">
+                        <span>Delivery Charge:</span>
+                        <strong>₹0</strong>
+                    </p>
+                    <p class="d-flex justify-content-between mb-2">
+                        <span>Platform Fee:</span>
+                        <strong>₹0</strong>
+                    </p>
+                    
+                    <p class="d-flex justify-content-between mb-2">
+                        <span>Total Order Price:</span>
+                        <strong>₹{{ order.total_price }}</strong>
+                    </p>
+                    <p class="mb-2"><strong>Mode of Payment:</strong> {{ order.payment_method.name }}</p>
+                    <p class="mb-0"><strong>Delivery Address:</strong><br>
+                        {{ order.address.address }}<br>
+                        {{ order.address.city }}, {{ order.address.state }} - {{ order.address.pin_code }}<br>
+                        Phone: {{ order.address.phone }}
+                    </p>
                 </div>
             </div>
+            
+            
 
+            
             <!-- Order Status -->
-            <div class="order-card">
-                <h5 class="mb-4">Order Status</h5>
-                <div class="status-tracker">
-                    <div class="progress">
-                        <div class="progress-bar bg-success" role="progressbar" style="width: 66%"></div>
+           
+        <div class="order-card">
+            <h5 class="mb-4">Order Status</h5>
+            <div class="status-tracker">
+                <div class="progress">
+                    <!-- Adjust progress width based on current order status -->
+                    <div class="progress-bar 
+                        {% if order.status == 'cancelled' %}bg-danger
+                        {% elif order.status == 'delivered' %}bg-success
+                        {% elif order.status == 'shipped' %}bg-primary
+                        {% elif order.status == 'processing' %}bg-warning
+                        {% else %}bg-secondary{% endif %}" 
+                        role="progressbar" 
+                        style="width: 
+                        {% if order.status == 'processing' %}33%
+                        {% elif order.status == 'shipped' %}66%
+                        {% elif order.status == 'delivered' %}100%
+                        {% elif order.status == 'cancelled' %}0%
+                        {% else %}0%{% endif %}">
                     </div>
-                    <div class="row">
-                        <div class="col-4 status-step">
-                            <div class="status-circle completed">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            <div class="status-label">Processing</div>
+                </div>
+                <div class="row text-center">
+                    <!-- Processing -->
+                    <div class="col-3 status-step">
+                        <div class="status-circle {% if order.status in possible_statuses.processing %}completed{% endif %}">
+                            <i class="fas fa-check"></i>
                         </div>
-                        <div class="col-4 status-step">
-                            <div class="status-circle completed">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            <div class="status-label">Shipped</div>
+                        <div class="status-label">Processing</div>
+                    </div>
+                    <div class="col-3 status-step">
+                        <div class="status-circle {% if order.status in possible_statuses.shipped %}completed{% endif %}">
+                            <i class="fas fa-check"></i>
                         </div>
-                        <div class="col-4 status-step">
-                            <div class="status-circle">
-                                <i class="fas fa-times"></i>
-                            </div>
-                            <div class="status-label">Delivered</div>
+                        <div class="status-label">Shipped</div>
+                    </div>
+                    <div class="col-3 status-step">
+                        <div class="status-circle {% if order.status in possible_statuses.delivered %}completed{% endif %}">
+                            <i class="fas fa-check"></i>
                         </div>
+                        <div class="status-label">Delivered</div>
+                    </div>
+                    <div class="col-3 status-step">
+                        <div class="status-circle {% if order.status in possible_statuses.cancelled %}completed cancelled{% endif %}">
+                            <i class="fas fa-times"></i>
+                        </div>
+                        <div class="status-label">Cancelled</div>
                     </div>
                 </div>
             </div>
+        </div>
+
+
+
+
+
+
         </div>
     </div>
 </div>

@@ -1,4 +1,4 @@
-from django.urls import path,include
+from django.urls import path
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
@@ -41,6 +41,15 @@ urlpatterns = [
     path('editcategory/<int:category_id>/',views.admineditcategory,name='admineditcategory'),
     path('status/<int:category_id>/',views.adminblockcategory,name='adminblockcategory'),
     path('deletecategory/<int:id>/',views.admindeletecategory,name='admindeletecategory'),
+
+
+    path('orders/',views.adminorders,name='adminorders'),
+    path('ordersdetails/<int:order_id>',views.adminorders_details,name='adminorders_details'),
+
+    path('deleteorder/<int:prd_id>/',views.adminorders_delete,name='prd_order_delete'),
+    path('orderrequests/',views.orderrequests,name='orderrequests'),
+    path('handle-return/<int:order_id>/', views.request_handle, name='request_handle'),
+    
    
     
 
