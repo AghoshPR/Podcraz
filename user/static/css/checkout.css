@@ -1,0 +1,118 @@
+body {
+    background-color: #f0f0f0;
+}
+.checkout-container {
+    padding: 20px;
+    min-height: 70vh;
+}
+.address-container {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+.address-card {
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 15px;
+    background: white;
+}
+.add-address-btn {
+    background: transparent;
+    border: 1px solid #dee2e6;
+    color: #333;
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+.product-summary {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    position: sticky;
+    top: 20px;
+}
+.product-item {
+    display: flex;
+    align-items: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #dee2e6;
+    margin-bottom: 20px;
+}
+.product-image {
+    width: 80px;
+    height: 80px;
+    margin-right: 15px;
+    object-fit: cover;
+}
+.coupon-section {
+    border: 1px solid #dee2e6;
+    padding: 10px;
+    border-radius: 4px;
+    margin: 15px 0;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+}
+.price-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+.continue-btn {
+    width: 100%;
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 4px;
+    margin-top: 15px;
+}
+.coupon-section {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.coupon-list {
+    display: none;
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ddd;
+    width: 200px;
+    top: 100%;
+    left: 0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.coupon-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.coupon-list li {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.coupon-list li:last-child {
+    border-bottom: none;
+}
+
+.coupon-section:hover .coupon-list {
+    display: block;
+}
+
+.coupon-section .coupon-label, .coupon-section .dropdown-arrow {
+    font-size: 14px;
+    padding: 10px;
+    display: inline-block;
+}
+
+.coupon-section:hover .dropdown-arrow {
+    transform: rotate(180deg);
+    transition: transform 0.3s ease;
+}

@@ -231,8 +231,28 @@ def productvarient(request,product_id):
         if not variant_price or not variant_price.isdigit():
             errors.append("Price must be a valid number.")
 
+        try:
+            price = float(variant_price)
+            if price <= 0:
+                errors.append("Price must be greater than 0.")
+            elif price >= 100000:
+                errors.append("Price must not exceed ₹10,00,000.")
+            elif not re.match(r'^\d+(\.\d{1,2})?$', variant_price):
+                errors.append("Price can have up to two decimal places only.")
+        except ValueError:
+            errors.append("Price must be a valid number.")
+
         if not variant_stock or int(variant_stock) <= 0:
             errors.append("Stock must be a number.")
+
+        try:
+            stock = int(variant_stock)
+            if stock <= 0:
+                errors.append("Stock cannot be negative.")
+            elif stock >= 10000:
+                errors.append("Stock must not exceed 10,000.")
+        except ValueError:
+            errors.append("Stock must be a valid integer.")
 
 
         img = [
@@ -326,7 +346,7 @@ def editvarient(request, variant_id):
         except ValueError:
             errors.append("Price must be a valid number.")
 
-        if not variant_stock or int(variant_stock) <= 0:
+        if not variant_stock or int(variant_stock) < 0:
             errors.append("Stock must be a positive number.")
 
         # Handle image uploads
@@ -645,23 +665,23 @@ def orderrequests(request):
 
 def request_handle(request, order_id):
 
-    if request.POST:
-        order = get_object_or_404(Order,id=order_id)
-
-        action = request.POST.get('action')
-
-        if action == 'approve':
-            order.status = 'return_approved'
-            messages.success(request, 'Return request approved successfully')
-        elif action == 'reject':
-            order.status = 'return_rejected'
-            messages.success(request, 'Return request Rejected successfully')
+    if request.method == 'POST':
+        order = get_object_or_404(Order, id=order_id)
         
-        order.save()
-        return redirect('orderrequests')
+        
+        if order.status == 'return_pending':
+            action = request.POST.get('action')
 
-
-    return redirect('orderrequests')
+            if action == 'approve':
+                order.status = 'return_approved'
+                messages.success(request, 'Return request approved successfully')
+            elif action == 'reject':
+                order.status = 'return_rejected'
+                messages.success(request, 'Return request rejected successfully')
+            
+            order.save()
+            return redirect('orderrequests')
+    
 
 
 

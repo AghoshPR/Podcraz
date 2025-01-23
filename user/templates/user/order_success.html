@@ -33,7 +33,9 @@
              alt="Order Confirmed" class="confirmation-icon">
         <h1 class="mb-3">THANK YOU FOR YOUR ORDER!</h1>
         <p class="text-success mb-3">Your order has been successfully placed. <i class="fas fa-check-circle"></i></p>
-        <p class="text-muted">Order Number: #123456</p>
+        {% if order_id %}
+            <p class="order-number">Order Number: #{{ order_id }}</p>
+        {% endif %}
         <div class="mt-4">
             <a href="{% url 'myorder' %}" class="btn btn-primary me-2">My Orders</a>
             <a href="{% url 'userhome' %}" class="btn btn-outline-primary">Continue Shopping</a>

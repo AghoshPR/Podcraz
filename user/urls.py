@@ -34,9 +34,11 @@ urlpatterns = [
 
     
     path('checkout/',views.usercheckout,name='usercheckout'),
+    path('checkout_address/',views.checkout_address,name='checkout_address'),
 
 
     path('profile/',views.myprofile,name='myprofile'),
+    
 
 
     path('address/',views.address,name='address'),

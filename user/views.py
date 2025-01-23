@@ -23,8 +23,12 @@ User = get_user_model()
 
 ########### user login and signup ###############
 
-def userlogin(request):
 
+@never_cache
+def userlogin(request):
+    if request.user.is_authenticated:
+        return redirect('userhome')
+    
     if request.POST:
 
 
@@ -289,6 +293,8 @@ def reset_password(request):
 @never_cache
 def userhome(request):
 
+    
+
     return render(request,'user/homepage.html')
 
 
@@ -447,17 +453,28 @@ def userproductview(request, variant_id):
 
     related_variants=ProductVariant.objects.filter(product=product_variants.product)
     
+    cart_quantity = 0
+    if request.user.is_authenticated:
+        cart_item = CartItem.objects.filter(
+            cart__user=request.user,
+            product_variant=product_variants
+        ).first()
+        if cart_item:
+            cart_quantity = cart_item.quantity
+
 
     context={
         
         'product_variants':product_variants,
         'product_images':product_images,
-        'related_variants':related_variants
+        'related_variants':related_variants,
+        'cart_quantity': cart_quantity
     }
     
     return render(request,'user/productview.html',context)
 
 def userwishlist(request):
+
     if not request.user.is_authenticated: 
         return redirect('userlogin')
     
@@ -511,8 +528,18 @@ def toggle_wishlist(request):
 
 def usercart(request):
 
+    
+
     cart,created=Cart.objects.get_or_create(user=request.user)
     cart_items=CartItem.objects.filter(cart=cart)
+
+
+    for item in cart_items:
+        if item.product_variant.stock == 0:
+            messages.warning(request, f"{item.product_variant.product.name} is out of stock")
+
+        elif item.quantity > item.product_variant.stock:
+            messages.warning(request, f"Only {item.product_variant.stock} units available for {item.product_variant.product.name}")
 
     total_price = sum(item.total_price for item in cart_items)
 
@@ -542,6 +569,10 @@ def add_to_cart(request):
 
 
             product_variant=ProductVariant.objects.get(id=product_variant_id)
+
+            if product_variant.stock == 0:
+                return JsonResponse({'status': 'error', 'message': 'Product is out of stock'})
+
             cart,created=Cart.objects.get_or_create(user=request.user)
 
             cart_item, item_created=CartItem.objects.get_or_create(
@@ -630,17 +661,57 @@ def remove_cart_item(request):
 
 
 @login_required
+@never_cache
 def myprofile(request):
-
-    user=request.user
-    default_address=Address.objects.filter(user=user, is_default=True).first()
+    user = request.user
+    default_address = Address.objects.filter(user=user, is_default=True).first()
     
-    context={
-        'user':user,
-        'default_address':default_address
-    }
+    if request.method == 'POST':
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        city = request.POST.get('city', '').strip()
 
-    return render(request,'user/myprofile.html',context)
+        
+        if not first_name or not last_name:
+            messages.error(request, 'First Name and Last Name cannot be empty.')
+            return redirect('myprofile')
+        
+        if not re.match(r'^[A-Za-z ]+$', first_name) or not re.match(r'^[A-Za-z ]+$', last_name):
+            messages.error(request, 'First Name and Last Name should only contain letters and spaces.')
+            return redirect('myprofile')
+
+        if city and not re.match(r'^[A-Za-z ]+$', city):
+            messages.error(request, 'City should only contain letters and spaces.')
+            return redirect('myprofile')
+
+        try:
+            
+            user.first_name = first_name
+            user.last_name = last_name
+            user.save()
+
+            
+            if default_address:
+                default_address.city = city
+                default_address.save()
+            elif city:
+                Address.objects.create(
+                    user=user,
+                    city=city,
+                    is_default=True
+                )
+
+            messages.success(request, 'Profile updated successfully!')
+        except Exception as e:
+            messages.error(request, 'An error occurred while updating your profile.')
+            
+        return redirect('myprofile')
+
+    context = {
+        'user': user,
+        'default_address': default_address
+    }
+    return render(request, 'user/myprofile.html', context)
 
 
 @login_required
@@ -662,19 +733,60 @@ def address(request):
 @login_required
 def add_address(request):
     if request.method == 'POST':
-        address = request.POST.get('address','').strip()
+        usr_address = request.POST.get('address','').strip()
         phone = request.POST.get('phone','').strip()
         city = request.POST.get('city','').strip()
         state = request.POST.get('state','').strip()
         pin_code = request.POST.get('pin_code','').strip()
         is_default = request.POST.get('is_default') == 'on'
 
-        if not all([address, phone, city, state, pin_code]):
+        if not all([usr_address, phone, city, state, pin_code]):
             messages.error(request, 'All fields are required.')
             return redirect('add_address')
 
-        if not pin_code.isdigit() or len(pin_code) != 6 or pin_code == "0" * len(pin_code):
-            messages.error(request, 'Invalid PIN code. PIN code cannot be all zeros and must be exactly 6 digits.')
+        if len(usr_address) < 10:
+                messages.error(request, 'Address should be at least 10 characters long.')
+                return redirect('add_address')
+
+        
+        if not phone.isdigit():
+            messages.error(request, 'Phone number should contain only digits.')
+            return redirect('add_address')
+        
+        if len(phone) != 10:
+            messages.error(request, 'Phone number must be exactly 10 digits.')
+            return redirect('add_address')
+        
+        if phone == "0" * 10 or all(digit == phone[0] for digit in phone):
+            messages.error(request, 'Invalid phone number. Cannot use repeated digits or all zeros.')
+            return redirect('add_address')
+        
+        if not city.replace(' ', '').isalpha():
+            messages.error(request, 'City name should contain only letters.')
+            return redirect('add_address')
+        
+        if len(city) < 3:
+            messages.error(request, 'City name should be at least 3 characters long.')
+            return redirect('add_address')
+        
+        if not state.replace(' ', '').isalpha():
+            messages.error(request, 'State name should contain only letters.')
+            return redirect('add_address')
+        
+        if len(state) < 3:
+            messages.error(request, 'State name should be at least 3 characters long.')
+            return redirect('add_address')
+        
+        if not pin_code.isdigit():
+            messages.error(request, 'PIN code should contain only digits.')
+            return redirect('add_address')
+        
+        if len(pin_code) != 6:
+            messages.error(request, 'PIN code must be exactly 6 digits.')
+            return redirect('add_address')
+        
+        if pin_code == "0" * 6 or all(digit == pin_code[0] for digit in pin_code):
+            messages.error(request, 'Invalid PIN code. Cannot use repeated digits or all zeros.')
             return redirect('add_address')
 
 
@@ -683,7 +795,7 @@ def add_address(request):
 
         Address.objects.create(
             user=request.user,
-            address=address,
+            address=usr_address,
             phone=phone,
             city=city,
             state=state,
@@ -711,17 +823,58 @@ def editaddress(request,address_id):
         pin_code = request.POST.get('edit_pin_code')
         is_default = request.POST.get('edit_is_default') == 'on'
 
+
+
         if not all([address_data, phone, city, state, pin_code]):
             messages.error(request, 'All fields are required.')
-            return redirect('edit_address', id=address_id)
+            return redirect('add_address',id=address_id)
 
-        if not phone.isdigit() or len(phone) < 10:
-            messages.error(request, 'Invalid phone number.')
-            return redirect('edit_address', id=address_id)
+        if len(address_data) < 10:
+                messages.error(request, 'Address should be at least 10 characters long.')
+                return redirect('add_address')
 
-        if not pin_code.isdigit() or len(pin_code) != 6:
-            messages.error(request, 'Invalid PIN code.')
-            return redirect('edit_address', id=address_id)
+        
+        if not phone.isdigit():
+            messages.error(request, 'Phone number should contain only digits.')
+            return redirect('add_address')
+        
+        if len(phone) != 10:
+            messages.error(request, 'Phone number must be exactly 10 digits.')
+            return redirect('add_address')
+        
+        if phone == "0" * 10 or all(digit == phone[0] for digit in phone):
+            messages.error(request, 'Invalid phone number. Cannot use repeated digits or all zeros.')
+            return redirect('add_address')
+        
+        if not city.replace(' ', '').isalpha():
+            messages.error(request, 'City name should contain only letters.')
+            return redirect('add_address')
+        
+        if len(city) < 3:
+            messages.error(request, 'City name should be at least 3 characters long.')
+            return redirect('add_address')
+        
+        if not state.replace(' ', '').isalpha():
+            messages.error(request, 'State name should contain only letters.')
+            return redirect('add_address')
+        
+        if len(state) < 3:
+            messages.error(request, 'State name should be at least 3 characters long.')
+            return redirect('add_address')
+        
+        if not pin_code.isdigit():
+            messages.error(request, 'PIN code should contain only digits.')
+            return redirect('add_address')
+        
+        if len(pin_code) != 6:
+            messages.error(request, 'PIN code must be exactly 6 digits.')
+            return redirect('add_address')
+        
+        if pin_code == "0" * 6 or all(digit == pin_code[0] for digit in pin_code):
+            messages.error(request, 'Invalid PIN code. Cannot use repeated digits or all zeros.')
+            return redirect('add_address')
+
+        
         
         if is_default:
             Address.objects.filter(user=request.user, is_default=True).update(is_default=False)
@@ -770,6 +923,25 @@ def usercheckout(request):
 
     cart = Cart.objects.get(user=request.user)
     cart_items = CartItem.objects.filter(cart=cart)
+
+    if not cart_items.exists():
+        messages.error(request, "Your cart is empty. Please add items before checkout.")
+        return redirect('usercart')
+    
+    out_of_stock_items = []
+    for item in cart_items:
+        if item.product_variant.stock == 0:
+            out_of_stock_items.append(item.product_variant.product.name)
+
+        elif item.quantity > item.product_variant.stock:
+            out_of_stock_items.append(f"{item.product_variant.product.name} (Only {item.product_variant.stock} available)")
+
+
+    if out_of_stock_items:
+        messages.error(request, f"The following items are out of stock: {', '.join(out_of_stock_items)}")
+        return redirect('usercart')
+
+
     total_price = sum(item.total_price for item in cart_items)
 
 
@@ -778,11 +950,14 @@ def usercheckout(request):
     other_addresses = addresses.filter(is_default=False)
 
     if request.method == 'POST':
+
         address_id = request.POST.get('address_id')
         if not address_id:
             return JsonResponse({'status': 'error', 'message': 'No address selected'})
         
         request.session['selected_address_id'] = address_id  # Store the address in the session
+        
+
         return JsonResponse({'status': 'success', 'redirect_url': reverse('payment')})
         
 
@@ -796,6 +971,84 @@ def usercheckout(request):
     return render(request,'user/checkout.html',context)
 
 
+@login_required
+def checkout_address(request):
+    if request.method == 'POST':
+        address = request.POST.get('address','').strip()
+        phone = request.POST.get('phone','').strip()
+        city = request.POST.get('city','').strip()
+        state = request.POST.get('state','').strip()
+        pin_code = request.POST.get('pin_code','').strip()
+        is_default = request.POST.get('is_default') == 'on'
+
+        if not all([address, phone, city, state, pin_code]):
+            messages.error(request, 'All fields are required.')
+            return redirect('add_address')
+
+        if len(address) < 10:
+                messages.error(request, 'Address should be at least 10 characters long.')
+                return redirect('add_address')
+
+        
+        if not phone.isdigit():
+            messages.error(request, 'Phone number should contain only digits.')
+            return redirect('add_address')
+        
+        if len(phone) != 10:
+            messages.error(request, 'Phone number must be exactly 10 digits.')
+            return redirect('add_address')
+        
+        if phone == "0" * 10 or all(digit == phone[0] for digit in phone):
+            messages.error(request, 'Invalid phone number. Cannot use repeated digits or all zeros.')
+            return redirect('add_address')
+        
+        if not city.replace(' ', '').isalpha():
+            messages.error(request, 'City name should contain only letters.')
+            return redirect('add_address')
+        
+        if len(city) < 3:
+            messages.error(request, 'City name should be at least 3 characters long.')
+            return redirect('add_address')
+        
+        if not state.replace(' ', '').isalpha():
+            messages.error(request, 'State name should contain only letters.')
+            return redirect('add_address')
+        
+        if len(state) < 3:
+            messages.error(request, 'State name should be at least 3 characters long.')
+            return redirect('add_address')
+        
+        if not pin_code.isdigit():
+            messages.error(request, 'PIN code should contain only digits.')
+            return redirect('add_address')
+        
+        if len(pin_code) != 6:
+            messages.error(request, 'PIN code must be exactly 6 digits.')
+            return redirect('add_address')
+        
+        if pin_code == "0" * 6 or all(digit == pin_code[0] for digit in pin_code):
+            messages.error(request, 'Invalid PIN code. Cannot use repeated digits or all zeros.')
+            return redirect('add_address')
+
+
+        if is_default:
+            Address.objects.filter(user=request.user, is_default=True).update(is_default=False)
+
+        Address.objects.create(
+            user=request.user,
+            address=address,
+            phone=phone,
+            city=city,
+            state=state,
+            pin_code=pin_code,
+            is_default=is_default
+        )
+        messages.success(request, 'Address added successfully.')
+        return redirect('usercheckout')
+
+    return render(request, 'user/checkout_address.html')
+
+
 def payment(request):
 
     if not request.user.is_authenticated:
@@ -804,6 +1057,19 @@ def payment(request):
     try:
         cart = Cart.objects.get(user=request.user)
         cart_items = CartItem.objects.filter(cart=cart)
+
+
+        out_of_stock_items = []
+        for item in cart_items:
+            if item.product_variant.stock == 0:
+                out_of_stock_items.append(item.product_variant.product.name)
+            elif item.quantity > item.product_variant.stock:
+                out_of_stock_items.append(f"{item.product_variant.product.name} (Only {item.product_variant.stock} available)")
+
+        if out_of_stock_items:
+            messages.error(request, f"The following items are out of stock: {', '.join(out_of_stock_items)}")
+            return redirect('usercart')
+
         total_price = sum(item.total_price for item in cart_items)
 
     except Cart.DoesNotExist:
@@ -849,6 +1115,17 @@ def payment(request):
         
         
         try:
+
+            for cart_item in cart_items:
+                variant = cart_item.product_variant
+                if variant.stock == 0:
+                    raise ValueError(f'{variant.product.name} is out of stock')
+                if variant.stock < cart_item.quantity:
+                    raise ValueError(f'Only {variant.stock} units available for {variant.product.name}')
+
+
+
+
             order = Order.objects.create(
                 user = request.user,
                 total_price=total_price,
@@ -876,6 +1153,8 @@ def payment(request):
 
             if 'selected_address_id' in request.session:
                 del request.session['selected_address_id']
+
+            request.session['last_order_id'] = order.id
             
             return JsonResponse({
                 'status': 'success',
@@ -890,10 +1169,6 @@ def payment(request):
             })
 
 
-    
-
-
-       
 
     context = {
         'cart_items': cart_items,
@@ -901,14 +1176,19 @@ def payment(request):
     }
         
     
-
-
-
     return render(request,'user/payment.html',context)
 
 
 def ordersuccess(request):
-    return render(request,'user/order_success.html')
+
+    order_id = request.session.get('last_order_id')
+    if 'last_order_id' in request.session:
+        del request.session['last_order_id']
+
+    context = {
+    'order_id': order_id
+    }
+    return render(request,'user/order_success.html',context)
 
 
 
@@ -983,6 +1263,11 @@ def cancel_order(request,order_id):
             order.status = 'cancelled'
             order.cancellation_reason =cancellation_reason
             order.save()
+
+            for item in order.items.all():  
+                product_variant = item.product_variant  # Access the product variant
+                product_variant.stock += item.quantity  # Update the stock
+                product_variant.save()
 
             messages.success(request, 'Your order has been successfully cancelled.')
         else:

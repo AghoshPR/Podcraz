@@ -1,159 +1,23 @@
 {% extends "user/base.html" %}
-{%load static%}
+{% load static %}
 {% block content %}
+<link rel="stylesheet" href="{% static 'css/cart.css' %}">
 
 {% csrf_token %}
-<style>
-    body {
-        background-color: #f8f9fa; /* Softer background for better contrast */
-    }
-    
-    .cart-container {
-        background-color: #f8f9fa;
-        padding: 20px;
-        min-height: 70vh;
-        margin-bottom: 100px;
-    }
-    
-    .product-section {
-        background-color: white;
-        border-radius: 6px;
-        padding: 20px;
-        margin-bottom: 20px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); /* Added subtle shadow */
-    }
-    
-    .cart-header {
-        color: #343a40;
-        font-size: 24px;
-        font-weight: bold;
-        margin-bottom: 20px;
-        text-align: center;
-    }
-    
-    .product-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    
-    .product-table th,
-    .product-table td {
-        padding: 15px;
-        text-align: left;
-        vertical-align: middle;
-        border-bottom: 1px solid #dee2e6;
-    }
-    
-    .product-table th {
-        background-color: #f1f1f1;
-        font-weight: bold;
-        color: #495057;
-    }
-    
-    .product-info {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
-    
-    .product-image {
-        width: 80px;
-        height: 80px;
-        object-fit: cover;
-        border-radius: 4px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Slight shadow for product image */
-    }
-    
-    .quantity-control {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    
 
-    .quantity-control button {
-        padding: 4px 12px;
-        border: 1px solid #ddd;
-        background: #f8f9fa;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-
-    .quantity-control button:hover {
-        background: #e9ecef;
-    }
-
-    .quantity-control input {
-        width: 50px;
-        text-align: center;
-        border: 1px solid #ddd;
-        padding: 4px;
-        border-radius: 4px;
-    }
-    
-    .order-summary {
-        background-color: white;
-        border-radius: 6px;
-        padding: 20px;
-        position: sticky;
-        top: 20px;
-        height: fit-content;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    }
-    
-    .summary-title {
-        font-size: 18px;
-        font-weight: bold;
-        margin-bottom: 20px;
-        color: #495057;
-    }
-    
-    .summary-row {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 15px;
-        font-size: 16px;
-        color: #6c757d;
-    }
-    
-    .place-order-btn {
-        width: 100%;
-        background-color: #007bff;
-        color: white;
-        border: none;
-        padding: 12px;
-        border-radius: 4px;
-        font-weight: 500;
-        margin-top: 15px;
-        transition: background-color 0.3s;
-    }
-    
-    .place-order-btn:hover {
-        background-color: #0056b3;
-    }
-    
-    .remove-link {
-        color: #dc3545;
-        text-decoration: none;
-        font-size: 14px;
-        margin-top: 5px;
-        display: inline-block;
-    }
-    
-    .remove-link:hover {
-        text-decoration: underline;
-    }
-    
-    .in-stock {
-        color: #28a745;
-        font-size: 14px;
-        font-weight: 500;
-    }
-    
-</style>
 
 <body>
 {% csrf_token %}
+{% if messages %}
+<div class="alert-container">
+    {% for message in messages %}
+        <div class="alert alert-success">
+            {{ message }}
+        </div>
+    {% endfor %}
+</div>
+    {% endif %}
+
 
 <div class="cart-container">
     <div class="container">
@@ -183,9 +47,15 @@
                                              alt="{{ item.product_variant.product.name }}">
                                         <div>
                                             <h6 class="mb-1">{{ item.product_variant.product.name }}</h6>
-                                            <small class="text-success">In stock</small><br>
-                                            <a href="#" class="remove-link" data-item-id="{{ item.id }}">Remove</a>
-                                        </div>
+                                                {% if item.product_variant.stock == 0 %}
+                                                <small class="text-danger">Out of stock</small><br>
+                                                {% elif item.quantity > item.product_variant.stock %}
+                                                    <small class="text-warning">Only {{ item.product_variant.stock }} available</small><br>
+                                                {% else %}
+                                                    <small class="text-success">In stock</small><br>
+                                                {% endif %}
+                                                <a href="#" class="remove-link" data-item-id="{{ item.id }}">Remove</a>             
+                                            </div>
                                     </div>
                                 </td>
                                 <!-- Price -->
@@ -239,6 +109,42 @@
 </div>
 </body>
 
+
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+
+    <div id="removeItemToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                Item removed from cart successfully
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+
+
+    <!-- Toast for maximum quantity -->
+    <div id="maxQuantityToast" class="toast align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                Cannot add more than 4 products
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+
+    <!-- Toast for minimum quantity -->
+    <div id="minQuantityToast" class="toast align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                Quantity cannot be less than 1
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+
+
 <script>
     
     document.addEventListener('DOMContentLoaded', function () {
@@ -248,7 +154,25 @@
                 const itemId = this.dataset.itemId;
                 const action = this.classList.contains('increase-quantity') ? 'increase' : 'decrease';
                 const row = this.closest('tr');
-        
+                
+
+                const currentQuantity = parseInt(row.querySelector('.item-quantity').value);
+                
+                // Check maximum quantity
+                if (action === 'increase' && currentQuantity >= 4) {
+                    const toast = new bootstrap.Toast(document.getElementById('maxQuantityToast'));
+                    toast.show();
+                    return;
+                }
+                
+                // Check minimum quantity
+                if (action === 'decrease' && currentQuantity <= 1) {
+                    const toast = new bootstrap.Toast(document.getElementById('minQuantityToast'));
+                    toast.show();
+                    return;
+                }
+
+
                 const formData = new FormData();
                 formData.append('item_id', itemId);
                 formData.append('action', action);
@@ -285,59 +209,69 @@
 
 
     document.addEventListener('DOMContentLoaded', function () {
-        // Handle remove links
-        document.querySelectorAll('.remove-link').forEach(link => {
-            link.addEventListener('click', function (e) {
-                e.preventDefault();
-    
-                if (confirm('Are you sure you want to remove this item?')) {
-                    const itemId = this.dataset.itemId;
-                    const row = this.closest('tr');
-    
-                    const formData = new FormData();
-                    formData.append('item_id', itemId);
-                    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
-    
-                    fetch('/remove-cart-item/', {
-                        method: 'POST',
-                        body: formData,
-                    })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.status === 'success') {
-                                // Remove the item row
-                                row.remove();
-    
-                                // Update cart total
-                                document.querySelector('.cart-subtotal').textContent = `₹${data.cart_total.toFixed(2)}`;
-                                document.querySelector('.cart-total').textContent = `₹${data.cart_total.toFixed(2)}`;
-    
-                                // Check if cart is empty
-                                const remainingItems = document.querySelectorAll('.product-table tbody tr').length;
-                                if (remainingItems === 0) {
-                                    document.querySelector('.product-table tbody').innerHTML = `
-                                        <tr>
-                                            <td colspan="4" class="text-center py-4">
-                                                <p>Your cart is empty!</p>
-                                                <a href="{% url 'userhome' %}" class="btn btn-primary">Continue Shopping</a>
-                                            </td>
-                                        </tr>
-                                    `;
-                                }
-                            } else {
-                                alert('Error removing item from cart');
+    // Handle remove links
+    document.querySelectorAll('.remove-link').forEach(link => {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            
+            const itemId = this.dataset.itemId;
+            const row = this.closest('tr');
+
+            const formData = new FormData();
+            formData.append('item_id', itemId);
+            formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+            fetch('/remove-cart-item/', {
+                method: 'POST',
+                body: formData,
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Show toast notification
+                        const toast = new bootstrap.Toast(document.getElementById('removeItemToast'));
+                        toast.show();
+
+                        // Remove the row with animation
+                        row.style.transition = 'opacity 0.3s ease-out';
+                        row.style.opacity = '0';
+                        setTimeout(() => {
+                            row.remove();
+
+                            // Update cart total
+                            document.querySelector('.cart-subtotal').textContent = `₹${data.cart_total.toFixed(2)}`;
+                            document.querySelector('.cart-total').textContent = `₹${data.cart_total.toFixed(2)}`;
+
+                            // Check if cart is empty
+                            const remainingItems = document.querySelectorAll('.product-table tbody tr').length;
+                            if (remainingItems === 0) {
+                                document.querySelector('.product-table tbody').innerHTML = `
+                                    <tr>
+                                        <td colspan="4" class="text-center py-4">
+                                            <p>Your cart is empty!</p>
+                                            <a href="{% url 'userhome' %}" class="btn btn-primary">Continue Shopping</a>
+                                        </td>
+                                    </tr>
+                                `;
                             }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            
-                        });
-                }
-            });
+                        }, 300);
+                    } else {
+                        // Show error toast
+                        const toast = new bootstrap.Toast(document.getElementById('errorToast'));
+                        toast.show();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Show error toast
+                    const toast = new bootstrap.Toast(document.getElementById('errorToast'));
+                    toast.show();
+                });
         });
     });
-
+});
 </script>
+
 
 
 

@@ -49,15 +49,19 @@
                     </span>
                 </td>
                 <td>
-                    <form method="POST" action="{% url 'request_handle' order.id %}" class="d-flex gap-2">
-                        {% csrf_token %}
-                        <button type="submit" name="action" value="approve" class="btn btn-success btn-sm">
-                            Approve
-                        </button>
-                        <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm">
-                            Reject
-                        </button>
-                    </form>
+                    {% if order.status == 'return_pending' %}
+                        <form method="POST" action="{% url 'request_handle' order.id %}" class="d-flex gap-2">
+                            {% csrf_token %}
+                            <button type="submit" name="action" value="approve" class="btn btn-success btn-sm">
+                                Approve
+                            </button>
+                            <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm">
+                                Reject
+                            </button>
+                        </form>
+                    {% else %}
+                        <span class="text-white">Action taken</span>
+                    {% endif %}
                 </td>
             </tr>
             {% empty %}

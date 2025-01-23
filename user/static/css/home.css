@@ -1,7 +1,4 @@
-#navitems {
-    margin-left: 180px;
-    gap: 25px;
-}
+
 
 html, body {
     height: 100%;
@@ -48,11 +45,6 @@ footer ul {
 }
 
 
-.navbar {
-    min-height: 100px; 
-    padding-top: 10px; 
-    padding-bottom: 10px;
-}
 
 .navbar-brand img {
     height: 90px; 

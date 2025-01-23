@@ -39,17 +39,21 @@
                 <td>{{ product.variant_count|default:"0" }}</td>
                 <td>
                     <a href="{% url 'viewvarients' product.id %}">
-                        <button class="btn-edit">View</button>
+                        <button class="btn btn-primary">View</button>
                     </a>
                 </td>
                 <td>
-                    <a href="{%  url 'editproducts' product.id  %}"><button class="btn-edit">Edit</button></a>
-                    <a href="{% url 'deleteproducts' product.id %}">
-                        <button class="btn-remove">Remove</button>
-                    </a>
-                    <a href="{% url 'productvarient'  product.id %}">
-                        <button class="btn-update">Add Variant</button>
-                    </a>
+                    <div class="button-group">
+                        <a href="{% url 'editproducts' product.id %}">
+                            <button class="btn-edit">Edit</button>
+                        </a>
+                        <a href="{% url 'deleteproducts' product.id %}">
+                            <button class="btn-remove">Remove</button>
+                        </a>
+                        <a href="{% url 'productvarient' product.id %}">
+                            <button class="btn-add-variant">Add Variant</button>
+                        </a>
+                    </div>
                 </td>
             </tr>
             {% empty %}

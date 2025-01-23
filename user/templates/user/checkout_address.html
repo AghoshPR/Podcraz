@@ -1,0 +1,126 @@
+{% extends "user/base.html" %}
+{% load static %}
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/add_address.css' %}">
+{% if messages %}
+<div class="messages">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="sidebar">
+                <h5 class="mb-4">Account</h5>
+                <ul class="sidebar-menu">
+                    <li><a href="#">Profile</a></li>
+                    <li><a href="#" class="active">Addresses</a></li>
+                    <li><a href="#">Orders</a></li>
+                    <li><a href="#">Wallet</a></li>
+                    <li><a href="#">Coupon</a></li>
+                    <li><a href="#">Change Password</a></li>
+                </ul>
+                <button class="logout-btn mt-4">LOGOUT</button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <div class="main-content">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="mb-0">Checkout Address</h5>
+                </div>
+
+                <form method="POST" action="{% url 'checkout_address' %}">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Full Address</label>
+                                <textarea name="address" 
+                                          class="form-control" 
+                                          rows="3" 
+                                          placeholder="House/Flat/Block No., Street, Area"
+                                          required>{{ form_data.address }}</textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Phone Number</label>
+                                <input type="tel" 
+                                       name="phone" 
+                                       maxlength="10"
+                                       class="form-control" 
+                                       placeholder="Enter phone number"
+                                       required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>City</label>
+                                <input type="text" 
+                                       name="city" 
+                                       class="form-control" 
+                                       placeholder="Enter city"
+                                       maxlength="10"
+                                       required>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>State</label>
+                                <input type="text" 
+                                       name="state" 
+                                       class="form-control" 
+                                       maxlength="15"
+                                       placeholder="Enter state"
+                                       required>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>PIN Code</label>
+                                <input type="text" 
+                                       name="pin_code" 
+                                       class="form-control" 
+                                       maxlength="6"
+                                       pattern="[0-9]{6}"
+                                       placeholder="Enter PIN code"
+                                       required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" name="is_default" {% if form_data.is_default or not addresses_exist %}checked{% endif %}>
+                            Set as default address
+                        </label>
+                    </div>
+
+                    <div class="btn-group">
+                        <a href="{% url 'address' %}" class="btn-cancel">Cancel</a>
+                        <button type="submit" class="btn-save">Add Address</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock %}

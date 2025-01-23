@@ -32,7 +32,7 @@
             {% csrf_token %}
             <div class="form-group">
                 <label>Product Name</label>
-                <input type="text" name="prd_name" class="form-control" value="Product name" title="Product name must be at least 3 characters long and cannot start with a space." required >
+                <input type="text" name="prd_name" maxlength="20" class="form-control" value="Product name" title="Product name must be at least 3 characters long and cannot start with a space." required >
 
             </div>
 
@@ -58,7 +58,7 @@
 
             <div class="form-group">
                 <label>Description</label>
-                <textarea class="form-control" name="description" rows="4"></textarea>
+                <textarea class="form-control" name="description" maxlength="200" rows="4"></textarea>
             </div>
 
             

@@ -2,120 +2,7 @@
 {% load static %}
 {% block content %}
 
-<style>
-    body {
-        background-color: #f0f0f0;
-    }
-    .sidebar {
-        background: white;
-        border-radius: 8px;
-        padding: 20px;
-        margin-bottom: 20px;
-    }
-    .sidebar-menu {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-    .sidebar-menu li {
-        padding: 8px 0;
-        border-bottom: 1px solid #dee2e6;
-    }
-    .sidebar-menu li:last-child {
-        border-bottom: none;
-    }
-    .sidebar-menu a {
-        color: #333;
-        text-decoration: none;
-        display: block;
-        padding: 8px 15px;
-        border-radius: 4px;
-    }
-    .main-content {
-        background: white;
-        border-radius: 8px;
-        padding: 20px;
-    }
-    .logout-btn {
-        background-color: #ff4444;
-        color: white;
-        border: none;
-        padding: 8px;
-        border-radius: 4px;
-        width: 100%;
-    }
-
-    /* Form specific styles */
-    .form-group {
-        margin-bottom: 20px;
-    }
-    
-    .form-group label {
-        display: block;
-        margin-bottom: 8px;
-        color: #333;
-        font-weight: 500;
-    }
-    
-    .form-control {
-        width: 100%;
-        padding: 8px 12px;
-        border: 1px solid #dee2e6;
-        border-radius: 4px;
-        font-size: 14px;
-    }
-    
-    .form-control:focus {
-        border-color: #007bff;
-        outline: none;
-    }
-    
-    .checkbox-group {
-        margin-top: 15px;
-    }
-    
-    .checkbox-group label {
-        display: flex;
-        align-items: center;
-        cursor: pointer;
-    }
-    
-    .checkbox-group input[type="checkbox"] {
-        margin-right: 10px;
-    }
-    
-    .btn-group {
-        margin-top: 25px;
-        display: flex;
-        gap: 10px;
-        justify-content: flex-end;
-    }
-    
-    .btn-cancel {
-        background-color: transparent;
-        border: 1px solid #dee2e6;
-        color: #333;
-        padding: 8px 20px;
-        border-radius: 4px;
-        text-decoration: none;
-    }
-    
-    .btn-save {
-        background-color: #007bff;
-        color: white;
-        border: none;
-        padding: 8px 20px;
-        border-radius: 4px;
-    }
-    
-    .btn-cancel:hover {
-        background-color: #f8f9fa;
-    }
-    
-    .btn-save:hover {
-        background-color: #0056b3;
-    }
-</style>
+<link rel="stylesheet" href="{% static 'css/add_address.css' %}">
 {% if messages %}
 <div class="messages">
     {% for message in messages %}
@@ -132,12 +19,12 @@
             <div class="sidebar">
                 <h5 class="mb-4">Account</h5>
                 <ul class="sidebar-menu">
-                    <li><a href="#">Profile</a></li>
-                    <li><a href="#" class="active">Addresses</a></li>
-                    <li><a href="#">Orders</a></li>
-                    <li><a href="#">Wallet</a></li>
-                    <li><a href="#">Coupon</a></li>
-                    <li><a href="#">Change Password</a></li>
+                    <li><a href="{% url 'myprofile' %}">Profile</a></li>
+                    <li><a href="{% url 'address'  %}" class="active">Addresses</a></li>
+                    <li><a href="{% url 'myorder' %}">Orders</a></li>
+                    <li><a href="{% url 'wallet' %}">Wallet</a></li>
+                    <li><a href="{% url 'coupon' %}">Coupon</a></li>
+                    <li><a href="{% url 'user_changepass' %}">Change Password</a></li>
                 </ul>
                 <button class="logout-btn mt-4">LOGOUT</button>
             </div>
@@ -160,6 +47,7 @@
                                 <textarea name="address" 
                                           class="form-control" 
                                           rows="3" 
+                                          maxlength="30"
                                           placeholder="House/Flat/Block No., Street, Area"
                                           required>{{ form_data.address }}</textarea>
                             </div>
@@ -171,6 +59,7 @@
                                 <input type="tel" 
                                        name="phone" 
                                        class="form-control" 
+                                       maxlength="10"
                                        placeholder="Enter phone number"
                                        required>
                             </div>
@@ -183,6 +72,7 @@
                                 <label>City</label>
                                 <input type="text" 
                                        name="city" 
+                                       maxlength="10"
                                        class="form-control" 
                                        placeholder="Enter city"
                                        required>
@@ -193,7 +83,8 @@
                             <div class="form-group">
                                 <label>State</label>
                                 <input type="text" 
-                                       name="state" 
+                                       name="state"
+                                       maxlength="10" 
                                        class="form-control" 
                                        placeholder="Enter state"
                                        required>

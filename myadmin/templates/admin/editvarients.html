@@ -20,17 +20,17 @@
             
             <div class="form-group">
                 <label>Color</label>
-                <input type="text" class="form-control" name="color" value="{{ variant.color }}" required>
+                <input type="text" class="form-control" maxlength="10" name="color" value="{{ variant.color }}" required>
             </div>
 
             <div class="form-group">
                 <label>Price</label>
-                <input type="text" class="form-control" name="price" value="{{ variant.price }}" required>
+                <input type="text" class="form-control" maxlength="6" name="price" value="{{ variant.price }}" required>
             </div>
 
             <div class="form-group">
                 <label>Stock</label>
-                <input type="number" class="form-control" name="stock" value="{{ variant.stock }}" required>
+                <input type="number" class="form-control"  min="0" max="9999" name="stock" value="{{ variant.stock }}" required>
             </div>
 
             <div class="form-group">
