@@ -1,0 +1,215 @@
+{% extends "admin/adminbase.html" %}
+
+{% block title %}Podcraze{% endblock %}
+
+{% block content %}
+
+    
+
+<div class="col main-content">
+    
+        <div class="header">
+            <h2>Coupons</h2>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCouponModal">
+                Add Coupon
+            </button>
+        </div>
+    
+
+   
+    <table class="product-table">
+        <thead>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Discount</th>
+                    <th>min_purchase_amount</th>                                        
+                    <th>Valid From</th>
+                    <th>Valid Until</th>
+                    <th>Active</th>
+                    <th>Action</th>
+                    <th></th>
+            
+                </tr>
+            </thead>
+            <tbody>
+                {% for coupon in coupons %}
+                 
+                <tr>
+                    <td>{{ coupon.code }}</td>
+                    <td>
+
+                        {% if coupon.discount_type == 'percentage' %}
+                             {{ coupon.discount_value }} %
+                        {% else %}
+                            ₹ {{ coupon.discount_value }}
+                        {% endif %}
+
+                    </td>
+                    <td>₹ {{ coupon.min_purchase_amount }}</td>
+                    <td>{{ coupon.valid_from|date:"Y-m-d H:i" }}</td>
+                    <td>{{ coupon.valid_until|date:"Y-m-d H:i" }}</td>
+                    <td>
+                        <span class="badge {% if coupon.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                            {{ coupon.is_active|yesno:"Active,Inactive" }}
+                        </span>
+                    </td>
+                    
+                    <td>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" 
+                            data-bs-target="#editCouponModal{{ coupon.id }}">
+                                Edit
+                            </button>
+                    
+                            <a href="{% url 'deletecoupon' coupon.id %}" class="btn btn-sm btn-danger"
+                                onclick="return confirm('Are you sure you want to delete this coupon?')">
+                                    Delete
+                            </a>
+                        </div>
+                    </td>
+
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center">No coupons found</td>
+                </tr>
+                 {% endfor %}
+            </tbody>   
+    </table>
+ 
+</div>
+
+<div class="pagination">
+    <div class="page-item">Previous</div>
+    <div class="page-item active">1</div>
+    <div class="page-item">2</div>
+    <div class="page-item">3</div>
+    <div class="page-item">Next</div>
+</div>
+
+<div class="modal fade" id="addCouponModal" tabindex="-1" aria-labelledby="addCouponModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addCouponModalLabel">Add New Coupon</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{% url 'addcoupon' %}">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="code" class="form-label">Coupon Code</label>
+                            <input type="text" class="form-control" id="code" maxlength="20" name="code" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="discount_type" class="form-label">Discount Type</label>
+                            <select class="form-select" id="discount_type" name="discount_type" required>
+                                <option value="percentage">Percentage</option>
+                                <option value="fixed">Fixed Amount</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="discount_value" class="form-label">Discount Value</label>
+                            <input type="number" class="form-control" min="0" max="99999" id="discount_value" name="discount_value" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="min_purchase_amount" class="form-label">Minimum Purchase Amount</label>
+                            <input type="number" class="form-control" min="0" max="99999" id="min_purchase_amount" name="min_purchase_amount" required>
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" maxlength="30" name="description" rows="3" required></textarea>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="valid_from" class="form-label">Valid From</label>
+                            <input type="datetime-local" class="form-control" id="valid_from" name="valid_from" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="valid_until" class="form-label">Valid Until</label>
+                            <input type="datetime-local" class="form-control" id="valid_until" name="valid_until" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Add Coupon</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- edit coupon modal -->
+ 
+{% for coupon in coupons %}
+<div class="modal fade" id="editCouponModal{{ coupon.id }}" tabindex="-1" aria-labelledby="editCouponModalLabel{{ coupon.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editCouponModalLabel{{ coupon.id }}">Edit Coupon</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{% url 'edit_coupon' coupon.id %}">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="code" class="form-label">Coupon Code</label>
+                            <input type="text" class="form-control" id="code" maxlength="20" name="code" value="{{ coupon.code }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="discount_type" class="form-label">Discount Type</label>
+                            <select class="form-select" id="discount_type" name="discount_type" required>
+                                <option value="percentage" {% if coupon.discount_type == 'percentage' %}selected{% endif %}>Percentage</option>
+                                <option value="fixed" {% if coupon.discount_type == 'fixed' %}selected{% endif %}>Fixed Amount</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="discount_value" class="form-label">Discount Value</label>
+                            <input type="number" class="form-control"  min="0" max="99999" id="discount_value" name="discount_value" value="{{ coupon.discount_value }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="min_purchase_amount" class="form-label">Minimum Purchase Amount</label>
+                            <input type="number" class="form-control"  min="0" max="99999" id="min_purchase_amount" name="min_purchase_amount" value="{{ coupon.min_purchase_amount }}" required>
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" maxlength="30" name="description" rows="3" required>{{ coupon.description }}</textarea>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="valid_from" class="form-label">Valid From</label>
+                            <input type="datetime-local" class="form-control" id="valid_from" name="valid_from" 
+                                   value="{{ coupon.valid_from|date:'Y-m-d' }}T{{ coupon.valid_from|time:'H:i' }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="valid_until" class="form-label">Valid Until</label>
+                            <input type="datetime-local" class="form-control" id="valid_until" name="valid_until" 
+                                   value="{{ coupon.valid_until|date:'Y-m-d' }}T{{ coupon.valid_until|time:'H:i' }}" required>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="is_active" class="form-label">Status</label>
+                            <select class="form-select" id="is_active" name="is_active">
+                                <option value="True" {% if coupon.is_active %}selected{% endif %}>Active</option>
+                                <option value="False" {% if not coupon.is_active %}selected{% endif %}>Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}

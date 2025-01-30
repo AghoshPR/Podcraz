@@ -63,11 +63,24 @@
                         <span>Platform Fee:</span>
                         <strong>₹0</strong>
                     </p>
+
+
+                    {% if order.discount > 0 %}
+                    <p class="d-flex justify-content-between mb-2">
+                        <span>Original Price:</span>
+                        <strong >₹ {{ order.subtotal }}</strong>
+                    </p>
+                    <p class="d-flex justify-content-between mb-2">
+                        <span>Discount Applied:</span>
+                        <strong style="color: #28a745;"> ₹ {{ order.discount }} -</strong>
+                    </p>
+                    {% endif %}
                     
                     <p class="d-flex justify-content-between mb-2">
                         <span>Total Order Price:</span>
-                        <strong>₹{{ order.total_price }}</strong>
+                        <strong>₹{{ order.total_price }} /-</strong>
                     </p>
+
                     <p class="mb-2"><strong>Mode of Payment:</strong> {{ order.payment_method.name }}</p>
                     <p class="mb-0"><strong>Delivery Address:</strong><br>
                         {{ order.address.address }}<br>

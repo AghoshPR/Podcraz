@@ -11,6 +11,10 @@
 {% endblock %}
 
 
+   
+
+
+
 {% block search %}
     <!-- Search Section -->
     <div class="container my-4">
@@ -36,6 +40,43 @@
 
 
 {% block content %}
+
+
+    <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'userhome' %}" class="text-decoration-none">Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'userproducts' %}" class="text-decoration-none">Products</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+    </ol>
+    </nav>
+
+<style>
+    
+
+
+.discount-badge {
+    background-color: #28a745;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.8rem;
+}
+
+.original-price {
+    color: #6c757d;
+    font-size: 0.9em;
+}
+
+.offer-details {
+    margin-top: -10px;
+    margin-bottom: 20px;
+}
+
+.offer-name {
+    color: #666;
+    font-size: 0.9rem;
+}
+</style>
 <div class="container-fluid py-4">
     
     <form method="post">
@@ -147,10 +188,22 @@
                             {% endif %}
                             {% endwith %}
                             <h5 class="product-title">{{ variant.product.name }}</h5>
-                            <div class="price-container mb-2 d-flex align-items-center">
-                                <span class="current-price">₹{{ variant.price }}</span>
-                                <span class="discount ms-2">24% off</span>
+
+                           <div class="price-container mb-2 d-flex align-items-center">
+                                {% with offer_price=variant.get_offer_price %}
+                                    {% if offer_price %}
+                                        <span class="current-price">₹{{ offer_price|floatformat:2 }}</span>
+                                        <span class="original-price text-decoration-line-through ms-2">₹{{ variant.price }}</span>
+                                        
+                                    {% else %}
+                                        <span class="current-price">₹{{ variant.price }}</span>
+                                    {% endif %}
+                                {% endwith %}
                             </div>
+
+                            
+
+
                             <div class="card-body pt-0">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <p class="free-delivery mb-0">Free Delivery</p>

@@ -1,5 +1,5 @@
 {% extends "user/base.html" %}
-{%load static%}
+{% load static %}
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/payment.css' %}">
 
@@ -12,10 +12,8 @@
         </div>
         {% endfor %}
     </div>
-    {% endif %}
+{% endif %}
 
-<body>
-    {% csrf_token %}
 <div class="payment-container">
     <div class="container">
         <div class="row">
@@ -23,36 +21,27 @@
             <div class="col-lg-8">
                 <h2 class="section-title">Payment</h2>
                 
-                <div>
-                    
-                    <label class="payment-option">
-                        <input type="radio" name="payment_method" value="wallet" class="form-check-input payment-radio">
-                        <span>Wallet</span>
-                    </label>
-                    
-                    <label class="payment-option">
-                        <input type="radio" name="payment_method" value="card" class="form-check-input payment-radio">
-                        <span>Credit/Debit Card</span>
-                    </label>
-                    
-                    <label class="payment-option">
-                        <input type="radio" name="payment_method" value="netbanking" class="form-check-input payment-radio">
-                        <span>Net Banking</span>
-                    </label>
-                    
-                    <label class="payment-option">
-                        <input type="radio" name="payment_method" value="emi" class="form-check-input payment-radio">
-                        <span>EMI</span>
-                    </label>
-                    
-                    <label class="payment-option">
-                        <input type="radio" name="payment_method" value="cod" class="form-check-input payment-radio">
-                        <span>Cash On Delivery</span>
-                    </label>
-                    
+                <form method="POST" action="{% url 'payment' %}">
+                    {% csrf_token %}
+                    <div>
+                        <label class="payment-option">
+                            <input type="radio" name="payment_method" value="wallet" class="form-check-input payment-radio">
+                            <span>Wallet (Balance: ₹{{ wallet_balance }})</span>
+                        </label>
+                        
+                        <label class="payment-option">
+                            <input type="radio" name="payment_method" value="razorpay" class="form-check-input payment-radio">
+                            <span>Razorpay</span>
+                        </label>
+                        
+                        <label class="payment-option">
+                            <input type="radio" name="payment_method" value="cod" class="form-check-input payment-radio">
+                            <span>Cash On Delivery</span>
+                        </label>
 
-                    <button class="pay-now-btn"  id="payNowBtn" >PAY NOW</button>
-                </div>
+                        <button type="submit" class="pay-now-btn">PAY NOW</button>
+                    </div>
+                </form>
             </div>
 
             <!-- Product Summary Section -->
@@ -61,14 +50,15 @@
                     <h5 class="mb-4">Products</h5>
 
                     {% for item in cart_items %}
-
                     <div class="product-item">
-                        <img src="{{ item.product_variant.productimage_set.first.image_path.url }}" alt="{{ item.product_variant.product.name }}" class="product-image">
+                        <img src="{{ item.product_variant.productimage_set.first.image_path.url }}" 
+                             alt="{{ item.product_variant.product.name }}" 
+                             class="product-image">
                         <div class="product-details">
                             <h6>{{ item.product_variant.product.name }}</h6>
                             <small>Color: {{ item.product_variant.color }}</small><br>
                             <small>Quantity: {{ item.quantity }}</small><br>
-                            <strong>₹ {{ item.total_price }}</strong>
+                            <strong>₹ {{ item.get_total_price|floatformat:2 }}</strong>
                         </div>
                     </div>
                     {% endfor %}
@@ -78,6 +68,14 @@
                             <span>Item Sub Total</span>
                             <span>₹ {{ total_price | floatformat:2 }}</span>
                         </div>
+                        
+                        {% if discount %}
+                        <div class="price-row">
+                            <span>Discount</span>
+                            <span style="color: #28a745;">- ₹ {{ discount|floatformat:2 }}</span>
+                        </div>
+                        {% endif %}
+
                         <div class="price-row">
                             <span>Shipping</span>
                             <span style="color: #28a745;">Free</span>
@@ -85,7 +83,7 @@
                         <hr>
                         <div class="price-row">
                             <strong>Total</strong>
-                            <strong>₹ {{ total_price | floatformat:2 }}</strong>
+                            <strong>₹ {{ subtotal | floatformat:2 }}</strong>
                         </div>
                     </div>
                 </div>
@@ -94,41 +92,81 @@
     </div>
 </div>
 
+<style>
+.payment-container {
+    padding: 30px 0;
+}
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const payNowBtn = document.getElementById('payNowBtn');
-        
-        payNowBtn.addEventListener('click', function() {
-            const selectedPayment = document.querySelector('input[name="payment_method"]:checked');
-            
-            if (!selectedPayment) {
-                alert('Please select a payment method');
-                return;
-            }
-    
-            const formData = new FormData();
-            formData.append('payment_method', selectedPayment.value);
-            formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
-    
-            fetch("{% url 'payment' %}", {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    window.location.href = data.redirect_url;
-                } else {
-                    alert(data.message || 'Error processing payment');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while processing your payment');
-            });
-        });
-    });
-    </script>
+.payment-option {
+    display: block;
+    margin-bottom: 15px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
 
+.payment-option:hover {
+    background-color: #f8f9fa;
+    border-color: #007bff;
+}
+
+.payment-radio {
+    margin-right: 10px;
+}
+
+.pay-now-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    margin-top: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.pay-now-btn:hover {
+    background-color: #0056b3;
+}
+
+.product-summary {
+    background: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.product-item {
+    display: flex;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.product-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    margin-right: 15px;
+    border-radius: 4px;
+}
+
+.product-details {
+    flex: 1;
+}
+
+.price-details {
+    margin-top: 20px;
+}
+
+.price-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+</style>
 {% endblock %}

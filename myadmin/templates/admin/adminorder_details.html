@@ -92,25 +92,27 @@
                     </div>
                    
                     <form method="POST">
-                    {% csrf_token %}
-                    <div class="text-black mb-4">
-                        <div>Order Status:
-                            <select name="status" 
-                                    class="form-select form-select-sm d-inline-block ms-2 bg-dark text-white border-0" 
-                                    style="width: auto;" 
-                                    {% if order.status == 'delivered' %}disabled{% endif %}>
-                                {% for key, value in order.STATUS_CHOICES %}
-                                <option value="{{ key }}" {% if key == order.status %}selected{% endif %}>{{ value }}</option>
-                                {% endfor %}
-                            </select>
+                        {% csrf_token %}
+                        <div class="text-black mb-4">
+                            <div>Order Status:
+                                <select name="status" 
+                                        class="form-select form-select-sm d-inline-block ms-2 bg-dark text-white border-0" 
+                                        style="width: auto;" 
+                                        {% if order.status == 'delivered' or order.status == 'cancelled' or order.status == 'return_pending' or order.status == 'return_approved' or order.status == 'return_rejected' or order.status == 'Approved' or order.status == 'Rejected' %}disabled{% endif %}>
+                                    
+                                    {% for key, value in status_choices %}
+                                    <option value="{{ key }}" {% if key == order.status %}selected{% endif %}>{{ value }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
                         </div>
-                    </div>
-                    {% if order.status != 'delivered' %}
-                    <button type="submit" class="btn btn-primary w-100">
-                        Update
-                    </button>
-                    {% endif %}
-                </form>
+                        {% if order.status != 'delivered' and order.status != 'cancelled' and order.status != 'return_pending' and order.status != 'return_approved' and order.status != 'return_rejected' and order.status != 'Approved' and order.status != 'Rejected' %}
+                        <button type="submit" class="btn btn-primary w-100">
+                            Update
+                        </button>
+                        {% endif %}
+                    </form>
+                    
                 </div>
             </div>
         </div>

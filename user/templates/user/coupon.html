@@ -2,6 +2,15 @@
 {% load static %}
 {% block content %}
 
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'userhome' %}" class="text-decoration-none">Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'coupon' %}" class="text-decoration-none">Coupon</a></li>
+        
+        
+    </ol>
+    </nav>
+
 <style>
     body {
         background-color: #f8f9fa;
@@ -12,6 +21,7 @@
         height: 100%;
         padding: 20px;
         border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     }
 
     .sidebar .nav-link {
@@ -19,11 +29,12 @@
         padding: 8px 15px;
         margin: 5px 0;
         border-radius: 5px;
+        font-size: 16px;
     }
 
     .sidebar .nav-link:hover,
     .sidebar .nav-link.active {
-        background-color: #f8f9fa;
+        background-color: #f1f1f1;
     }
 
     .available-coupons {
@@ -31,6 +42,7 @@
         border-radius: 10px;
         padding: 25px;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        margin-left: 20px;
     }
 
     .coupon-card {
@@ -63,12 +75,12 @@
             <div class="sidebar">
                 <h5 class="mb-4">Account</h5>
                 <nav class="nav flex-column">
-                    <a class="nav-link" href="#"><i class="fas fa-user me-2"></i>Profile</a>
-                    <a class="nav-link" href="#"><i class="fas fa-map-marker-alt me-2"></i>Addresses</a>
-                    <a class="nav-link" href="#"><i class="fas fa-box me-2"></i>Orders</a>
-                    <a class="nav-link" href="#"><i class="fas fa-wallet me-2"></i>Wallet</a>
-                    <a class="nav-link active" href="#"><i class="fas fa-ticket me-2"></i>Coupon</a>
-                    <a class="nav-link" href="#"><i class="fas fa-lock me-2"></i>Change Password</a>
+                    <a class="nav-link" href="{% url 'myprofile' %}"><i class="fas fa-user me-2"></i>Profile</a>
+                    <a class="nav-link" href="{% url 'address' %}"><i class="fas fa-map-marker-alt me-2"></i>Addresses</a>
+                    <a class="nav-link" href="{% url 'myorder' %}"><i class="fas fa-box me-2"></i>Orders</a>
+                    <a class="nav-link" href="{% url 'wallet' %}"><i class="fas fa-wallet me-2"></i>Wallet</a>
+                    <a class="nav-link active" href="{% url 'coupon' %}"><i class="fas fa-ticket me-2"></i>Coupon</a>
+                    <a class="nav-link" href="{% url 'user_changepass' %}"><i class="fas fa-lock me-2"></i>Change Password</a>
                 </nav>
                 <button class="btn btn-danger mt-4 w-100">Logout</button>
             </div>
@@ -78,27 +90,47 @@
         <div class="col-md-9">
             <div class="available-coupons">
                 <h5 class="mb-4">Available Coupons</h5>
-                
+                {% if coupons %}
+                {% for coupon in coupons %}
                 <div class="coupon-card">
                     <div class="d-flex justify-content-between align-items-center">
-                        <div class="coupon-title">Flat 35% Off on all purchases only for new users</div>
-                        <div class="coupon-code">NEWUSER</div>
+                        <div>
+                            <div class="coupon-title">{{ coupon.description }}</div>
+                            <div class="coupon-details mt-2">
+                                {% if coupon.min_purchase_amount > 0 %}
+                                    <small class="text-black">
+                                        Min. Purchase: ₹{{ coupon.min_purchase_amount }}
+                                    </small>
+                                {% endif %}
+                                <br>
+                                <small class="text-black">
+                                    {% if coupon.discount_type == 'percentage' %}
+                                        Discount: {{ coupon.discount_value }}%
+                                    {% else %}
+                                        Discount: ₹{{ coupon.discount_value }}
+                                    {% endif %}
+                                </small>
+                                <br>
+                                <small class="text-muted">
+                                    Valid from: {{ coupon.valid_from|date:"Y-m-d H:i" }}
+                                </small>
+                                <br>
+                                <small class="text-muted">
+                                    Valid until: {{ coupon.valid_until|date:"Y-m-d H:i" }}
+                                </small>
+                            </div>
+                        </div>
+                        <div class="coupon-code">{{ coupon.code}}</div>
                     </div>
                 </div>
-
+                {% endfor %}
+                {% else %}
                 <div class="coupon-card">
                     <div class="d-flex justify-content-between align-items-center">
-                        <div class="coupon-title">Flat 20% Off on all purchases above Rs. 999</div>
-                        <div class="coupon-code">GRAB20</div>
+                        <div class="coupon-title">No active coupons availale</div>
                     </div>
                 </div>
-
-                <div class="coupon-card">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="coupon-title">Flat 50% Off on all purchases above Rs. 3999</div>
-                        <div class="coupon-code">FLAT50</div>
-                    </div>
-                </div>
+                {% endif %}
             </div>
         </div>
     </div>

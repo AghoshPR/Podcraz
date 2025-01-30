@@ -3,6 +3,14 @@
 
 {% block content %}
 
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'userhome' %}" class="text-decoration-none">Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'userproducts' %}" class="text-decoration-none">Products</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+    </ol>
+    </nav>
+
 {% csrf_token %}
 <body>
     
@@ -81,9 +89,36 @@
                         </h2>
                     </div>
 
-                    
+                             
+                    <div class="price-container mb-4">
+                        {% with offer_price=product_variants.get_offer_price %}
+                            {% if offer_price %}
+                                <h3 class="mb-2">
+                                    <span class="current-price" style="font-size: 1.5rem">Price: ₹{{ offer_price|floatformat:2 }}</span>
+                                    <span class="original-price text-decoration-line-through ms-2">₹{{ product_variants.price }}</span>
+                                </h3>
+                                {% with active_offer=product_variants.get_active_offer %}
+                                    {% if active_offer %}
+                                        <div class="offer-details">
+                                            <span class="badge bg-danger">
+                                                {% if active_offer.discount_type == 'percentage' %}
+                                                    {{ active_offer.discount_value }}% off
+                                                {% else %}
+                                                    ₹{{ active_offer.discount_value }} off
+                                                {% endif %}
+                                            </span>
+                                            
+                                        </div>
+                                    {% endif %}
+                                {% endwith %}
+                            {% else %}
+                                <h3 class="mb-4">Price: ₹{{ product_variants.price }}</h3>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
 
-                        <h3 class="mb-4">Price: ₹{{ product_variants.price }}</h3>
+
+
                         <div class="mb-4">
                             <h6>Color: {{ product_variants.color }}</h6>
                         </div>
@@ -119,7 +154,11 @@
                             </div>
                         </div>
                         
-                    
+                        
+                        
+
+
+
 
                         <div class="quantity-selector mb-4">
                             <button class="btn btn-outline-secondary decrease-quantity">-</button>

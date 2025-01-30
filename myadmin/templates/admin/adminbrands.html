@@ -10,10 +10,26 @@
     <div class="header">
         <h2>Brands</h2>
         <div class="search-box">
-            <input type="text" placeholder="Search">
+            <form method="GET" class="search-form">
+                <input 
+                    type="text" 
+                    name="search" 
+                    placeholder="Search products, brands, or categories" 
+                    value="{{ search_query }}"
+                >
+                <button type="submit" class="search-button btn btn-primary">Search</button>
+                {% if search_query %}
+                    <a href="{% url 'brands' %}" class="clear-button btn btn-danger">Clear</a>
+                {% endif %}
+            </form>
         </div>
     </div>
 
+    {% if search_query %}
+    <div class="search-results">
+        <p>Showing results for: "{{ search_query }}"</p>
+    </div>
+    {% endif %}
    
     <table class="product-table">
         <thead>

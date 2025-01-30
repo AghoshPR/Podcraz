@@ -1,0 +1,209 @@
+{% extends "admin/adminbase.html" %}
+
+{% block title %}Podcraze{% endblock %}
+
+{% block content %}
+
+
+
+
+    <div class="header">
+        <h2>Category Offers</h2>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addOfferModal">
+            Add Offer
+        </button>
+    </div>
+
+   
+    
+    <table class="product-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Discount</th>
+                <th>Valid From</th>
+                <th>Valid Until</th>
+                <th>Active</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+            {% for offer in offers %}
+                <tr>
+                    <td>{{  offer.name  }}</td>
+                    <td>{{  offer.product_category.name  }}</td>
+                    <td>
+                        {% if offer.discount_type == 'percentage' %}
+                            {{ offer.discount_value }}
+                        {% else %}
+                            {{ offer.discount_value }}
+                        {% endif %}
+                    </td>
+                    <td>{{ offer.valid_from|date:"Y-m-d H:i" }}</td>
+                    <td>{{ offer.valid_until|date:"Y-m-d H:i" }}</td>
+                    <td>{{ offer.is_active }}</td>
+                    <td>
+
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editOfferModal{{ offer.id }}">
+                            Edit
+                        </button>
+
+                        <a href="{% url 'delete_offer' offer.id %}" 
+                           class="btn btn-sm btn-danger" 
+                           onclick="return confirm('Are you sure you want to delete this offer?')">
+                            Delete
+                        </a>
+                    </td>
+
+                </tr>
+                {% endfor %}
+        </tbody>
+           
+    </table>
+   
+
+    
+
+    <div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addOfferModalLabel">Add Offer</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="offerName" class="form-label">Offer Name</label>
+                            <input type="text" class="form-control" maxlength="20" id="offerName" name="name" required>
+                        </div>
+
+
+                        <div class="mb-3">
+                            <label class="form-label">Category</label>
+                            <select class="form-select" name="category" required>
+                                {% for category in categories %}
+                                    <option value="{{ category.id }}">{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+
+                        <div class="mb-3">
+                            <label for="discountType" class="form-label">Discount Type</label>
+                            <select class="form-select" id="discountType" name="discount_type" required>
+                                <option value="percentage">Percentage</option>
+                                <option value="fixed">Fixed Amount</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="discountValue" class="form-label">Discount Value</label>
+                            <input type="number" class="form-control" min="30" max="9999" id="discountValue" name="discount_value" step="0.01" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="validFrom" class="form-label">Valid From</label>
+                            <input type="datetime-local" class="form-control" id="validFrom" name="valid_from" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="validUntil" class="form-label">Valid Until</label>
+                            <input type="datetime-local" class="form-control" id="validUntil" name="valid_until" required>
+                        </div>
+                       
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Add Offer</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Edit Category Offer Modal -->
+{% for offer in offers %}
+<div class="modal fade" id="editOfferModal{{ offer.id }}" tabindex="-1" aria-labelledby="editOfferModalLabel{{ offer.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editOfferModalLabel{{ offer.id }}">Edit Category Offer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{% url 'edit_categoryoffer' offer.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="offerName" class="form-label">Offer Name</label>
+                        <input type="text" class="form-control" maxlength="20" id="offerName" name="name" value="{{ offer.name }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <select class="form-select" name="category" required>
+                            {% for category in categories %}
+                                <option value="{{ category.id }}" {% if category.id == offer.product_category.id %}selected{% endif %}>
+                                    {{ category.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Discount Type</label>
+                        <select class="form-select" name="discount_type" required>
+                            <option value="percentage" {% if offer.discount_type == 'percentage' %}selected{% endif %}>Percentage</option>
+                            <option value="fixed" {% if offer.discount_type == 'fixed' %}selected{% endif %}>Fixed Amount</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Discount Value</label>
+                        <input type="number" class="form-control" name="discount_value" min="30" max="9999"
+                               step="0.01" value="{{ offer.discount_value }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Valid From</label>
+                        <input type="datetime-local" class="form-control" name="valid_from" 
+                               value="{{ offer.valid_from|date:'Y-m-d' }}T{{ offer.valid_from|time:'H:i' }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Valid Until</label>
+                        <input type="datetime-local" class="form-control" name="valid_until" 
+                               value="{{ offer.valid_until|date:'Y-m-d' }}T{{ offer.valid_until|time:'H:i' }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Active</label>
+                        <select class="form-select" name="is_active">
+                            <option value="True" {% if offer.is_active %}selected{% endif %}>Yes</option>
+                            <option value="False" {% if not offer.is_active %}selected{% endif %}>No</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+    <div class="pagination">
+        <div class="page-item">Previous</div>
+        <div class="page-item active">1</div>
+        <div class="page-item">2</div>
+        <div class="page-item">3</div>
+        <div class="page-item">Next</div>
+    </div>
+</div>
+
+{% endblock %}

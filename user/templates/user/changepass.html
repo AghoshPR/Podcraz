@@ -1,12 +1,17 @@
 {% extends "user/base.html" %}
 {% load static %}
 {% block content %}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'userhome' %}" class="text-decoration-none">Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'user_changepass' %}" class="text-decoration-none">Change Password</a></li>
+        
+        
+    </ol>
+    </nav>
+
 <link rel="stylesheet" href="{% static 'css/changepass.css' %}">
-
-<style>
-    
-
-</style>
 
 <div class="container py-4">
     <div class="row">

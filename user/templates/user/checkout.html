@@ -3,19 +3,27 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/checkout.css' %}">
 
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'userhome' %}" class="text-decoration-none">Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'userproducts' %}" class="text-decoration-none">Products</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'usercart' %}" class="text-decoration-none">Cart</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'usercheckout' %}" class="text-decoration-none">Checkout</a></li>
+        
+    </ol>
+    </nav>
+
 {% csrf_token %}
 
 </head>
 <body>
     {% if messages %}
-<div class="messages">
-    {% for message in messages %}
-    <div class="alert alert-{{ message.tags }}">
-        {{ message }}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="alert alert-success">{{ message }}</div>
+        {% endfor %}
     </div>
-    {% endfor %}
-</div>
-{% endif %}
+    {% endif %}
 <div class="checkout-container">
     <h2 class="mb-4">Delivery Address</h2>
     <div class="container">
@@ -82,34 +90,68 @@
                     {% for item in cart_items %}
 
                     <div class="product-item">
-                        <img src="{{ item.product_variant.productimage_set.first.image_path.url }}" alt="{{ item.product_variant.product.name }}" class="product-image">
+                        <img src="{{ item.product_variant.productimage_set.first.image_path.url }}" 
+                             alt="{{ item.product_variant.product.name }}" 
+                             class="product-image">
                         
                         <div class="product-details">
                             <h6>{{ item.product_variant.product.name }}</h6>
                             <small>Color: {{ item.product_variant.color }}</small><br>
                             <small>Quantity: {{ item.quantity }}</small><br>
-                            <strong>₹ {{ item.total_price|floatformat:2 }}</strong>
+                            <strong>₹ {{ item.get_total_price|floatformat:2 }}</strong>
                         </div>
                     </div>
                     {% endfor %}
 
+
+
                     <div class="coupon-section">
-                        <span class="coupon-label">Coupon code</span>
-                        <span class="dropdown-arrow">▼</span>
-                        <div class="coupon-list">
-                            <ul>
-                                <li>COUPON10 - 10% OFF</li>
-                                <li>FREESHIP - Free Shipping</li>
-                                <li>DISCOUNT20 - 20% OFF</li>
-                            </ul>
-                        </div>
+                        
+                        <h6>Available Coupons</h6>
+
+                        {% if available_coupons %}
+                        <form method="POST" class="coupon-form">
+                            {% csrf_token %}
+                            <select name="coupon" class="form-select mb-2">
+                                <option value="">Select a coupon</option>
+                                {% for coupon in available_coupons %}
+                                    <option value="{{ coupon.id }}" {% if applied_coupon.id == coupon.id %}selected{% endif %}>
+                                        {{ coupon.code }} - 
+                                        {% if coupon.discount_type == 'percentage' %}
+                                            {{ coupon.discount_value }}% OFF
+                                        {% else %}
+                                            ₹{{ coupon.discount_value }} OFF
+                                        {% endif %}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            {% if applied_coupon %}
+                                <button type="submit" name="remove_coupon" class="btn btn-danger btn-sm">Remove Coupon</button>
+                            {% else %}
+                                <button type="submit" name="apply_coupon" class="btn btn-primary btn-sm">Apply Coupon</button>
+                            {% endif %}
+                        </form>
+                    {% else %}
+                        <p class="text-black">No coupons available for this order</p>
+                    {% endif %}
+
                     </div>
+
+
 
                     <div class="price-details">
                         <div class="price-row">
                             <span>Item Sub Total</span>
                             <span>₹ {{ total_price|floatformat:2 }}</span>
                         </div>
+
+                        {% if discount %}
+                        <div class="price-row">
+                            <span>Discount</span>
+                            <span style="color: #28a745;">- ₹ {{ cart.discount|floatformat:2 }}</span>
+                        </div>
+                        {% endif %}
+
                         <div class="price-row">
                             <span>Shipping</span>
                             <span style="color: #28a745;">Free</span>
@@ -117,11 +159,11 @@
                         <hr>
                         <div class="price-row">
                             <strong>Total</strong>
-                            <strong>₹ {{ total_price|floatformat:2 }}</strong>
+                            <strong>₹ {{ subtotal|floatformat:2 }}</strong>
                         </div>
                     </div>
 
-                    <button class="continue-btn" id="placeOrderBtn">CONTINUE</button>
+                    <button class="continue-btn" id="placeOrderBtn" name="place_order">CONTINUE</button>
                 </div>
             </div>
         </div>
@@ -142,13 +184,25 @@
     
             const formData = new FormData();
             formData.append('address_id', selectedAddress.value);
-            formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
-    
+            formData.append('place_order', 'true'); // Add this line
+            
+        
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
             fetch("", {
                 method: 'POST',
-                body: formData
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+                body: formData,
+                credentials: 'same-origin'  
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.status === 'success') {
                     window.location.href = data.redirect_url;
@@ -162,6 +216,6 @@
             });
         });
     });
-    </script>
+</script>
 
 {% endblock %}

@@ -1,7 +1,17 @@
 {% extends "user/base.html" %}
 {% load static %}
+
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/cart.css' %}">
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'userhome' %}" class="text-decoration-none">Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'userproducts' %}" class="text-decoration-none">Products</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'usercart' %}" class="text-decoration-none">Cart</a></li>
+        
+    </ol>
+    </nav>
 
 {% csrf_token %}
 
@@ -59,7 +69,17 @@
                                     </div>
                                 </td>
                                 <!-- Price -->
-                                <td class="item-price">₹{{ item.product_variant.price }}</td>
+                                <td class="item-price">
+                                    {% with offer_price=item.product_variant.get_offer_price %}
+                                        {% if offer_price %}
+                                            <span class="current-price">₹{{ offer_price|floatformat:2 }}</span>
+                                            <span class="original-price text-decoration-line-through ms-2">₹{{ item.product_variant.price }}</span>
+                                            
+                                        {% else %}
+                                            ₹{{ item.product_variant.price }}
+                                        {% endif %}
+                                    {% endwith %}
+                                </td>
                                 <!-- Quantity Control -->
                                 <td>
                                     <div class="quantity-control">
@@ -69,7 +89,15 @@
                                     </div>
                                 </td>
                                 <!-- Total Price -->
-                                <td class="item-total">₹{{ item.total_price|floatformat:2 }}</td>
+                                <td class="item-total">
+                                    {% with offer_price=item.product_variant.get_offer_price %}
+                                        {% if offer_price %}
+                                            ₹{{ item.get_total_price|floatformat:2 }}
+                                        {% else %}
+                                            ₹{{ item.get_total_price|floatformat:2 }}
+                                        {% endif %}
+                                    {% endwith %}
+                                </td>
                             </tr>
                             {% empty %}
                             <tr>
@@ -186,6 +214,7 @@
                     .then(data => {
                         if (data.status === 'success') {
                             // Update the quantity
+                            location.reload();
                             row.querySelector('.item-quantity').value = data.quantity;
         
                             // Update the item's total price

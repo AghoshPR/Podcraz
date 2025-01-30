@@ -1,133 +1,129 @@
 {% extends "user/base.html" %}
 {% load static %}
+
 {% block content %}
 
-<style>
-    body {
-        background-color: #f8f9fa;
-    }
-    
-    .navbar-brand img {
-        height: 40px;
-    }
-    
-    .sidebar {
-        background-color: white;
-        height: 100%;
-        padding: 20px;
-        border-radius: 10px;
-    }
-    
-    .sidebar .nav-link {
-        color: #333;
-        padding: 8px 15px;
-        margin: 5px 0;
-        border-radius: 5px;
-    }
-    
-    .sidebar .nav-link:hover,
-    .sidebar .nav-link.active {
-        background-color: #f8f9fa;
-    }
-    
-    .wallet-card {
-        background: white;
-        border-radius: 10px;
-        padding: 30px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        margin-bottom: 20px;
-    }
+<link rel="stylesheet" href="{% static 'css/myprofile.css' %}">
 
-    .balance-section {
-        text-align: center;
-        margin-bottom: 30px;
-    }
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'userhome' %}" class="text-decoration-none">Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'wallet' %}" class="text-decoration-none">Wallet</a></li>
+        
+        
+    </ol>
+    </nav>
 
-    .balance-amount {
-        font-size: 2.5rem;
-        font-weight: bold;
-        margin: 10px 0;
-    }
-
-    .transaction-table {
-        width: 100%;
-        margin-top: 20px;
-    }
-
-    .transaction-table th,
-    .transaction-table td {
-        padding: 12px;
-    }
-
-    .credit {
-        color: #28a745;
-    }
-
-    .debit {
-        color: #dc3545;
-    }
-</style>
+{% if messages %}
+<div class="alert-container">
+    {% for message in messages %}
+        <div class="alert alert-danger">
+            {{ message }}
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
 
 <div class="container py-4">
-    <div class="row">
+    <div class="row justify-content-center">
         <!-- Sidebar -->
-        <div class="col-md-3 mb-4">
+        <div class="col-md-3">
             <div class="sidebar">
                 <h5 class="mb-4">Account</h5>
-                <nav class="nav flex-column">
-                    <a class="nav-link" href="#"><i class="fas fa-user me-2"></i>Profile</a>
-                    <a class="nav-link" href="#"><i class="fas fa-map-marker-alt me-2"></i>Addresses</a>
-                    <a class="nav-link" href="#"><i class="fas fa-box me-2"></i>Orders</a>
-                    <a class="nav-link active" href="#"><i class="fas fa-wallet me-2"></i>Wallet</a>
-                    <a class="nav-link" href="#"><i class="fas fa-ticket me-2"></i>Coupon</a>
-                    <a class="nav-link" href="#"><i class="fas fa-lock me-2"></i>Change Password</a>
-                </nav>
-                <button class="btn btn-danger mt-4 w-100">Logout</button>
+                <ul class="sidebar-menu">
+                    <li><a href="{% url 'myprofile' %}">Profile</a></li>
+                    <li><a href="{% url 'address' %}">Addresses</a></li>
+                    <li><a href="{% url 'myorder' %}">Orders</a></li>
+                    <li><a href="{% url 'wallet' %}" class="active">Wallet</a></li>
+                    <li><a href="{% url 'coupon' %}">Coupon</a></li>
+                    <li><a href="{% url 'user_changepass' %}">Change Password</a></li>
+                </ul>
+                <a href="{% url 'userlogout' %}"><button class="logout-btn mt-4">LOGOUT</button></a>
             </div>
         </div>
 
-        <!-- Wallet Details -->
+        <!-- Main Content -->
         <div class="col-md-9">
-            <div class="wallet-card">
-                <div class="balance-section">
-                    <h6>Balance</h6>
-                    <div class="balance-amount">₹1234.99</div>
-                    <div class="row justify-content-center">
-                        <div class="col-md-6">
-                            <input type="number" class="form-control mb-2" placeholder="Enter amount">
-                            <button class="btn btn-danger w-100">ADD FUND</button>
+            <div class="main-content d-flex flex-column align-items-center">
+                <!-- Wallet Card -->
+                <div class="profile-info w-75 bg-white p-4 rounded shadow-sm">
+                    <div class="text-center mb-4">
+                        <h6 class="text-secondary">Balance</h6>
+                        <h3 class="fw-bold">₹ {{ wallet.balance }}</h3>
+                        
+                        <!-- Add Fund Form -->
+                        <div class="mt-4 mb-4">
+                            <form method="POST" action="" class="d-flex justify-content-center">
+                                {% csrf_token %}
+                                <div class="input-group" style="max-width: 400px;">
+                                    <input type="number" 
+                                           name="amount" 
+                                           class="form-control" 
+                                           placeholder="Enter amount"
+                                           min="1"
+                                           required>
+                                    <button type="submit" class="btn btn-danger">ADD FUND</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
-                </div>
 
-                <div class="mt-4">
-                    <h6>Recent Transactions:</h6>
+                    <!-- Transactions Table -->
+                    <h6 class="mb-3 fw-bold">Recent Transactions:</h6>
                     <div class="table-responsive">
-                        <table class="table transaction-table">
+                        <table class="table table-custom">
                             <thead>
                                 <tr>
                                     <th>Transaction ID</th>
                                     <th>Type</th>
                                     <th>Date</th>
+                                    <th>Product</th>
                                     <th>Payment Method</th>
                                     <th>Amount</th>
                                 </tr>
                             </thead>
                             <tbody>
+                                {% for transaction in transactions %}
                                 <tr>
-                                    <td>#01</td>
-                                    <td>Credit</td>
-                                    <td>18-02-2024</td>
-                                    <td>UPI</td>
-                                    <td class="credit">+200.00</td>
+                                    <td>
+                                        {% if transaction.order %}
+                                            #{{ transaction.order.id }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    
+                                    <td>{{ transaction.type|title }}</td>
+                                    <td>{{ transaction.date|date:"d-m-Y H:i" }}</td>
+
+                                    <td>
+                                        {% if transaction.order %}
+                                        {% for item in transaction.order.items.all %}
+                                            {{ item.product_variant.product.name }}{% if not forloop.last %}, {% endif %}
+                                        {% endfor %}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        {% if transaction.order %}
+                                            {{ transaction.order.payment_method.name|default:"-"|title }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+
+                                    <td class="{% if transaction.type == 'credit' %}credit{% else %}debit{% endif %}">
+                                        {% if transaction.type == 'credit' %}+{% else %}-{% endif %}
+                                        ₹ {{ transaction.amount }}
+                                    </td>
                                 </tr>
+                                {% empty %}
                                 <tr>
-                                    <td>#02</td>
-                                    <td>Debit</td>
-                                    <td>18-02-2024</td>
-                                    <td>UPI</td>
-                                    <td class="debit">-200.00</td>
+                                    <td colspan="4" class="text-center">No transactions yet</td>
                                 </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>

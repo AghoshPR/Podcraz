@@ -109,6 +109,11 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_REDIRECT_URI = 'http://localhost:8000/accounts/google/
 
 
 
+RAZORPAY_KEY_ID = 'rzp_test_LlseCqcfqNogOZ'
+RAZORPAY_KEY_SECRET = '6qjtwcqaNmXeTHSdy1RnOqIO'
+
+
+
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
@@ -148,7 +153,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 

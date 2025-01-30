@@ -7,6 +7,16 @@
 {% endblock %}
 
 {% block content %}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'userhome' %}" class="text-decoration-none">Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'userwishlist' %}" class="text-decoration-none">Wishlist</a></li>
+        
+        
+    </ol>
+    </nav>
+
 {% csrf_token %}
 
 <div class="container mb-5">
@@ -37,8 +47,12 @@
                     
                     <h5 class="product-title">{{ product.product.name }}</h5>
                     <div class="price-container mb-2 d-flex align-items-center">
-                        <span class="current-price">₹{{ product.price }}</span>
-                        <span class="discount ms-2">24% off</span>
+                        {% if product.offer_price %}
+                            <span class="current-price">₹{{ product.offer_price|floatformat:2 }}</span>
+                            <span class="original-price text-decoration-line-through ms-2">₹{{ product.price }}</span>
+                        {% else %}
+                            <span class="current-price">₹{{ product.price }}</span>
+                        {% endif %}
                     </div>
                     <div class="card-body pt-0">
                         <div class="d-flex justify-content-between align-items-center">

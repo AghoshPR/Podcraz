@@ -3,6 +3,15 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/order.css' %}">
 
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'userhome' %}" class="text-decoration-none">Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'myorder' %}" class="text-decoration-none">Orders</a></li>
+        
+        
+    </ol>
+    </nav>
+
 <div class="container py-4">
 
   {% if messages %}
@@ -36,24 +45,31 @@
               <h2>My Orders</h2>
 
               <!-- Order Filters -->
-              <form method="GET">
-                  <div class="order-filters">
+              <form method="GET" class="filter-form">
+                <div class="order-filters">
                     <label>
-                      <input type="radio" name="status" value="Delivered" {% if request.GET.status == 'Delivered' %}checked{% endif %}> All
-                  </label>
-                      <label>
-                          <input type="radio" name="status" value="Delivered" {% if request.GET.status == 'Delivered' %}checked{% endif %}> Delivered
-                      </label>
-                      <label>
-                          <input type="radio" name="status" value="Cancelled" {% if request.GET.status == 'Cancelled' %}checked{% endif %}> Cancelled
-                      </label>
-                      <label>
-                          <input type="radio" name="status" value="Returned" {% if request.GET.status == 'Returned' %}checked{% endif %}> Returned
-                      </label>
-                      <a href="{% url 'myorder' %}" class="clear-filter">Clear all</a>
-                  </div>
-                  
-              </form>
+                        <input type="radio" name="status" value="All" onchange="this.form.submit()"
+                               {% if current_status == 'All' or not current_status %}checked{% endif %}> 
+                        All
+                    </label>
+                    <label>
+                        <input type="radio" name="status" value="delivered" onchange="this.form.submit()"
+                               {% if current_status == 'delivered' %}checked{% endif %}> 
+                        Delivered
+                    </label>
+                    <label>
+                        <input type="radio" name="status" value="cancelled" onchange="this.form.submit()"
+                               {% if current_status == 'cancelled' %}checked{% endif %}> 
+                        Cancelled
+                    </label>
+                    <label>
+                        <input type="radio" name="status" value="return_approved" onchange="this.form.submit()"
+                               {% if current_status == 'return_approved' %}checked{% endif %}> 
+                        Returned
+                    </label>
+                    <a href="{% url 'myorder' %}" class="clear-filter">Clear all</a>
+                </div>
+            </form>
 
               <!-- Order List -->
               {% for order in orders %}
@@ -99,7 +115,14 @@
                       
                       <div>
                           <p>Order ID: #{{ order.id }}</p>
-                          <p>Total Price: ₹{{ order.total_price }}</p>
+
+                          {% if order.discount > 0 %}
+                          <p>Original Price: <span >₹{{ order.subtotal }}</span></p>
+                          <p>Discount: <span style="color: #28a745;"> ₹{{ order.discount }} -</span></p>
+
+                          {% endif %}
+
+                          <p>Total Price: ₹{{ order.total_price }} /-</p>
                       </div>
                   </div>
 

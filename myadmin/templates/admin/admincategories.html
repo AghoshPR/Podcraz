@@ -14,9 +14,26 @@
     <div class="header">
         <h2>Category</h2>
         <div class="search-box">
-            <input type="text" placeholder="Search">
+            <form method="GET" class="search-form">
+                <input 
+                    type="text" 
+                    name="search" 
+                    placeholder="Search by category name or status" 
+                    value="{{ search_query }}"
+                >
+                <button type="submit" class="btn btn-primary">Search</button>
+                {% if search_query %}
+                    <a href="{% url 'admincategory' %}" class="btn btn-danger">Clear</a>
+                {% endif %}
+            </form>
         </div>
     </div>
+
+    {% if search_query %}
+    <div class="search-results">
+        <p>Showing results for: "{{ search_query }}"</p>
+    </div>
+    {% endif %}
 
     <table class="product-table">
         <thead>

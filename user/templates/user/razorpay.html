@@ -1,0 +1,152 @@
+{% extends "user/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center min-vh-100">
+    <!-- Main Container -->
+    <div class="payment-container">
+        <div class="card border-0 shadow-lg h-100">
+            <!-- Header -->
+            <div class="card-header bg-primary text-white py-3">
+                <div class="text-center">
+                    <i class="bi bi-credit-card-2-front mb-2" style="font-size: 1.5rem;"></i>
+                    <h5 class="mb-0">Complete Payment</h5>
+                </div>
+            </div>
+
+            <div class="card-body p-3">
+                <!-- Order Summary -->
+                <div class="bg-light rounded-3 p-3 mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted small">Order ID</span>
+                        <span class="fw-bold">#{{ order.id }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted small">Amount</span>
+                        <span class="fw-bold text-primary">₹{{ order.total_price }}</span>
+                    </div>
+                </div>
+
+                <!-- Form -->
+                <form action="https://api.razorpay.com/v1/checkout/embedded" method="POST">
+                    <!-- Hidden inputs -->
+                    <input type="hidden" name="key_id" value="{{ razorpay_merchant_key }}">
+                    <input type="hidden" name="order_id" value="{{ razorpay_order_id }}">
+                    <input type="hidden" name="name" value="PodCraze">
+                    <input type="hidden" name="description" value="Order #{{ order.id }}">
+                    <input type="hidden" name="image" value="{% static 'images/back_remove_logo.png' %}">
+                    <input type="hidden" name="prefill[name]" value="{{ request.user.get_full_name }}">
+                    <input type="hidden" name="prefill[email]" value="{{ request.user.email }}">
+                    <input type="hidden" name="prefill[contact]" value="{{ request.user.profile.phone }}">
+                    <input type="hidden" name="callback_url" value="{{ callback_url }}">
+                    <input type="hidden" name="cancel_url" value="{{ request.build_absolute_uri }}">
+                    <input type="hidden" name="amount" value="{{ razorpay_amount }}">
+                    <input type="hidden" name="currency" value="{{ currency }}">
+
+                    <!-- Customer Info -->
+                     
+                    <div class="bg-light rounded-3 p-3 mb-3">
+                        <h6 class="text-muted mb-2 small">Customer Details</h6>
+                        <div class="mb-1 small">
+                            <i class="bi bi-person text-primary me-2"></i>
+                            {{ request.user.get_full_name }}
+                        </div>
+                        <div class="mb-1 small">
+                            <i class="bi bi-envelope text-primary me-2"></i>
+                            {{ request.user.email }}
+                        </div>
+                        <div class="small">
+                            <i class="bi bi-phone text-primary me-2"></i>
+                            {{ request.user.phone }}
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2 mt-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-lock-fill me-2"></i>Pay Now
+                        </button>
+                        <a href="{% url 'payment' %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-arrow-left me-2"></i>Back
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Footer -->
+            <div class="card-footer bg-white border-0 py-2">
+                <div class="d-flex justify-content-center align-items-center">
+                    <i class="bi bi-shield-check text-success me-2"></i>
+                    <small class="text-muted">Secure Payment by Razorpay</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.payment-container {
+    width: 300px;
+    height: 500px;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.card {
+    border-radius: 1rem;
+    transition: transform 0.2s;
+    overflow-y: auto;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border: none;
+    transition: all 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    transform: translateY(-1px);
+}
+
+/* Custom Scrollbar */
+.card {
+    scrollbar-width: thin;
+    scrollbar-color: #0d6efd #f8f9fa;
+}
+
+.card::-webkit-scrollbar {
+    width: 6px;
+}
+
+.card::-webkit-scrollbar-track {
+    background: #f8f9fa;
+}
+
+.card::-webkit-scrollbar-thumb {
+    background-color: #0d6efd;
+    border-radius: 3px;
+}
+
+/* Responsive height adjustment */
+@media (max-height: 600px) {
+    .payment-container {
+        height: 400px;
+    }
+}
+
+/* Animation */
+.payment-container {
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+{% endblock %}

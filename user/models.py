@@ -1,5 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import *
+import decimal
+from datetime import timezone
+from django.utils.timezone import now
+from decimal import Decimal
 
 
     
@@ -40,12 +44,63 @@ class Product(models.Model):
     product_category = models.ForeignKey(ProductCategory, on_delete=models.CASCADE,related_name='products')
     brand = models.ForeignKey(Brand, on_delete=models.CASCADE,related_name='products')
 
+    
 # ProductVariant Model
 class ProductVariant(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     color = models.CharField(max_length=50)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     stock = models.IntegerField()
+
+    discounted_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
+    def apply_discount(self, discount_value, discount_type):
+        print(f"Applying discount: {discount_value} ({discount_type}) to {self}")
+        if discount_type == 'percentage':
+            self.discounted_price = self.price - (self.price * Decimal(str(discount_value)) / 100)
+        else:  # fixed amount
+            self.discounted_price = self.price - Decimal(str(discount_value))
+        print(f"New discounted price: {self.discounted_price}")
+        self.save()
+
+    def remove_discount(self):
+        self.discounted_price = None
+        self.save()
+
+    def get_active_offer(self):
+        current_time = now()
+        
+        product_offer = Offer.objects.filter(
+            product=self.product,
+            is_active=True,
+            valid_from__lte=current_time,
+            valid_until__gte=current_time
+        ).first()
+        
+        if product_offer:
+            return product_offer
+            
+        
+        category_offer = Offer.objects.filter(
+            product_category=self.product.product_category,
+            is_active=True,
+            valid_from__lte=current_time,
+            valid_until__gte=current_time
+        ).first()
+        
+        return category_offer
+
+    def get_offer_price(self):
+        offer = self.get_active_offer()
+        if not offer:
+            return None
+            
+        if offer.discount_type == 'percentage':
+            discount = self.price * Decimal(str(offer.discount_value)) / 100
+            return self.price - discount
+        else:  # fixed amount
+            return self.price - Decimal(str(offer.discount_value))
+        
 
 class ProductImage(models.Model):
     product_variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE)
@@ -66,9 +121,29 @@ class CartItem(models.Model):
     quantity = models.PositiveIntegerField(default=1)
     price = models.DecimalField(max_digits=10, decimal_places=2)
 
+
+    def get_total_price(self):
+        offer_price = self.product_variant.get_offer_price()
+        if offer_price:
+            return offer_price * self.quantity
+        return self.product_variant.price * self.quantity
+
     @property
     def total_price(self):
+        if self.product_variant.discounted_price:
+            return self.quantity * self.product_variant.discounted_price
         return self.quantity * self.price
+    
+    def save(self, *args ,**kwargs):
+
+        self.price = (
+
+            self.product_variant.discounted_price
+            if self.product_variant.discounted_price
+            else self.product_variant.price
+        )
+        super().save(*args, **kwargs)
+
 
 # Wishlist Model
 class Wishlist(models.Model):
@@ -104,6 +179,12 @@ class Order(models.Model):
     cancellation_reason = models.TextField(null=True, blank=True)
     return_reason = models.TextField(null=True, blank=True)
 
+    discount = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+
+    razorpay_order_id = models.CharField(max_length=100, null=True, blank=True)
+    razorpay_payment_id = models.CharField(max_length=100, null=True, blank=True)
+    razorpay_signature = models.CharField(max_length=255, null=True, blank=True)
+
 # OrderItem Model
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
@@ -132,6 +213,7 @@ class Coupon(models.Model):
     valid_from = models.DateTimeField()
     valid_until = models.DateTimeField()
     is_active = models.BooleanField(default=True)
+    description = models.TextField(null=True, blank=True)
 
 # AppliedCoupon Model
 class AppliedCoupon(models.Model):
@@ -158,6 +240,7 @@ class WalletTransaction(models.Model):
     amount = models.FloatField()
     date = models.DateTimeField(auto_now_add=True)
     product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True)
+    order = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True, blank=True)
 
 # Address Model
 class Address(models.Model):
@@ -190,11 +273,10 @@ class Offer(models.Model):
     valid_from = models.DateTimeField()
     valid_until = models.DateTimeField()
     is_active = models.BooleanField(default=True)
-    max_uses = models.PositiveIntegerField()
     last_updated = models.DateTimeField(auto_now=True)
-    product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True)
+    product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True, related_name='offer')
     product_category = models.ForeignKey(
-        ProductCategory, on_delete=models.SET_NULL, null=True, blank=True
+        ProductCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='offer'
     )
 
 

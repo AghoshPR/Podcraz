@@ -119,3 +119,8 @@ body {
 .edit-btn i {
     margin-right: 5px;
 }
+.table-custom {
+    table-layout: fixed;
+    width: 100%;  /* Ensure the table takes up the full width of its container */
+}
+
