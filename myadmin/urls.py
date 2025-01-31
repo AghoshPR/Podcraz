@@ -12,7 +12,8 @@ urlpatterns = [
 
 
     path('dashboard/',views.admindashboard,name='admindashboard'),
-
+    
+    
 
 #admin product
     path('products/',views.adminproducts,name='adminproducts'),
@@ -84,8 +85,7 @@ urlpatterns = [
     path('deletecoupon/<int:coupon_id>', views.deletecoupon, name='deletecoupon'),
     
 
-   
-    
+    path('dashboard/sales-data/', views.get_sales_data_api, name='sales_data_api'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

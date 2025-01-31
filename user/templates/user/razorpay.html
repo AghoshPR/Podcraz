@@ -30,6 +30,7 @@
                 <!-- Form -->
                 <form action="https://api.razorpay.com/v1/checkout/embedded" method="POST">
                     <!-- Hidden inputs -->
+                    <input type="hidden" name="redirect" value="true">
                     <input type="hidden" name="key_id" value="{{ razorpay_merchant_key }}">
                     <input type="hidden" name="order_id" value="{{ razorpay_order_id }}">
                     <input type="hidden" name="name" value="PodCraze">
@@ -149,4 +150,25 @@
     to { opacity: 1; transform: translateY(0); }
 }
 </style>
+
+<script>
+    document.querySelector('form').addEventListener('submit', function(e) {
+        // Store order ID in localStorage before form submission
+        localStorage.setItem('pending_order_id', '{{ order.id }}');
+    });
+    
+    // Check for payment completion
+    window.addEventListener('message', function(e) {
+        if (e.data.event === 'payment.success') {
+            // Get the stored order ID
+            const orderId = localStorage.getItem('pending_order_id');
+            if (orderId) {
+                // Clear the stored order ID
+                localStorage.removeItem('pending_order_id');
+                // Redirect to success page
+                window.location.href = "{% url 'order_success' %}";
+            }
+        }
+    });
+    </script>
 {% endblock %}

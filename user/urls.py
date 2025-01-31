@@ -22,7 +22,7 @@ urlpatterns = [
     path('productview/<int:variant_id>/',views.userproductview,name='userproductview'),
 
 
-    path('wishlist/', views.userweekishlist, name='userwishlist'),
+    path('wishlist/', views.userwishlist, name='userwishlist'),
     path('toggle-wishlist/', views.toggle_wishlist, name='toggle_wishlist'),
 
     path('about/',views.about,name='about'),
@@ -50,13 +50,16 @@ urlpatterns = [
     
     path('payment/',views.payment,name='payment'),
 
+    path('order/',views.myorder,name='myorder'),
     path('ordersuccess/',views.ordersuccess,name='order_success'),
     path('ordercancel/<int:order_id>/',views.cancel_order,name='cancel_order'),
     path('orderreturn/<int:order_id>/',views.order_return,name='order_return'),
-
-    path('order/',views.myorder,name='myorder'),
+    
+    path('generate-invoice/<int:order_id>/', views.generate_invoice, name='generate_invoice'),
+    
 
     #Razorpay
+    
     path('razorpay/callback/', views.razorpay_callback, name='razorpay_callback'),
     
 

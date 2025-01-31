@@ -14,10 +14,19 @@ from django.views.decorators.cache import never_cache
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import imghdr,re
 
-from django.db.models.functions import ExtractMonth
 
+from django.db.models.functions import ExtractMonth, ExtractYear,TruncDate, TruncWeek, TruncMonth
 from decimal import Decimal
-
+import xlsxwriter
+from io import BytesIO
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter, landscape
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+import json
+from django.http import JsonResponse
+import calendar
+from django.db.models import Sum, Count
 
 # Create your views here.
 
@@ -95,205 +104,465 @@ def unblock_user(request, user_id):
 ################## product ######################
 
 def admindashboard(request):
-
     if not request.user.is_superuser:
         return HttpResponse("You are restricted to enter this page")
 
-    
-    User = get_user_model()
-    
-    
-    current_date = datetime.now()
-    current_year = current_date.year
-    
-    
-    orders = Order.objects.filter(
-        created_at__year=current_year,
-        status__in=['delivered', 'shipped']  
-    )
+    try:
+        User = get_user_model()
+        current_date = datetime.now()
+        current_year = current_date.year
 
-    total_revenue = orders.aggregate(Sum('total_price'))['total_price__sum'] or 0
-    total_orders = orders.count()
+        # Get filter parameters for dashboard
+        date_filter = request.GET.get('date_filter', 'all')
+        start_date = request.GET.get('start_date')
+        end_date = request.GET.get('end_date')
 
-    total_offer_discount = 0
-    for order in orders:
-        for item in order.items.all():
-            variant = item.product_variant
-            original_price = variant.price * item.quantity
-            final_price = item.price * item.quantity
-            total_offer_discount += (original_price - final_price)
+        # Get filter parameters for sales report
+        sales_start_date = request.GET.get('sales_start_date')
+        sales_end_date = request.GET.get('sales_end_date')
 
+        # Base query for orders
+        orders = Order.objects.filter(status__in=['delivered', 'shipped'])
+        sales_orders = orders  # Separate query for sales report
 
-    
-    total_coupon_discount = orders.aggregate(Sum('discount'))['discount__sum'] or 0
+        # Apply date filters for dashboard
+        if date_filter == 'today':
+            orders = orders.filter(created_at__date=current_date)
+        elif date_filter == 'week':
+            week_start = current_date - timedelta(days=current_date.weekday())
+            orders = orders.filter(created_at__date__gte=week_start)
+        elif date_filter == 'month':
+            orders = orders.filter(created_at__year=current_year, 
+                                 created_at__month=current_date.month)
+        elif date_filter == 'year':
+            orders = orders.filter(created_at__year=current_year)
+        elif date_filter == 'custom' and start_date and end_date:
+            try:
+                start_date = datetime.strptime(start_date, '%Y-%m-%d')
+                end_date = datetime.strptime(end_date, '%Y-%m-%d')
+                orders = orders.filter(created_at__date__range=[start_date, end_date])
+            except ValueError:
+                pass
 
-    
-    total_discounts = total_offer_discount + total_coupon_discount
+        # Apply date filters for sales report
+        if sales_start_date and sales_end_date:
+            try:
+                sales_start = datetime.strptime(sales_start_date, '%Y-%m-%d')
+                sales_end = datetime.strptime(sales_end_date, '%Y-%m-%d')
+                sales_orders = sales_orders.filter(
+                    created_at__date__range=[sales_start, sales_end]
+                )
+            except ValueError:
+                pass
 
+        # Calculate basic metrics
+        total_revenue = orders.aggregate(Sum('total_price'))['total_price__sum'] or 0
+        total_orders = orders.count()
+        total_products = ProductVariant.objects.count()
+        total_customers = User.objects.filter(is_superuser=False, is_staff=False).count()
 
-    
-    def calculate_trend(current, previous):
-        if previous == 0:
-            return 0
-        return ((current - previous) / previous) * 100
-    
-
-
-    # Monthly data for charts
-    monthly_data = orders.annotate(
-        month=ExtractMonth('created_at')
-    ).values('month').annotate(
-        revenue=Sum('total_price'),
-        order_count=Count('id')
-    ).order_by('month')
-
-    # Calculate totals
-    total_revenue = orders.aggregate(Sum('total_price'))['total_price__sum'] or 0
-    total_orders = orders.count()
-    total_products = ProductVariant.objects.count()
-    # Update the customer count query
-    total_customers = User.objects.filter(is_superuser=False, is_staff=False).count()
-
-    # Previous year data for trends
-    prev_year_orders = Order.objects.filter(
-        created_at__year=current_year-1,
-        status__in=['delivered', 'shipped']
-    )
-    prev_year_revenue = prev_year_orders.aggregate(Sum('total_price'))['total_price__sum'] or 0
-    prev_year_orders_count = prev_year_orders.count()
-
-    # Calculate trends
-    revenue_trend = calculate_trend(total_revenue, prev_year_revenue)
-    orders_trend = calculate_trend(total_orders, prev_year_orders_count)
-    
-    # Calculate product trend (based on last month vs current month)
-    current_month = current_date.month
-    last_month = (current_date - timedelta(days=30)).month
-    
-    current_month_products = ProductVariant.objects.filter(
-        product__created_at__month=current_month,
-        product__created_at__year=current_year
-    ).count()
-    last_month_products = ProductVariant.objects.filter(
-        product__created_at__month=last_month,
-        product__created_at__year=current_year
-    ).count()
-    products_trend = calculate_trend(current_month_products, last_month_products)
-
-    # Calculate customer trend using the User model
-    current_month_customers = User.objects.filter(
-        date_joined__month=current_month,
-        date_joined__year=current_year,
-        is_superuser=False,
-        is_staff=False
-    ).count()
-    last_month_customers = User.objects.filter(
-        date_joined__month=last_month,
-        date_joined__year=current_year,
-        is_superuser=False,
-        is_staff=False
-    ).count()
-    customers_trend = calculate_trend(current_month_customers, last_month_customers)
-
-    # Calculate period sales
-    today = current_date.date()
-    week_start = today - timedelta(days=today.weekday())
-    month_start = today.replace(day=1)
-
-    # Today's sales
-    today_orders = orders.filter(created_at__date=today)
-    today_sales = today_orders.aggregate(
-        sales=Sum('total_price'),
-        discounts=Sum('discount')
-    )
-
-    # Week's sales
-    week_orders = orders.filter(created_at__date__gte=week_start)
-    week_sales = week_orders.aggregate(
-        sales=Sum('total_price'),
-        discounts=Sum('discount')
-    )
-
-    # Month's sales
-    month_orders = orders.filter(created_at__date__gte=month_start)
-    month_sales = month_orders.aggregate(
-        sales=Sum('total_price'),
-        discounts=Sum('discount')
-    )
-
-    sales_report = Order.objects.filter(
-        status__in=['delivered', 'shipped']
-    ).select_related('user').prefetch_related('items', 'items__product_variant').order_by('-created_at')[:15]
-    
-    # sales report data
-    report_data = []
-    for order in sales_report:
-        original_price = order.total_price + order.discount
+        # Calculate trends
+        revenue_trend = 0
+        orders_trend = 0
         
-        
-        order_items = order.items.all()
+        if orders.exists():
+            previous_period_orders = Order.objects.filter(
+                status__in=['delivered', 'shipped'],
+                created_at__date__lt=orders.first().created_at.date()
+            )
+            
+            prev_revenue = previous_period_orders.aggregate(Sum('total_price'))['total_price__sum'] or 0
+            if prev_revenue > 0:
+                revenue_trend = ((total_revenue - prev_revenue) / prev_revenue * 100)
+
+            prev_orders_count = previous_period_orders.count()
+            if prev_orders_count > 0:
+                orders_trend = ((total_orders - prev_orders_count) / prev_orders_count * 100)
+
+        # Calculate offer discounts
         total_offer_discount = 0
-        offer_applied = "No Offer"
+        total_coupon_discount = 0
         
-        for item in order_items:
-            variant = item.product_variant
-            original_item_price = variant.price * item.quantity
-            actual_item_price = item.price * item.quantity
-            item_discount = original_item_price - actual_item_price
-            total_offer_discount += item_discount
+        for order in orders:
+            order_items = order.items.all()
+            for item in order_items:
+                variant = item.product_variant
+                original_price = variant.price * item.quantity
+                final_price = item.price * item.quantity
+                total_offer_discount += (original_price - final_price)
+            total_coupon_discount += order.discount or 0
 
-        # Fetch applied offer details
-            offer = variant.get_active_offer()
-            if offer:
-                if offer.discount_type == "percentage":
-                    offer_applied = f"{offer.discount_value}%"
-                else:
-                    offer_applied = f"₹{offer.discount_value}"
+        total_discounts = total_offer_discount + total_coupon_discount
+
+        # Get best selling products
+        best_selling_products = OrderItem.objects.filter(
+            order__in=orders
+        ).values(
+            'product_variant__product__name',
+            'product_variant__color'
+        ).annotate(
+            total_quantity=Sum('quantity'),
+            total_revenue=Sum(F('quantity') * F('price'))
+        ).order_by('-total_quantity')[:10]
+
+        # Get best selling categories
+        best_selling_categories = OrderItem.objects.filter(
+            order__in=orders
+        ).values(
+            'product_variant__product__product_category__name'
+        ).annotate(
+            total_quantity=Sum('quantity'),
+            total_revenue=Sum(F('quantity') * F('price'))
+        ).order_by('-total_quantity')[:10]
+
+        # Get best selling brands
+        best_selling_brands = OrderItem.objects.filter(
+            order__in=orders
+        ).values(
+            'product_variant__product__brand__name'
+        ).annotate(
+            total_quantity=Sum('quantity'),
+            total_revenue=Sum(F('quantity') * F('price'))
+        ).order_by('-total_quantity')[:10]
+
+        # Get monthly data for charts
+        monthly_data = orders.annotate(
+            month=ExtractMonth('created_at'),
+            year=ExtractYear('created_at')
+        ).values('month', 'year').annotate(
+            revenue=Sum('total_price'),
+            order_count=Count('id'),
+            total_discount=Sum('discount') + Sum(
+                ExpressionWrapper(
+                    F('items__product_variant__price') * F('items__quantity') - F('items__price') * F('items__quantity'),
+                    output_field=DecimalField()
+                )
+            )
+        ).order_by('year', 'month')
+
+        # Calculate period sales
+        today = current_date.date()
+        week_start = today - timedelta(days=today.weekday())
+        month_start = today.replace(day=1)
+
+        # Today's sales
+        today_orders = orders.filter(created_at__date=today)
+        today_sales = today_orders.aggregate(
+            sales=Sum('total_price'),
+            discounts=Sum('discount')
+        )
+
+        # Week's sales
+        week_orders = orders.filter(created_at__date__gte=week_start)
+        week_sales = week_orders.aggregate(
+            sales=Sum('total_price'),
+            discounts=Sum('discount')
+        )
+
+        # Month's sales
+        month_orders = orders.filter(created_at__date__gte=month_start)
+        month_sales = month_orders.aggregate(
+            sales=Sum('total_price'),
+            discounts=Sum('discount')
+        )
+
+        # Prepare sales report data
+        sales_report = []
+        for order in sales_orders.prefetch_related('items', 'items__product_variant').order_by('-created_at'):
+            order_items = order.items.all()
+            original_price = sum(item.product_variant.price * item.quantity for item in order_items)
+            
+            total_offer_discount = sum(
+                (item.product_variant.price * item.quantity) - (item.price * item.quantity)
+                for item in order_items
+            )
+            
+            offer_details = []
+            for item in order_items:
+                offer = item.product_variant.get_active_offer()
+                if offer:
+                    offer_details.append(f"{offer.discount_value}{'%' if offer.discount_type == 'percentage' else '₹'}")
+            
+            offer_applied = ', '.join(set(offer_details)) if offer_details else "No Offer"
+
+            sales_report.append({
+                'date': order.created_at.strftime('%Y-%m-%d'),
+                'order_id': order.id,
+                'customer': order.user.username,
+                'original_price': original_price,
+                'offer_discount': total_offer_discount,
+                'coupon_discount': order.discount or 0,
+                'final_price': order.total_price,
+                'offer_applied': offer_applied
+            })
         
-        # Calculate coupon discount (remaining discount after offer)
-        coupon_amount = order.discount - total_offer_discount if order.discount > total_offer_discount else 0
+        # Handle export requests
+        if 'export' in request.GET:
+            if request.GET.get('export') == 'excel':
+                return export_to_excel(sales_report)
+            elif request.GET.get('export') == 'pdf':
+                return export_to_pdf(sales_report)
+            
         
-        if total_offer_discount > 0:
-            offer_percentage = (total_offer_discount / original_price) * 100
-            offer_applied = f"{offer_percentage:.0f}%"
-        else:
-            offer_applied = "0%"
-        
-        report_data.append({
-            'date': order.created_at.strftime('%d/%m/%Y'),
-            'order_id': order.id,
-            'customer': order.user.username,
-            'original_price': original_price,
-            'offer_applied': offer_applied,
-            'coupon': coupon_amount,
-            'net_amount': order.total_price
-        })
+
+        total_original_price = sum(sale['original_price'] for sale in sales_report)
+        total_offer_discount = sum(sale['offer_discount'] for sale in sales_report)
+        total_coupon_discount = sum(sale['coupon_discount'] for sale in sales_report)
+        total_final_price = sum(sale['final_price'] for sale in sales_report)
+
+        context = {
+            'current_year': current_year,
+            'total_revenue': total_revenue,
+            'total_orders': total_orders,
+            'total_products': total_products,
+            'total_customers': total_customers,
+            'total_discounts': total_discounts,
+            'revenue_trend': revenue_trend,
+            'orders_trend': orders_trend,
+            'monthly_data': list(monthly_data),
+            'best_selling_products': list(best_selling_products),
+            'best_selling_categories': list(best_selling_categories),
+            'best_selling_brands': list(best_selling_brands),
+            'today_sales': today_sales['sales'] or 0,
+            'today_discounts': today_sales['discounts'] or 0,
+            'week_sales': week_sales['sales'] or 0,
+            'week_discounts': week_sales['discounts'] or 0,
+            'month_sales': month_sales['sales'] or 0,
+            'month_discounts': month_sales['discounts'] or 0,
+            'sales_report': sales_report,
+            'date_filter': date_filter,
+            'start_date': start_date,
+            'end_date': end_date,
+            'sales_start_date': sales_start_date,
+            'sales_end_date': sales_end_date,
+            # Add these new totals to the context
+            'total_original_price': total_original_price,
+            'total_offer_discount': total_offer_discount,
+            'total_coupon_discount': total_coupon_discount,
+            'total_final_price': total_final_price,
+        }
+
+        return render(request, 'admin/admindashboard.html', context)
+
+    except Exception as e:
+        print(f"Error in admindashboard view: {str(e)}")
+        context = {
+            'error_message': 'An error occurred while loading the dashboard.',
+            'current_year': datetime.now().year,
+            'total_revenue': 0,
+            'total_orders': 0,
+            'total_products': 0,
+            'total_customers': 0,
+            'total_discounts': 0,
+            'revenue_trend': 0,
+            'orders_trend': 0,
+            'best_selling_products': [],
+            'best_selling_categories': [],
+            'best_selling_brands': [],
+            'monthly_data': [],
+            'sales_report': [],
+            'today_sales': 0,
+            'today_discounts': 0,
+            'week_sales': 0,
+            'week_discounts': 0,
+            'month_sales': 0,
+            'month_discounts': 0,
+            # Add these new totals to the error context
+            'total_original_price': 0,
+            'total_offer_discount': 0,
+            'total_coupon_discount': 0,
+            'total_final_price': 0,
+        }
+        return render(request, 'admin/admindashboard.html', context)
+
+
     
-   
 
 
-    context = {
-        'current_year': current_year,
-        'total_revenue': total_revenue,
-        'total_orders': total_orders,
-        'total_products': total_products,
-        'total_customers': total_customers,
-        'revenue_trend': revenue_trend,
-        'orders_trend': orders_trend,
-        'total_discounts': total_discounts,
-        'products_trend': products_trend,
-        'customers_trend': customers_trend,
-        'monthly_data': list(monthly_data),
-        'today_sales': today_sales['sales'] or 0,
-        'today_discounts': today_sales['discounts'] or 0,
-        'week_sales': week_sales['sales'] or 0,
-        'week_discounts': week_sales['discounts'] or 0,
-        'month_sales': month_sales['sales'] or 0,
-        'month_discounts': month_sales['discounts'] or 0,
-        'sales_report': report_data,
-    }
+
+def export_to_excel(sales_report):
+    output = BytesIO()
+    workbook = xlsxwriter.Workbook(output)
+    worksheet = workbook.add_worksheet()
+
+    # Define formats
+    header_format = workbook.add_format({
+        'bold': True,
+        'bg_color': '#4B0082',
+        'font_color': 'white',
+        'border': 1,
+        'align': 'center',
+        'valign': 'vcenter'
+    })
+
+    data_format = workbook.add_format({
+        'border': 1,
+        'align': 'center',
+        'valign': 'vcenter'
+    })
+
+    money_format = workbook.add_format({
+        'border': 1,
+        'align': 'center',
+        'valign': 'vcenter',
+        'num_format': '₹#,##0.00'
+    })
+
+    # Set column widths
+    worksheet.set_column('A:A', 15)  # Date
+    worksheet.set_column('B:B', 12)  # Order ID
+    worksheet.set_column('C:C', 20)  # Customer
+    worksheet.set_column('D:G', 15)  # Price columns
+    worksheet.set_column('H:H', 20)  # Offer Applied
+
+    # Write headers
+    headers = [
+        'Date', 'Order ID', 'Customer', 'Original Price', 
+        'Offer Discount', 'Coupon Discount', 'Final Price', 'Offer Applied'
+    ]
     
-    return render(request, 'admin/admindashboard.html', context)
+    for col, header in enumerate(headers):
+        worksheet.write(0, col, header, header_format)
+
+    # Write data
+    for row, sale in enumerate(sales_report, 1):
+        worksheet.write(row, 0, sale['date'], data_format)
+        worksheet.write(row, 1, sale['order_id'], data_format)
+        worksheet.write(row, 2, sale['customer'], data_format)
+        worksheet.write(row, 3, float(sale['original_price']), money_format)
+        worksheet.write(row, 4, float(sale['offer_discount']), money_format)
+        worksheet.write(row, 5, float(sale['coupon_discount']), money_format)
+        worksheet.write(row, 6, float(sale['final_price']), money_format)
+        worksheet.write(row, 7, sale['offer_applied'], data_format)
+
+    # Add totals row
+    total_row = len(sales_report) + 1
+    total_format = workbook.add_format({
+        'bold': True,
+        'border': 1,
+        'align': 'center',
+        'valign': 'vcenter',
+        'bg_color': '#E6E6FA'
+    })
+    
+    worksheet.write(total_row, 0, 'Total', total_format)
+    for col in range(3, 7):
+        worksheet.write_formula(
+            total_row, col,
+            f'=SUM({chr(65+col)}2:{chr(65+col)}{total_row})',
+            money_format
+        )
+
+    workbook.close()
+    output.seek(0)
+
+    response = HttpResponse(
+        output.read(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename=sales_report.xlsx'
+    return response
+
+def export_to_pdf(sales_report):
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer, 
+        pagesize=landscape(letter),
+        rightMargin=30,
+        leftMargin=30,
+        topMargin=30,
+        bottomMargin=30
+    )
+    elements = []
+
+    # Add title and date
+    styles = getSampleStyleSheet()
+    title_style = styles['Heading1']
+    title_style.alignment = 1  # Center alignment
+    
+    elements.append(Paragraph("PodCraze Sales Report", title_style))
+    elements.append(Paragraph(
+        f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        styles['Normal']
+    ))
+    elements.append(Spacer(1, 20))
+
+    # Prepare table data
+    table_data = [[
+        'Date', 'Order ID', 'Customer', 'Original Price',
+        'Offer Discount', 'Coupon Discount', 'Final Price', 'Offer Applied'
+    ]]
+    
+    # Add sales data
+    total_original = Decimal('0')
+    total_offer_discount = Decimal('0')
+    total_coupon_discount = Decimal('0')
+    total_final = Decimal('0')
+
+    for sale in sales_report:
+        table_data.append([
+            sale['date'],
+            str(sale['order_id']),
+            sale['customer'],
+            f"₹{sale['original_price']:,.2f}",
+            f"₹{sale['offer_discount']:,.2f}",
+            f"₹{sale['coupon_discount']:,.2f}",
+            f"₹{sale['final_price']:,.2f}",
+            sale['offer_applied']
+        ])
+        
+        total_original += sale['original_price']
+        total_offer_discount += sale['offer_discount']
+        total_coupon_discount += sale['coupon_discount']
+        total_final += sale['final_price']
+
+    # Add totals row
+    table_data.append([
+        'Total', '', '',
+        f"₹{total_original:,.2f}",
+        f"₹{total_offer_discount:,.2f}",
+        f"₹{total_coupon_discount:,.2f}",
+        f"₹{total_final:,.2f}",
+        ''
+    ])
+
+    # Create and style table
+    table = Table(table_data)
+    table.setStyle(TableStyle([
+        # Header style
+        ('BACKGROUND', (0, 0), (-1, 0), colors.purple),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        
+        # Data style
+        ('BACKGROUND', (0, 1), (-1, -2), colors.white),
+        ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+        ('ALIGN', (0, 1), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 1), (-1, -1), 10),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        
+        # Total row style
+        ('BACKGROUND', (0, -1), (-1, -1), colors.lightgrey),
+        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+        
+        # Column widths
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    ]))
+
+    elements.append(table)
+    doc.build(elements)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename=sales_report.pdf'
+    pdf = buffer.getvalue()
+    buffer.close()
+    response.write(pdf)
+    return response
 
 
 
@@ -1377,6 +1646,10 @@ def edit_categoryoffer(request, offer_id):
 
             
             
+            
+            
+
+            
             category_id = request.POST.get('category')
             if Offer.objects.filter(
                 product_category_id=category_id,
@@ -1542,6 +1815,9 @@ def edit_coupon(request, coupon_id):
             coupon.description = request.POST.get('description')
             
             
+            
+            
+            
             valid_from = timezone.make_aware(
                 datetime.strptime(request.POST.get('valid_from'), '%Y-%m-%dT%H:%M')
             )
@@ -1624,3 +1900,115 @@ def deletecoupon(request,coupon_id):
     messages.success(request, 'Coupon deleted successfully!')
 
     return redirect('admincoupon')
+
+def get_sales_data_api(request):
+    try:
+        period = request.GET.get('period', 'month')
+        
+        # Base query for orders
+        orders = Order.objects.filter(
+            status__in=['delivered', 'shipped', 'processing']
+        ).exclude(total_price__isnull=True)
+        
+        # Get date range from request
+        start_date_str = request.GET.get('start_date')
+        end_date_str = request.GET.get('end_date')
+        
+        # If date range is provided, filter by it
+        if start_date_str and end_date_str:
+            try:
+                start_date = timezone.make_aware(datetime.strptime(start_date_str, '%Y-%m-%d'))
+                end_date = timezone.make_aware(datetime.strptime(end_date_str, '%Y-%m-%d'))
+                orders = orders.filter(created_at__range=[start_date, end_date])
+            except ValueError:
+                print("Invalid date format provided")
+        
+        today = timezone.now()
+        
+        if period == 'week':
+            # Get start of current week (Monday)
+            start_date = today - timedelta(days=today.weekday())
+            labels = []
+            sales_data = []
+            revenue_data = []
+            
+            for i in range(7):
+                current_date = start_date + timedelta(days=i)
+                daily_orders = orders.filter(
+                    created_at__date=current_date.date()
+                )
+                
+                daily_count = daily_orders.count()
+                daily_revenue = daily_orders.aggregate(
+                    total=Sum('total_price')
+                )['total'] or Decimal('0')
+                
+                labels.append(current_date.strftime('%a'))
+                sales_data.append(daily_count)
+                revenue_data.append(float(daily_revenue))
+                
+        elif period == 'month':
+            current_month = today.month
+            current_year = today.year
+            
+            _, days_in_month = calendar.monthrange(current_year, current_month)
+            start_date = datetime(current_year, current_month, 1)
+            
+            labels = []
+            sales_data = []
+            revenue_data = []
+            
+            for day in range(1, days_in_month + 1):
+                current_date = start_date + timedelta(days=day - 1)
+                daily_orders = orders.filter(
+                    created_at__date=current_date.date()
+                )
+                
+                daily_count = daily_orders.count()
+                daily_revenue = daily_orders.aggregate(
+                    total=Sum('total_price')
+                )['total'] or Decimal('0')
+                
+                labels.append(str(day))
+                sales_data.append(daily_count)
+                revenue_data.append(float(daily_revenue))
+                
+        else:  # year
+            labels = []
+            sales_data = []
+            revenue_data = []
+            
+            for month in range(1, 13):
+                monthly_orders = orders.filter(
+                    created_at__year=today.year,
+                    created_at__month=month
+                )
+                
+                monthly_count = monthly_orders.count()
+                monthly_revenue = monthly_orders.aggregate(
+                    total=Sum('total_price')
+                )['total'] or Decimal('0')
+                
+                month_name = calendar.month_abbr[month]
+                labels.append(month_name)
+                sales_data.append(monthly_count)
+                revenue_data.append(float(monthly_revenue))
+
+        print("Query parameters:")
+        print(f"Period: {period}")
+        print(f"Start date: {start_date_str}")
+        print(f"End date: {end_date_str}")
+        print("Final data:")
+        print(f"Labels: {labels}")
+        print(f"Sales Data: {sales_data}")
+        print(f"Revenue Data: {revenue_data}")
+        
+        return JsonResponse({
+            'labels': labels,
+            'sales': sales_data,
+            'revenue': revenue_data
+        })
+    
+    except Exception as e:
+        print(f"Error in get_sales_data_api: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)

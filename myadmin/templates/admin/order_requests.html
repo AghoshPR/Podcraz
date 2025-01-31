@@ -25,10 +25,12 @@
         </thead>
         <tbody>
             {% for order in return_requests %}
-            <tr>
-                <td>{{ forloop.counter }}</td>
-                <td>
-                    {% with item=order.items.first %}
+                {% for item in order.items.all %}
+                <tr>
+                    {% if forloop.first %}
+                    <td rowspan="{{ order.items.count }}">{{ forloop.parentloop.counter }}</td>
+                    {% endif %}
+                    <td>
                         {% if item.product_variant.productimage_set.first %}
                             <img src="{{ item.product_variant.productimage_set.first.image_path.url }}" 
                                  alt="{{ item.product_variant.product.name }}" 
@@ -38,36 +40,38 @@
                                  alt="No Image" 
                                  class="product-thumbnail">
                         {% endif %}
-                    {% endwith %}
-                </td>
-                <td>{{ order.items.first.product_variant.product.name }}</td>
-                <td>{{ order.user.first_name }}</td>
-                <td>{{ order.return_reason }}</td>
-                <td>
-                    <span class="status-badge status-{{ order.status|lower }}">
-                        {{ order.status|title }}
-                    </span>
-                </td>
-                <td>
-                    {% if order.status == 'return_pending' %}
-                        <form method="POST" action="{% url 'request_handle' order.id %}" class="d-flex gap-2">
-                            {% csrf_token %}
-                            <button type="submit" name="action" value="approve" class="btn btn-success btn-sm">
-                                Approve
-                            </button>
-                            <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm">
-                                Reject
-                            </button>
-                        </form>
-                    {% else %}
-                        <span class="text-white">Action taken</span>
+                    </td>
+                    <td>{{ item.product_variant.product.name }}</td>
+                    {% if forloop.first %}
+                    <td rowspan="{{ order.items.count }}">{{ order.user.first_name }}</td>
+                    <td rowspan="{{ order.items.count }}">{{ order.return_reason }}</td>
+                    <td rowspan="{{ order.items.count }}">
+                        <span class="status-badge status-{{ order.status|lower }}">
+                            {{ order.status|title }}
+                        </span>
+                    </td>
+                    <td rowspan="{{ order.items.count }}">
+                        {% if order.status == 'return_pending' %}
+                            <form method="POST" action="{% url 'request_handle' order.id %}" class="d-flex gap-2">
+                                {% csrf_token %}
+                                <button type="submit" name="action" value="approve" class="btn btn-success btn-sm">
+                                    Approve
+                                </button>
+                                <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm">
+                                    Reject
+                                </button>
+                            </form>
+                        {% else %}
+                            <span class="text-white">Action taken</span>
+                        {% endif %}
+                    </td>
                     {% endif %}
-                </td>
-            </tr>
+                </tr>
+                {% endfor %}
             {% empty %}
-            <tr>
-                <td colspan="7" class="text-center">No return requests found</td>
-            </tr>
+                <tr>
+                    <td colspan="7" class="text-center">No return requests found</td>
+                </tr>
             {% endfor %}
         </tbody>
     </table>

@@ -156,18 +156,10 @@ class Wishlist(models.Model):
 
 # Order Model
 class Order(models.Model):
-
     STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('processing', 'Processing'),
-        ('shipped', 'Shipped'),
         ('delivered', 'Delivered'),
-        ('cancelled', 'Cancelled'),
-        ('return_pending', 'Return Pending'),  
-        ('return_approved', 'Return Approved'), 
-        ('return_rejected', 'Return Rejected'), 
-        ('Approved','Approved'),
-        ('Rejected','Rejected'),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -187,12 +179,26 @@ class Order(models.Model):
 
 # OrderItem Model
 class OrderItem(models.Model):
+    ITEM_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('processing', 'Processing'),
+        ('shipped', 'Shipped'),
+        ('delivered', 'Delivered'),
+        ('cancelled', 'Cancelled'),
+        ('return_pending', 'Return Pending'),
+        ('return_approved', 'Return Approved'),
+        ('return_rejected', 'Return Rejected'),
+    ]
+
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
     product_variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    status = models.CharField(max_length=50)
-    
+    status = models.CharField(max_length=50, choices=ITEM_STATUS_CHOICES, default='pending')
+    cancellation_reason = models.TextField(null=True, blank=True)
+    return_reason = models.TextField(null=True, blank=True)
+    cancelled_at = models.DateTimeField(null=True, blank=True)
+    returned_at = models.DateTimeField(null=True, blank=True)
 
 # PaymentMethod Model
 class PaymentMethod(models.Model):
