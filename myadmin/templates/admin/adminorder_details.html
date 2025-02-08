@@ -1,118 +1,145 @@
 {% extends "admin/adminbase.html" %}
 
-{% block title %}Edit Orders - Admin{% endblock %}
+{% block title %}Order Item Details - Admin{% endblock %}
 
 {% block content %}
-
-
-
 <div class="p-4">
-    <!-- Edit Orders Header -->
+    <!-- Header -->
     <div class="bg-dark rounded p-3 mb-3">
-        <h5 class="mb-0 text-white">Edit Orders</h5>
+        <h5 class="mb-0 text-white">Order Item Details #{{ order_item.id }}</h5>
     </div>
 
-    <!-- Products Section -->
+    <!-- Product Details Section -->
     <div class="bg-light rounded mb-3">
         <div class="bg-dark rounded-top p-2">
-            <div class="row align-items-center mx-0">
-                <div class="col-4 text-white px-3">Products</div>
-                <div class="col-4 text-white text-center">Quantity</div>
-                <div class="col-4 text-white px-3">Price</div>
-            </div>
+            <h6 class="mb-0 text-white">Product Details</h6>
         </div>
         <div class="p-3">
-            {% for item in order_items %}
-            <div class="row align-items-center mx-0 mb-2">
-                <div class="col-4 text-black px-3">{{ item.product_variant.product.name }}</div>
-                <div class="col-4 text-black text-center">{{ item.quantity }}</div>
-                <div class="col-4 text-black px-3">₹ {{ item.price }}</div>
+            <div class="row">
+                <div class="col-md-3">
+                    <strong>Product Name:</strong>
+                    <p>{{ order_item.product_variant.product.name }}</p>
+                </div>
+                <div class="col-md-3">
+                    <strong>Variant:</strong>
+                    <p>{{ order_item.product_variant.color }}</p>
+                </div>
+                <div class="col-md-3">
+                    <strong>Quantity:</strong>
+                    <p>{{ order_item.quantity }}</p>
+                </div>
+                <div class="col-md-3">
+                    <strong>Price:</strong>
+                    <p>₹{{ order_item.price }}</p>
+                </div>
             </div>
-            {% endfor %}
         </div>
     </div>
 
     <div class="row">
-        <!-- Customer Details Section -->
+        <!-- Order & Customer Details -->
         <div class="col-md-8 pe-3">
             <div class="bg-light rounded">
                 <div class="bg-dark rounded-top p-2">
-                    <h6 class="mb-0 text-white">Customer Details</h6>
+                    <h6 class="mb-0 text-white">Order & Customer Details</h6>
                 </div>
-                <div class="p-3 text-white">
+                <div class="p-3">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Order ID:</strong>
+                            <p>{{ order_item.order.id }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Order Date:</strong>
+                            <p>{{ order_item.order.created_at|date:"d/m/Y" }}</p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Customer Name:</strong>
+                            <p>{{ order_item.order.user.first_name }} {{ order_item.order.user.last_name }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Phone:</strong>
+                            <p>{{ order_item.order.user.phone }}</p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <strong>Shipping Address:</strong>
+                            <p>
+                                {{ order_item.order.address.address }}<br>
+                                {{ order_item.order.address.city }}, {{ order_item.order.address.state }}<br>
+                                PIN: {{ order_item.order.address.pin_code }}<br>
+                                Phone: {{ order_item.order.address.phone }}
+                            </p>
+                        </div>
+                    </div>
+
                     <div class="row">
-                        <div class="col-3 text-black">Customer Id</div>
-                        <div class="col-9 text-black">{{ user.id }}</div>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col-3 text-black">Customer Name</div>
-                        <div class="col-9 text-black">{{ user.first_name }}</div>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col-3 text-black">Mobile Number</div>
-                        <div class="col-9 text-black">{{ user.phone }}</div>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col-3 text-black">Type of Payment</div>
-                        <div class="col-9 text-black">{{ order.payment_method.name }}</div>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col-3 text-black">Address</div>
-                        <div class="col-9 text-black">
-                            {{ order.address.address }}<br>
-                            {{ order.address.city }}, {{ order.address.state }} - {{ order.address.pin_code }}<br>
-                            Phone: {{ order.address.phone }}
+                        <div class="col-md-6">
+                            <strong>Payment Method:</strong>
+                            <p>{{ order_item.order.payment_method.name }}</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Order Update Section -->
+        <!-- Status Update Section -->
         <div class="col-md-4">
             <div class="bg-light rounded">
                 <div class="bg-dark rounded-top p-2">
-                    <h6 class="mb-0 text-white">Order Update</h6>
+                    <h6 class="mb-0 text-white">Status Update</h6>
                 </div>
                 <div class="p-3">
-                    <div class="text-black mb-3">
-                        <div>Ordered On: {{ order.created_at|date:"d/m/Y" }}</div>
+                    <div class="mb-3">
+                        <strong>Current Status:</strong>
+                        <p class="
+                            {% if order_item.status == 'processing' %}text-info
+                            {% elif order_item.status == 'shipped' %}text-primary
+                            {% elif order_item.status == 'delivered' %}text-success
+                            {% endif %}">
+                            {{ order_item.status|title }}
+                        </p>
                     </div>
-                    <div class="text-black mb-3">
-                        <div>Current State: 
-                            <span class="
-                                {% if order.status == 'pending' %}text-warning{% endif %}
-                                {% if order.status == 'shipped' %}text-primary{% endif %}
-                                {% if order.status == 'cancelled' %}text-danger{% endif %}
-                                {% if order.status == 'delivered' %}text-success{% endif %}
-                            ">
-                                {{ order.status|title }}
-                            </span>
-                        </div>
-                    </div>
-                   
+
+                    {% if order_item.status not in 'delivered' %}
                     <form method="POST">
                         {% csrf_token %}
-                        <div class="text-black mb-4">
-                            <div>Order Status:
-                                <select name="status" 
-                                        class="form-select form-select-sm d-inline-block ms-2 bg-dark text-white border-0" 
-                                        style="width: auto;" 
-                                        {% if order.status == 'delivered' or order.status == 'cancelled' or order.status == 'return_pending' or order.status == 'return_approved' or order.status == 'return_rejected' or order.status == 'Approved' or order.status == 'Rejected' %}disabled{% endif %}>
-                                    
-                                    {% for key, value in status_choices %}
-                                    <option value="{{ key }}" {% if key == order.status %}selected{% endif %}>{{ value }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Update Status:</label>
+                            <select name="status" id="status" class="form-select">
+                                <option value="processing" {% if order_item.status == 'processing' %}selected{% endif %}>
+                                    Processing
+                                </option>
+                                <option value="shipped" {% if order_item.status == 'shipped' %}selected{% endif %}>
+                                    Shipped
+                                </option>
+                                <option value="delivered" {% if order_item.status == 'delivered' %}selected{% endif %}>
+                                    Delivered
+                                </option>
+                            </select>
                         </div>
-                        {% if order.status != 'delivered' and order.status != 'cancelled' and order.status != 'return_pending' and order.status != 'return_approved' and order.status != 'return_rejected' and order.status != 'Approved' and order.status != 'Rejected' %}
-                        <button type="submit" class="btn btn-primary w-100">
-                            Update
-                        </button>
-                        {% endif %}
+                        <button type="submit" class="btn btn-primary w-100">Update Status</button>
                     </form>
-                    
+                    {% endif %}
+
+                    {% if order_item.cancellation_reason %}
+                    <div class="mt-3">
+                        <strong>Cancellation Reason:</strong>
+                        <p>{{ order_item.cancellation_reason }}</p>
+                    </div>
+                    {% endif %}
+
+                    {% if order_item.return_reason %}
+                    <div class="mt-3">
+                        <strong>Return Reason:</strong>
+                        <p>{{ order_item.return_reason }}</p>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

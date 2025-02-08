@@ -48,13 +48,12 @@
                     <td>{{ offer.valid_until |date:"Y-m-d H:i" }}</td>
                     <td>{{ offer.is_active }}</td>
                     <td>
-                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editOfferModal{{ offer.id }}">
-                            <a href="{% url 'edit_offer' offer.id %}" class="text-white text-decoration-none">Edit</a>
+                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editOfferModal{{ offer.id }}">
+                            Edit
                         </button>
-
-                        <a href="{% url 'delete_offer' offer.id %}" class="btn btn-sm btn-danger"
-                        onclick="return confirm('Are you sure you want to delete this offer?')">
-                        Delete
+                        <a href="{% url 'delete_offer' offer.id %}" class="btn btn-sm btn-danger" 
+                           onclick="return confirm('Are you sure you want to delete this offer?')">
+                            Delete
                         </a>
                     </td>
 

@@ -1,6 +1,6 @@
 {% extends "admin/adminbase.html" %}
 
-{% block title %}Orders - Podcraze Admin{% endblock %}
+{% block title %}Order Requests - Podcraze Admin{% endblock %}
 
 {% block content %}
 <div class="col main-content">
@@ -24,50 +24,44 @@
             </tr>
         </thead>
         <tbody>
-            {% for order in return_requests %}
-                {% for item in order.items.all %}
-                <tr>
-                    {% if forloop.first %}
-                    <td rowspan="{{ order.items.count }}">{{ forloop.parentloop.counter }}</td>
+            {% for item in order_items %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>
+                    {% if item.product_variant.productimage_set.first %}
+                        <img src="{{ item.product_variant.productimage_set.first.image_path.url }}" 
+                             alt="{{ item.product_variant.product.name }}" 
+                             class="product-thumbnail">
+                    {% else %}
+                        <img src="" 
+                             alt="No Image" 
+                             class="product-thumbnail">
                     {% endif %}
-                    <td>
-                        {% if item.product_variant.productimage_set.first %}
-                            <img src="{{ item.product_variant.productimage_set.first.image_path.url }}" 
-                                 alt="{{ item.product_variant.product.name }}" 
-                                 class="product-thumbnail">
-                        {% else %}
-                            <img src="" 
-                                 alt="No Image" 
-                                 class="product-thumbnail">
-                        {% endif %}
-                    </td>
-                    <td>{{ item.product_variant.product.name }}</td>
-                    {% if forloop.first %}
-                    <td rowspan="{{ order.items.count }}">{{ order.user.first_name }}</td>
-                    <td rowspan="{{ order.items.count }}">{{ order.return_reason }}</td>
-                    <td rowspan="{{ order.items.count }}">
-                        <span class="status-badge status-{{ order.status|lower }}">
-                            {{ order.status|title }}
-                        </span>
-                    </td>
-                    <td rowspan="{{ order.items.count }}">
-                        {% if order.status == 'return_pending' %}
-                            <form method="POST" action="{% url 'request_handle' order.id %}" class="d-flex gap-2">
-                                {% csrf_token %}
-                                <button type="submit" name="action" value="approve" class="btn btn-success btn-sm">
-                                    Approve
-                                </button>
-                                <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm">
-                                    Reject
-                                </button>
-                            </form>
-                        {% else %}
-                            <span class="text-white">Action taken</span>
-                        {% endif %}
-                    </td>
+                </td>
+                <td>{{ item.product_variant.product.name }} ({{ item.product_variant.color }})</td>
+                <td>{{ item.order.user.first_name }}</td>
+                <td>{{ item.return_reason }}</td>
+                <td>
+                    <span class="status-badge status-{{ item.status|lower }}">
+                        {{ item.status|title }}
+                    </span>
+                </td>
+                <td>
+                    {% if item.status == 'return_pending' %}
+                        <form method="POST" action="{% url 'request_handle' item.id %}" class="d-flex gap-2">
+                            {% csrf_token %}
+                            <button type="submit" name="action" value="approve" class="btn btn-success btn-sm">
+                                Approve
+                            </button>
+                            <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm">
+                                Reject
+                            </button>
+                        </form>
+                    {% else %}
+                        <span class="text-muted">Action taken</span>
                     {% endif %}
-                </tr>
-                {% endfor %}
+                </td>
+            </tr>
             {% empty %}
                 <tr>
                     <td colspan="7" class="text-center">No return requests found</td>
@@ -105,6 +99,11 @@
         color: #000;
     }
 
+    .status-return_pending {
+        background-color: #ffd700;
+        color: #000;
+    }
+
     .status-return_approved {
         background-color: #28a745;
         color: white;
@@ -115,11 +114,9 @@
         color: white;
     }
 
-    /* Remove the custom action-buttons class as we're using Bootstrap classes instead */
     .btn-sm {
         padding: 0.25rem 0.5rem;
         font-size: 0.875rem;
     }
 </style>
-
 {% endblock %}

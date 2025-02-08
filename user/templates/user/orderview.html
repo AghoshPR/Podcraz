@@ -4,12 +4,16 @@
 
 <link rel="stylesheet" href="{% static 'css/orderview.css' %}">
 
-</head>
-<body>
-
-
-<!-- Main Content -->
 <div class="container py-4">
+
+    {% if messages %}
+    <div class="alert alert-dismissible fade show" role="alert">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <div class="row">
         <!-- Sidebar -->
         <div class="col-md-3 mb-4">
@@ -19,9 +23,9 @@
                     <a class="nav-link" href="{% url 'myprofile' %}"><i class="fas fa-user me-2"></i>Profile</a>
                     <a class="nav-link" href="{% url 'address' %}"><i class="fas fa-map-marker-alt me-2"></i>Addresses</a>
                     <a class="nav-link active" href="{% url 'myorder' %}"><i class="fas fa-box me-2"></i>Orders</a>
-                    <a class="nav-link" href="#"><i class="fas fa-wallet me-2"></i>Wallet</a>
-                    <a class="nav-link" href="#"><i class="fas fa-ticket me-2"></i>Coupon</a>
-                    <a class="nav-link" href="#"><i class="fas fa-lock me-2"></i>Change Password</a>
+                    <a class="nav-link" href="{% url 'wallet' %}"><i class="fas fa-wallet me-2"></i>Wallet</a>
+                    <a class="nav-link" href="{% url 'coupon' %}"><i class="fas fa-ticket me-2"></i>Coupon</a>
+                    <a class="nav-link" href="{% url 'user_changepass' %}"><i class="fas fa-lock me-2"></i>Change Password</a>
                 </nav>
                 <button class="btn btn-danger mt-4 w-100">Logout</button>
             </div>
@@ -29,130 +33,409 @@
 
         <!-- Order Details -->
         <div class="col-md-9">
-            <div class="order-card">
-                <div class="row">
-                    {% for item in order.items.all %}
-                    <div class="col-md-3">
-                        <img src="{{ item.product_variant.productimage_set.first.image_path.url }}" alt="{{ item.product_variant.product.name }}" class="product-img img-fluid">
-                    </div>
-                    <div class="col-md-5">
-                        <h6 class="text-muted">Order ID: #{{ order.id }} </h6>
-                        <h5 class="mb-3">{{ item.product_variant.product.name }}</h5>
-                        <p>Quantity: {{ item.quantity }}</p>
-                        <p>Price: ₹{{ item.price }}</p>
-                        <hr>
-                        
+            <!-- Order Header -->
+            <div class="order-card mb-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5>Order #{{ order.id }}</h5>
+                        <p>Ordered on: {{ order.created_at|date:"d M Y" }}</p>
                     </div>
                     
-                    <div class="col-md-4">
-                        <div class="order-summary">
-                            
-                            
+                </div>
+            </div>
+
+            <!-- Individual Order Items -->
+            {% for item in order.items.all %}
+            <div class="order-card mb-4">
+                <div class="order-details-container">
+                    <div class="product-info">
+                        <img src="{{ item.product_variant.productimage_set.first.image_path.url }}" 
+                             alt="{{ item.product_variant.product.name }}" 
+                             class="product-image">
+                        <div class="product-details">
+                            <h4>{{ item.product_variant.product.name }}</h4>
+                            <p class="detail-item">Color: {{ item.product_variant.color }}</p>
+                            <p class="detail-item">Quantity: {{ item.quantity }}</p>
+                            <p class="detail-item">Price: 
+                                {% with offer_price=item.product_variant.get_offer_price %}
+                                    {% if offer_price %}
+                                        <span class="current-price">₹{{ offer_price|floatformat:2 }}</span>
+                                        
+                                    {% else %}
+                                        ₹{{ item.product_variant.price }}
+                                    {% endif %}
+                                {% endwith %}
+                            </p>
+                            <div class="status-container">
+                                <span class="status-label">Status:</span>
+                                <span class="status-pill {{ item.status|upper }}">
+                                    <i class="status-icon 
+                                        {% if item.status == 'pending' %}fas fa-clock
+                                        {% elif item.status == 'processing' %}fas fa-cog
+                                        {% elif item.status == 'shipped' %}fas fa-truck
+                                        {% elif item.status == 'delivered' %}fas fa-check-circle
+                                        {% elif item.status == 'cancelled' %}fas fa-times-circle
+                                        {% elif item.status == 'return_pending' %}fas fa-undo
+                                        {% elif item.status == 'return_approved' %}fas fa-check-double
+                                        {% elif item.status == 'return_rejected' %}fas fa-ban
+                                        {% endif %}">
+                                    </i>
+                                    {{ item.status|title }}
+                                </span>
+                            </div>
                         </div>
                     </div>
-                    {% endfor %}
+
+                    <!-- Status Timeline -->
+                    <div class="status-timeline-container">
+                        <div class="status-timeline">
+                            <div class="timeline-track">
+                                <div class="progress-track" style="width: 
+                                    {% if item.status == 'processing' %}25%
+                                    {% elif item.status == 'shipped' %}65%
+                                    {% elif item.status == 'delivered' %}100%
+                                    {% else %}0%{% endif %}">
+                                </div>
+                            </div>
+                            <div class="timeline-points">
+                                <div class="point {% if item.status == 'processing' or item.status == 'shipped' or item.status == 'delivered' %}active{% endif %}">
+                                    <div class="point-marker"></div>
+                                    <span class="point-label">Processing</span>
+                                </div>
+                                <div class="point {% if item.status == 'shipped' or item.status == 'delivered' %}active{% endif %}">
+                                    <div class="point-marker"></div>
+                                    <span class="point-label">Shipped</span>
+                                </div>
+                                <div class="point {% if item.status == 'delivered' %}active{% endif %}">
+                                    <div class="point-marker"></div>
+                                    <span class="point-label">Delivered</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            
-                <!-- Show Delivery Charge only once for the entire order -->
-                <div class="order-summary">
-                    <p class="d-flex justify-content-between mb-2">
-                        <span>Delivery Charge:</span>
-                        <strong>₹0</strong>
-                    </p>
-                    <p class="d-flex justify-content-between mb-2">
-                        <span>Platform Fee:</span>
-                        <strong>₹0</strong>
-                    </p>
 
-
-                    {% if order.discount > 0 %}
-                    <p class="d-flex justify-content-between mb-2">
-                        <span>Original Price:</span>
-                        <strong >₹ {{ order.subtotal }}</strong>
-                    </p>
-                    <p class="d-flex justify-content-between mb-2">
-                        <span>Discount Applied:</span>
-                        <strong style="color: #28a745;"> ₹ {{ order.discount }} -</strong>
-                    </p>
+                <!-- Item Actions -->
+                <div class="col-md-4">
+                    {% if item.status == 'pending' or item.status == 'processing' or item.status == 'shipped' %}
+                        <button class="btn btn-danger mb-2" data-bs-toggle="modal" data-bs-target="#cancelItemModal{{ item.id }}">
+                            Cancel Item
+                        </button>
+                    {% elif item.status == 'delivered' and not item.return_reason %}
+                        <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#returnItemModal{{ item.id }}">
+                            Return Item
+                        </button>
                     {% endif %}
-                    
-                    <p class="d-flex justify-content-between mb-2">
-                        <span>Total Order Price:</span>
-                        <strong>₹{{ order.total_price }} /-</strong>
-                    </p>
+                </div>
+            </div>
 
-                    <p class="mb-2"><strong>Mode of Payment:</strong> {{ order.payment_method.name }}</p>
-                    <p class="mb-0"><strong>Delivery Address:</strong><br>
+            <!-- Cancel Item Modal -->
+            <div class="modal fade" id="cancelItemModal{{ item.id }}" tabindex="-1">
+                <div class="modal-dialog">
+                    <form method="POST" action="{% url 'cancel_order_item' item.id %}">
+                        {% csrf_token %}
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Cancel Item</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="cancellation_reason" class="form-label">Cancellation Reason</label>
+                                    <textarea class="form-control" name="cancellation_reason" required></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-danger">Cancel Item</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Return Item Modal -->
+            <div class="modal fade" id="returnItemModal{{ item.id }}" tabindex="-1">
+                <div class="modal-dialog">
+                    <form method="POST" action="{% url 'return_order_item' item.id %}">
+                        {% csrf_token %}
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Return Item</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="return_reason" class="form-label">Return Reason</label>
+                                    <textarea class="form-control" name="return_reason" required></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-warning">Submit Return Request</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Order Summary -->
+            <div class="order-card">
+                <h5 class="mb-4">Order Summary</h5>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Subtotal:</span>
+                    <span>₹{{ order.subtotal }}</span>
+                </div>
+                {% if order.discount > 0 %}
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Discount:</span>
+                    <span class="text-success">-₹{{ order.discount }}</span>
+                </div>
+                {% endif %}
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Total:</span>
+                    <strong>₹{{ order.total_price }}</strong>
+                </div>
+                <hr>
+                <div class="mt-3">
+                    <p><strong>Shipping Address:</strong><br>
                         {{ order.address.address }}<br>
                         {{ order.address.city }}, {{ order.address.state }} - {{ order.address.pin_code }}<br>
                         Phone: {{ order.address.phone }}
                     </p>
                 </div>
             </div>
-            
-            
-
-            
-            <!-- Order Status -->
-           
-        <div class="order-card">
-            <h5 class="mb-4">Order Status</h5>
-            <div class="status-tracker">
-                <div class="progress">
-                    <!-- Adjust progress width based on current order status -->
-                    <div class="progress-bar 
-                        {% if order.status == 'cancelled' %}bg-danger
-                        {% elif order.status == 'delivered' %}bg-success
-                        {% elif order.status == 'shipped' %}bg-primary
-                        {% elif order.status == 'processing' %}bg-warning
-                        {% else %}bg-secondary{% endif %}" 
-                        role="progressbar" 
-                        style="width: 
-                        {% if order.status == 'processing' %}33%
-                        {% elif order.status == 'shipped' %}66%
-                        {% elif order.status == 'delivered' %}100%
-                        {% elif order.status == 'cancelled' %}0%
-                        {% else %}0%{% endif %}">
-                    </div>
-                </div>
-                <div class="row text-center">
-                    <!-- Processing -->
-                    <div class="col-3 status-step">
-                        <div class="status-circle {% if order.status in possible_statuses.processing %}completed{% endif %}">
-                            <i class="fas fa-check"></i>
-                        </div>
-                        <div class="status-label">Processing</div>
-                    </div>
-                    <div class="col-3 status-step">
-                        <div class="status-circle {% if order.status in possible_statuses.shipped %}completed{% endif %}">
-                            <i class="fas fa-check"></i>
-                        </div>
-                        <div class="status-label">Shipped</div>
-                    </div>
-                    <div class="col-3 status-step">
-                        <div class="status-circle {% if order.status in possible_statuses.delivered %}completed{% endif %}">
-                            <i class="fas fa-check"></i>
-                        </div>
-                        <div class="status-label">Delivered</div>
-                    </div>
-                    <div class="col-3 status-step">
-                        <div class="status-circle {% if order.status in possible_statuses.cancelled %}completed cancelled{% endif %}">
-                            <i class="fas fa-times"></i>
-                        </div>
-                        <div class="status-label">Cancelled</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
-
-
-
-
         </div>
     </div>
 </div>
-   
 
+<style>
+.order-details-container {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+
+.product-info {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 30px;
+}
+
+.product-image {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-right: 20px;
+}
+
+.product-details {
+    flex: 1;
+}
+
+.detail-item {
+    margin: 5px 0;
+    color: #666;
+}
+
+.status-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.status-label {
+    font-weight: 500;
+    color: #333;
+    min-width: 60px;
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    gap: 8px;
+}
+
+.status-icon {
+    font-size: 1rem;
+}
+
+/* Status-specific styles */
+.status-pill.PENDING {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-pill.PROCESSING {
+    background-color: #cce5ff;
+    color: #004085;
+}
+
+.status-pill.SHIPPED {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-pill.DELIVERED {
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+
+.status-pill.CANCELLED {
+    background-color: #f8d7da;
+    color: #842029;
+}
+
+.status-pill.RETURN_PENDING {
+    background-color: #fff3cd;
+    color: #664d03;
+}
+
+.status-pill.RETURN_APPROVED {
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+
+.status-pill.RETURN_REJECTED {
+    background-color: #f8d7da;
+    color: #842029;
+}
+
+/* Hover effect */
+.status-pill:hover {
+    transform: translateY(-1px);
+    transition: transform 0.2s ease;
+}
+
+/* Status Timeline Styles */
+.status-timeline-container {
+    margin-top: 30px;
+    padding: 0 20px;
+}
+
+.status-timeline {
+    position: relative;
+    padding-top: 30px;
+}
+
+.timeline-track {
+    position: relative;
+    height: 4px;
+    background-color: #e9ecef;
+    border-radius: 2px;
+}
+
+.progress-track {
+    position: absolute;
+    height: 100%;
+    background-color: #28a745;
+    border-radius: 2px;
+    transition: width 0.5s ease;
+}
+
+.timeline-points {
+    display: flex;
+    justify-content: space-between;
+    position: absolute;
+    width: 100%;
+    top: 0;
+}
+
+.point {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    transform: translateX(-50%);
+}
+
+.point:first-child {
+    transform: translateX(0);
+}
+
+.point:last-child {
+    transform: translateX(-100%);
+}
+
+.point-marker {
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    border: 2px solid #e9ecef;
+    border-radius: 50%;
+    margin-bottom: 8px;
+    transition: all 0.3s ease;
+}
+
+.point.active .point-marker {
+    background-color: #28a745;
+    border-color: #28a745;
+    box-shadow: 0 0 0 4px rgba(40, 167, 69, 0.2);
+}
+
+.point-label {
+    font-size: 0.85rem;
+    color: #6c757d;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.point.active .point-label {
+    color: #28a745;
+}
+
+/* Animations */
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+}
+
+.point.active .point-marker {
+    animation: pulse 2s infinite;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .product-info {
+        flex-direction: column;
+    }
+
+    .product-image {
+        margin-bottom: 15px;
+        margin-right: 0;
+    }
+
+    .status-timeline-container {
+        padding: 0 10px;
+    }
+
+    .point-label {
+        font-size: 0.75rem;
+    }
+
+    .status-container {
+        flex-direction: row;
+        align-items: center;
+    }
+    
+    .status-pill {
+        padding: 6px 12px;
+        font-size: 0.85rem;
+    }
+    
+    .status-icon {
+        font-size: 0.9rem;
+    }
+}
+</style>
 {% endblock %}

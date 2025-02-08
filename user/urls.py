@@ -51,7 +51,7 @@ urlpatterns = [
     path('payment/',views.payment,name='payment'),
 
     path('order/',views.myorder,name='myorder'),
-    path('ordersuccess/',views.ordersuccess,name='order_success'),
+    path('ordersuccess/', views.order_success, name='order_success'),
     path('ordercancel/<int:order_id>/',views.cancel_order,name='cancel_order'),
     path('orderreturn/<int:order_id>/',views.order_return,name='order_return'),
     
@@ -73,6 +73,11 @@ urlpatterns = [
     path('coupon/',views.coupon,name='coupon'),
 
     path('changepassword/',views.user_changepass,name='user_changepass'),
+
+    path('order/item/cancel/<int:item_id>/', views.cancel_order_item, name='cancel_order_item'),
+    path('order/item/return/<int:item_id>/', views.return_order_item, name='return_order_item'),
+
+    path('retry-payment/<int:order_id>/', views.retry_payment, name='retry_payment'),
 
 
 

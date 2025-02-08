@@ -73,69 +73,64 @@
 
               <!-- Order List -->
               {% for order in orders %}
-              <div class=" order-container">
-                  <div class="order-items">
-                      {% for item in order.items.all %}
-                <a style="list-style-type: none; text-decoration: none;" href="{% url 'orderview' order.id  %}">
-                      <div class="item-row">
-
-                       
-                        <img src="{{ item.product_variant.productimage_set.first.image_path.url }}" 
-                            alt="{{ item.product_variant.product.name }}" class="item-image">
-                       
-                          <div class="item-details">
-                              <div class="item-name">{{ item.product_variant.product.name }}</div>
-                              
+              <div class="order-card">
+                  <div class="order-header">
+                      <div class="left-header">
+                          <div class="order-info">
+                              <h5 class="order-number">Order #{{ order.id }}</h5>
+                              <p class="order-date">Ordered on {{ order.created_at|date:"d M Y" }}</p>
+                          </div>
+                          
+                      </div>
+                      <div class="right-header">
+                          <div class="order-total">
+                              <span class="total-label">Total Amount:</span>
+                              <span class="total-price">₹{{ order.total_price }}</span>
                           </div>
                       </div>
-                </a>
+                  </div>
+
+                  <div class="order-items-container">
+                      {% for item in order.items.all %}
+                      <div class="order-item">
+                          <img src="{{ item.product_variant.productimage_set.first.image_path.url }}" 
+                               alt="{{ item.product_variant.product.name }}" 
+                               class="item-image">
+                          <div class="item-details">
+                              <h6 class="product-name">{{ item.product_variant.product.name }}</h6>
+                              <p class="variant-details">Color: {{ item.product_variant.color }}</p>
+                              <p class="quantity">Quantity: {{ item.quantity }}</p>
+                              <p class="item-price">
+                                  {% with offer_price=item.product_variant.get_offer_price %}
+                                      {% if offer_price %}
+                                          <span class="current-price">₹{{ offer_price|floatformat:2 }}</span>
+                                          <span class="original-price text-decoration-line-through ms-2">₹{{ item.product_variant.price }}</span>
+                                      {% else %}
+                                          ₹{{ item.product_variant.price }}
+                                      {% endif %}
+                                  {% endwith %}
+                              </p>
+                          </div>
+                      </div>
+                      {% if not forloop.last %}
+                      <div class="item-divider"></div>
+                      {% endif %}
                       {% endfor %}
                   </div>
-                  <div class="order-info">
-                      <div>
-                          <p>Order Placed: {{ order.created_at|date:"M d Y" }}</p>
-                          <p>Status: <span 
-                            style="
-                                {% if order.status == 'pending' %}color: brown;
-                                {% elif order.status == 'shipped' %}color: blue;
-                                {% elif order.status == 'delivered' %}color: green;
-                                {% elif order.status == 'cancelled' %}color: red;
-                                {% elif order.status == 'return_pending' %}color: orange;
-                                {% elif order.status == 'return_approved' %}color: green;
-                                {% elif order.status == 'return_rejected' %}color: red;
-                                {% endif %}
-                                font-weight: bold;">
-                            {{ order.status|title }}
-                        </span></p>
-                        
-                        {% if order.status == "delivered" %}
-                        <a href="#" class="btn btn-primary">Download Invoice</a>
-                        {% endif %}
-                      </div>
-                      
-                      <div>
-                          <p>Order ID: #{{ order.id }}</p>
 
-                          {% if order.discount > 0 %}
-                          <p>Original Price: <span >₹{{ order.subtotal }}</span></p>
-                          <p>Discount: <span style="color: #28a745;"> ₹{{ order.discount }} -</span></p>
-
-                          {% endif %}
-
-                          <p>Total Price: ₹{{ order.total_price }} /-</p>
-                      </div>
-                  </div>
-
-                  <div class="order-actions">
-                    {% if order.status == "pending" or order.status == "processing" or order.status == "shipped" %}
-                        <button class="btn-cancel" data-bs-toggle="modal" data-bs-target="#cancelOrderModal{{ order.id }}">
-                            Cancel Order
-                        </button>
-                    {% elif order.status == "delivered" and not order.return_reason %}
-                        <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#returnOrderModal{{ order.id }}">
-                            Return Order
-                        </button>
-                    {% endif %}
+                  <div class="order-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="action-buttons">
+                            {% if not order.is_paid and order.payment_method.name == 'razorpay' %}
+                                <a href="{% url 'retry_payment' order.id %}" class="btn btn-warning">
+                                    Retry Payment
+                                </a>
+                            {% endif %}
+                        </div>
+                        <a href="{% url 'orderview' order.id %}" class="view-details-btn">
+                            <i class="fas fa-eye"></i> View Order Details
+                        </a>
+                    </div>
                 </div>
               </div>
               {% endfor %}
@@ -211,5 +206,249 @@
   </div>
 </div>
 
+<style>
+.order-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    margin-bottom: 30px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.order-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+    border-radius: 12px 12px 0 0;
+}
+
+.left-header {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.order-number {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.order-date {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.right-header {
+    text-align: right;
+}
+
+.total-label {
+    display: block;
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 4px;
+}
+
+.total-price {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 16px;
+    border-radius: 30px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.status-badge .status-icon {
+    margin-right: 8px;
+}
+
+.status-badge.pending {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+}
+
+.status-badge.processing {
+    background-color: #cff4fc;
+    color: #055160;
+    border: 1px solid #b6effb;
+}
+
+.status-badge.shipped {
+    background-color: #e8f4fd;
+    color: #0a58ca;
+    border: 1px solid #d6e9fb;
+}
+
+.status-badge.delivered {
+    background-color: #d1e7dd;
+    color: #0f5132;
+    border: 1px solid #badbcc;
+}
+
+.status-badge.cancelled {
+    background-color: #f8d7da;
+    color: #842029;
+    border: 1px solid #f5c2c7;
+}
+
+.order-items-container {
+    padding: 20px;
+    background-color: white;
+}
+
+.order-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.item-divider {
+    height: 1px;
+    background-color: #e0e0e0;
+    margin: 15px 0;
+}
+
+.item-image {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-right: 20px;
+    border: 1px solid #e0e0e0;
+}
+
+.item-details {
+    flex: 1;
+}
+
+.product-name {
+    margin: 0 0 8px;
+    font-size: 1.1rem;
+    color: #2c3e50;
+}
+
+.variant-details, .quantity {
+    margin: 4px 0;
+    color: #6c757d;
+    font-size: 0.95rem;
+}
+
+.item-price {
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 8px 0 0;
+    font-size: 1.1rem;
+}
+
+.order-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #e0e0e0;
+    background-color: #f8f9fa;
+    border-radius: 0 0 12px 12px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.invoice-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background-color: #28a745;  /* Green color for invoice button */
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+.invoice-btn:hover {
+    background-color: #218838;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.view-details-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+.view-details-btn:hover {
+    background-color: #0056b3;
+    color: white;
+    transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+    .order-header {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .right-header {
+        text-align: left;
+    }
+
+    .order-item {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .item-image {
+        margin: 0 0 15px 0;
+    }
+
+    .item-details {
+        text-align: center;
+    }
+
+    .order-footer .d-flex {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .action-buttons {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .invoice-btn, .view-details-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
 
 {% endblock %}

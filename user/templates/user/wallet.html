@@ -70,7 +70,7 @@
 
                     <!-- Transactions Table -->
                     <h6 class="mb-3 fw-bold">Recent Transactions:</h6>
-                    <div class="table-responsive">
+                    <div class="table-responsive scrollable-table">
                         <table class="table table-custom">
                             <thead>
                                 <tr>
@@ -132,5 +132,40 @@
         </div>
     </div>
 </div>
+
+<style>
+.scrollable-table {
+    max-height: 300px; /* Adjust the height as needed */
+    overflow-y: auto;
+    position: relative;
+}
+
+.table-custom {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table-custom th, .table-custom td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.table-custom th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.credit {
+    color: green;
+}
+
+.debit {
+    color: red;
+}
+</style>
 
 {% endblock %}

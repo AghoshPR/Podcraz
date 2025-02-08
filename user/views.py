@@ -1,4 +1,3 @@
-
 from venv import logger
 from django.shortcuts import *
 from django.contrib.auth.hashers import *
@@ -12,7 +11,6 @@ from django.views.decorators.http import require_POST
 import random,smtplib
 from datetime import  timedelta,datetime
 from django.utils.timezone import now
-from datetime import datetime
 from django.utils import timezone
 from django.db.models import *
 from django.utils.dateparse import parse_datetime
@@ -25,6 +23,7 @@ from django.urls import reverse
 import razorpay
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
+from django.db import transaction
 
 from io import BytesIO
 from reportlab.pdfgen import canvas
@@ -34,6 +33,7 @@ from reportlab.platypus import Table, TableStyle
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from num2words import num2words
+from decimal import Decimal
 
 User = get_user_model()
 
@@ -44,6 +44,7 @@ User = get_user_model()
 
 
 @never_cache
+
 def userlogin(request):
     if request.user.is_authenticated:
         return redirect('userhome')
@@ -589,7 +590,7 @@ def usercart(request):
     cart_items=CartItem.objects.filter(cart=cart)
 
     for item in cart_items:
-        # Get offer price if available
+        
         offer_price = item.product_variant.get_offer_price()
         if offer_price:
             item.price = offer_price
@@ -1173,207 +1174,21 @@ def checkout_address(request):
     return render(request, 'user/checkout_address.html')
 
 razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
-
-def payment(request):
-   
-    if not request.user.is_authenticated:
-        return redirect('userlogin')
-
-    try:
-        # Fetch the user's cart and cart items
-        cart = Cart.objects.get(user=request.user)
-        cart_items = CartItem.objects.filter(cart=cart)
-
-        # Fetch or create the user's wallet
-        wallet, created = Wallet.objects.get_or_create(user=request.user, defaults={'balance': 0})
-
-        # Stock verification
-        out_of_stock_items = []
-        for item in cart_items:
-            if item.product_variant.stock == 0:
-                out_of_stock_items.append(item.product_variant.product.name)
-            elif item.quantity > item.product_variant.stock:
-                out_of_stock_items.append(f"{item.product_variant.product.name} (Only {item.product_variant.stock} available)")
-
-        # If any items are out of stock, show an error message
-        if out_of_stock_items:
-            messages.error(request, f"The following items are out of stock: {', '.join(out_of_stock_items)}")
-            return redirect('usercart')
-
-        # Calculate total price and subtotal
-        total_price = sum(
-            item.product_variant.get_offer_price() if item.product_variant.get_offer_price() else item.get_total_price()
-            for item in cart_items
-        )
-        subtotal = total_price - cart.discount
-
-    except Cart.DoesNotExist:
-        messages.error(request, "Cart not found.")
-        return redirect('usercart')
-
-    # Check if a delivery address is selected
-    selected_address_id = request.session.get('selected_address_id')
-    if not selected_address_id:
-        messages.error(request, 'No delivery address selected.')
-        return redirect('usercheckout')
-
-    try:
-        selected_address = Address.objects.get(id=selected_address_id, user=request.user)
-    except Address.DoesNotExist:
-        messages.error(request, 'Invalid address selected.')
-        return redirect('usercheckout')
-
-    # Handle POST request (payment submission)
-    if request.method == 'POST':
-        method = request.POST.get('payment_method')
-        valid_methods = ['wallet', 'razorpay', 'cod']
-
-        # Validate payment method
-        if not method:
-            messages.error(request, 'Please select a payment method.')
-            return redirect('payment')
-
-        if method not in valid_methods:
-            messages.error(request, 'Invalid payment method selected.')
-            return redirect('payment')
-
-        # Validate Cash on Delivery (COD) conditions
-        if method == 'cod' and subtotal > 1000:
-            messages.error(request, 'Cash on Delivery is not available for orders above ₹1000.')
-            return redirect('payment')
-
-        # Validate wallet balance for wallet payments
-        if method == 'wallet':
-            if wallet.balance < subtotal:
-                messages.error(request, f'Insufficient wallet balance. Required: ₹{subtotal}, Available: ₹{wallet.balance}')
-                return redirect('payment')
-
-        # Fetch or create the payment method
-        payment_method, _ = PaymentMethod.objects.get_or_create(name=method)
-
-        try:
-            # Create the order
-            order = Order.objects.create(
-                user=request.user,
-                total_price=subtotal,
-                status='pending',
-                address=selected_address,
-                payment_method=payment_method,
-                discount=cart.discount
-            )
-
-            # Handle Razorpay payment
-            if method == 'razorpay':
-                # Create a Razorpay order
-                razorpay_order = razorpay_client.order.create({
-                    'amount': int(subtotal * 100),  # Amount in paise
-                    'currency': 'INR',
-                    'receipt': f'order_{order.id}',
-                    'payment_capture': 1  # Auto-capture payment
-                })
-
-                # Save Razorpay order ID in the order
-                order.razorpay_order_id = razorpay_order['id']
-                order.save()
-
-                # Prepare context for the Razorpay payment page
-                context = {
-                    'razorpay_order_id': razorpay_order['id'],
-                    'razorpay_merchant_key': settings.RAZORPAY_KEY_ID,
-                    'razorpay_amount': int(subtotal * 100),
-                    'currency': 'INR',
-                    'callback_url': request.build_absolute_uri(reverse('razorpay_callback')),
-                    'order': order,
-                }
-
-                # Store the pending order ID in the session
-                request.session['pending_order_id'] = order.id
-
-                # Render the Razorpay payment page
-                return render(request, 'user/razorpay.html', context)
-
-            # Handle non-Razorpay payments (COD and Wallet)
-            if method == 'wallet':
-                # Deduct the amount from the wallet
-                wallet.balance -= subtotal
-                wallet.save()
-
-                # Create a wallet transaction record
-                WalletTransaction.objects.create(
-                    wallet=wallet,
-                    amount=subtotal,
-                    type='debit',
-                    order=order
-                )
-
-            # Process order items
-            for cart_item in cart_items:
-                variant = cart_item.product_variant
-                variant.stock -= cart_item.quantity
-                variant.save()
-
-                item_unit_price = (
-                    variant.get_offer_price()
-                    if variant.get_offer_price()
-                    else variant.price
-                )
-
-                OrderItem.objects.create(
-                    order=order,
-                    product_variant=cart_item.product_variant,
-                    quantity=cart_item.quantity,
-                    price=item_unit_price
-                )
-
-            # Clear the cart
-            cart_items.delete()
-            cart.coupon = None
-            cart.discount = 0
-            cart.save()
-
-            # Clear the selected address from the session
-            if 'selected_address_id' in request.session:
-                del request.session['selected_address_id']
-
-            # Store the order ID in the session for the order success page
-            request.session['last_order_id'] = order.id
-
-            # Show success message and redirect to the order success page
-            messages.success(request, 'Order placed successfully!')
-            return redirect('order_success')
-
-        except Exception as e:
-            # If an error occurs, delete the order and show an error message
-            if 'order' in locals():
-                order.delete()
-            messages.error(request, f"Error processing order: {str(e)}")
-            return redirect('payment')
-
-    # Prepare context for the payment page
-    context = {
-        'cart_items': cart_items,
-        'total_price': total_price,
-        'subtotal': subtotal,
-        'discount': cart.discount,
-        'wallet_balance': wallet.balance
-    }
-
-    return render(request, 'user/payment.html', context)
+# Razorpay Callback View
 
 
-
-
-#razor pay
 @csrf_exempt
 def razorpay_callback(request):
     if request.method == "POST":
         try:
-            # Get payment details from POST data
             payment_id = request.POST.get('razorpay_payment_id')
             order_id = request.POST.get('razorpay_order_id')
             signature = request.POST.get('razorpay_signature')
 
-            # Verify payment signature
+            
+            order = Order.objects.select_related('user').get(razorpay_order_id=order_id)
+            
+           
             params_dict = {
                 'razorpay_order_id': order_id,
                 'razorpay_payment_id': payment_id,
@@ -1382,395 +1197,478 @@ def razorpay_callback(request):
 
             try:
                 razorpay_client.utility.verify_payment_signature(params_dict)
-            except Exception as e:
-                # Payment verification failed
-                logger.error(f"Payment verification failed: {str(e)}")
-                return JsonResponse({'status': 'error', 'message': 'Payment verification failed'}, status=400)
-
-            # Get the order
-            order = Order.objects.get(razorpay_order_id=order_id)
-            
-            # Update order with payment details
-            order.razorpay_payment_id = payment_id
-            order.razorpay_signature = signature
-            order.status = 'processing'
-            order.save()
-
-            # Process cart items
-            try:
-                cart = Cart.objects.get(user=order.user)
-                cart_items = CartItem.objects.filter(cart=cart)
-
-                # Create order items and update stock
-                for cart_item in cart_items:
-                    variant = cart_item.product_variant
+                
+                with transaction.atomic():
                     
-                    # Check stock availability again
-                    if variant.stock >= cart_item.quantity:
-                        variant.stock -= cart_item.quantity
-                        variant.save()
+                    order.razorpay_payment_id = payment_id
+                    order.razorpay_signature = signature
+                    order.status = 'processing'
+                    order.is_paid = True
+                    order.save()
 
+                    
+                    cart = Cart.objects.get(user=order.user)
+                    cart_items = CartItem.objects.filter(cart=cart)
+                    
+                   
+                    for item in cart_items:
+                        variant = item.product_variant
+                        variant.stock -= item.quantity
+                        variant.save()
+                        
+                        
                         OrderItem.objects.create(
                             order=order,
                             product_variant=variant,
-                            quantity=cart_item.quantity,
-                            price=variant.get_offer_price() or variant.price,
-                            status='processing'
+                            quantity=item.quantity,
+                            price=item.product_variant.get_offer_price() if item.product_variant.get_offer_price() else item.product_variant.price
                         )
-                    else:
-                        raise Exception(f"Insufficient stock for {variant.product.name}")
+                    
+                    cart_items.delete()
+                    cart.coupon = None
+                    cart.discount = 0
+                    cart.save()
 
-                # Clear cart
+               
+                if not request.user.is_authenticated:
+                    from django.contrib.auth import login
+                    from django.contrib.auth import get_user_model
+                    User = get_user_model()
+                    login(request, order.user, backend='django.contrib.auth.backends.ModelBackend')
+                    request.session.save()
+
+                
+                request.session['last_order_id'] = order.id
+
+                messages.success(request, 'Payment successful!')
+                return redirect('order_success')
+
+            except razorpay.errors.SignatureVerificationError:
+                order.status = 'payment_failed'
+                order.save()
+                messages.error(request, 'Payment verification failed. Please try again.')
+                return redirect('orderview', order_id=order.id)
+
+            except Exception as e:
+                order.status = 'payment_failed'
+                order.save()
+                messages.error(request, f'Payment verification error: {str(e)}')
+                return redirect('orderview', order_id=order.id)
+
+        except Order.DoesNotExist:
+            messages.error(request, 'Order not found')
+            return redirect('userhome')
+        except Exception as e:
+            messages.error(request, f'Payment processing error: {str(e)}')
+            return redirect('userhome')
+
+    return redirect('userhome')
+
+@csrf_exempt
+def retry_payment(request, order_id):
+    try:
+        order = get_object_or_404(Order, id=order_id, user=request.user)
+        
+        
+        if order.is_paid:
+            messages.error(request, 'This order has already been paid.')
+            return redirect('orderview', order_id=order.id)
+
+        
+        amount_in_paise = int(float(order.total_price) * 100)
+
+        
+        razorpay_order = razorpay_client.order.create({
+            'amount': amount_in_paise,
+            'currency': 'INR',
+            'payment_capture': '1'
+        })
+
+        
+        order.razorpay_order_id = razorpay_order['id']
+        order.status = 'payment_pending'
+        order.save()
+
+        
+        payment_data = {
+            'razorpay_order_id': razorpay_order['id'],
+            'razorpay_merchant_key': settings.RAZORPAY_KEY_ID,
+            'razorpay_amount': amount_in_paise,
+            'currency': 'INR',
+            'callback_url': request.build_absolute_uri(reverse('razorpay_callback')),
+            'customer_name': request.user.get_full_name() or request.user.username,
+            'customer_email': request.user.email,
+            'customer_phone': request.user.phone,
+            'order_id': order.id,
+        }
+
+        return render(request, 'user/retry_payment.html', {'payment_data': payment_data})
+
+    except Exception as e:
+        messages.error(request, f'Error initiating payment: {str(e)}')
+        return redirect('orderview', order_id=order_id)
+
+
+User = get_user_model()
+def payment(request):
+    if not request.user.is_authenticated:
+        return redirect('userlogin')
+
+    try:
+        cart = Cart.objects.get(user=request.user)
+        cart_items = CartItem.objects.filter(cart=cart)
+        
+        if not cart_items.exists():
+            messages.error(request, "Your cart is empty.")
+            return redirect('usercart')
+
+        wallet, created = Wallet.objects.get_or_create(user=request.user, defaults={'balance': 0})
+
+        
+        out_of_stock_items = []
+        for item in cart_items:
+            if item.product_variant.stock == 0:
+                out_of_stock_items.append(item.product_variant.product.name)
+            elif item.quantity > item.product_variant.stock:
+                out_of_stock_items.append(f"{item.product_variant.product.name} (Only {item.product_variant.stock} available)")
+
+        if out_of_stock_items:
+            messages.error(request, f"The following items are out of stock: {', '.join(out_of_stock_items)}")
+            return redirect('usercart')
+
+        total_price = sum(item.get_total_price() for item in cart_items)
+        subtotal = total_price - cart.discount
+
+        selected_address_id = request.session.get('selected_address_id')
+        if not selected_address_id:
+            messages.error(request, 'Please select a delivery address.')
+            return redirect('usercheckout')
+
+        try:
+            selected_address = Address.objects.get(id=selected_address_id, user=request.user)
+        except Address.DoesNotExist:
+            messages.error(request, 'Invalid address selected.')
+            return redirect('usercheckout')
+
+        if request.method == 'POST':
+            payment_method = request.POST.get('payment_method')
+            
+            if not payment_method:
+                messages.error(request, 'Please select a payment method')
+                return redirect('payment')
+
+            if payment_method == 'cod':
+                if subtotal > 1000:
+                    messages.error(request, 'Cash on Delivery is available only for orders up to ₹1000')
+                    return redirect('payment')
+                
+                payment_method_obj, _ = PaymentMethod.objects.get_or_create(name='cod')
+                order = Order.objects.create(
+                    user=request.user,
+                    total_price=subtotal,
+                    status='pending',
+                    address=selected_address,
+                    payment_method=payment_method_obj,
+                    discount=cart.discount
+                )
+                
+                
+                for item in cart_items:
+                    OrderItem.objects.create(
+                        order=order,
+                        product_variant=item.product_variant,
+                        quantity=item.quantity,
+                        price=item.product_variant.get_offer_price() if item.product_variant.get_offer_price() else item.product_variant.price
+                    )
+                    
+                    item.product_variant.stock -= item.quantity
+                    item.product_variant.save()
+                
+                
                 cart_items.delete()
                 cart.coupon = None
                 cart.discount = 0
                 cart.save()
-
-                # Store order ID in session
+                
                 request.session['last_order_id'] = order.id
+                return render(request, 'user/order_success.html', {'order': order})
 
-                # Return success response with redirect URL
-                success_url = request.build_absolute_uri(reverse('order_success'))
-                return JsonResponse({
-                    'status': 'success',
-                    'redirect_url': success_url
+            elif payment_method == 'wallet':
+                if wallet.balance < subtotal:
+                    messages.error(request, 'Insufficient wallet balance')
+                    return redirect('payment')
+                
+                try:
+                    with transaction.atomic():  # Add transaction management
+                        # Create order first
+                        payment_method_obj, _ = PaymentMethod.objects.get_or_create(name='wallet')
+                        order = Order.objects.create(
+                            user=request.user,
+                            total_price=subtotal,
+                            status='processing',
+                            address=selected_address,
+                            payment_method=payment_method_obj,
+                            discount=cart.discount
+                        )
+                        
+                        # Process order items and update stock
+                        for item in cart_items:
+                            OrderItem.objects.create(
+                                order=order,
+                                product_variant=item.product_variant,
+                                quantity=item.quantity,
+                                price=item.product_variant.get_offer_price() if item.product_variant.get_offer_price() else item.product_variant.price
+                            )
+                            item.product_variant.stock -= item.quantity
+                            item.product_variant.save()
+                        
+                        # Update wallet balance
+                        wallet.balance -= subtotal
+                        wallet.save()
+                        
+                        # Create wallet transaction
+                        WalletTransaction.objects.create(
+                            wallet=wallet,
+                            type='debit',
+                            amount=subtotal,
+                            order=order
+                        )
+                        
+                        # Clear cart
+                        cart_items.delete()
+                        cart.coupon = None
+                        cart.discount = 0
+                        cart.save()
+                        
+                        # Store order ID in session
+                        request.session['last_order_id'] = order.id
+                        
+                        # Redirect to success page with order details
+                        return render(request, 'user/order_success.html', {'order': order})
+
+                except Exception as e:
+                    messages.error(request, f'Error processing payment: {str(e)}')
+                    return redirect('payment')
+
+            elif payment_method == 'razorpay':
+                # Create Razorpay order
+                razorpay_order = razorpay_client.order.create({
+                    'amount': int(subtotal * 100),
+                    'currency': 'INR',
                 })
+                
+                # Create order in database
+                payment_method_obj, _ = PaymentMethod.objects.get_or_create(name='razorpay')
+                order = Order.objects.create(
+                    user=request.user,
+                    total_price=subtotal,
+                    status='pending',
+                    address=selected_address,
+                    payment_method=payment_method_obj,
+                    discount=cart.discount,
+                    razorpay_order_id=razorpay_order['id']
+                )
+                
+                context = {
+                    'razorpay_order_id': razorpay_order['id'],
+                    'razorpay_merchant_key': settings.RAZORPAY_KEY_ID,
+                    'razorpay_amount': int(subtotal * 100),
+                    'currency': 'INR',
+                    'callback_url': request.build_absolute_uri(reverse('razorpay_callback')),
+                    'order': order,
+                }
+                
+                return render(request, 'user/razorpay.html', context)
 
-            except Cart.DoesNotExist:
-                logger.error(f"Cart not found for user {order.user.id}")
-                return JsonResponse({'status': 'error', 'message': 'Cart not found'}, status=400)
-
-        except Order.DoesNotExist:
-            logger.error(f"Order not found for Razorpay order ID {order_id}")
-            return JsonResponse({'status': 'error', 'message': 'Order not found'}, status=400)
+        # GET request - show payment page
+        context = {
+            'cart_items': cart_items,
+            'total_price': total_price,
+            'subtotal': subtotal,
+            'discount': cart.discount,
+            'wallet_balance': wallet.balance
+        }
         
-        except Exception as e:
-            logger.error(f"Payment processing failed: {str(e)}")
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+        return render(request, 'user/payment.html', context)
 
-    # Handle GET request (redirect after payment)
-    elif request.method == "GET":
-        payment_id = request.GET.get('razorpay_payment_id')
-        order_id = request.GET.get('razorpay_order_id')
-        
-        try:
-            order = Order.objects.get(
-                razorpay_order_id=order_id,
-                razorpay_payment_id=payment_id
-            )
-            request.session['last_order_id'] = order.id
-            return redirect('order_success')
-            
-        except Order.DoesNotExist:
-            messages.error(request, 'Order not found')
-            return redirect('payment')
-
-    return HttpResponse(status=400)
+    except Cart.DoesNotExist:
+        messages.error(request, "Cart not found.")
+        return redirect('usercart')
 
 
 
-def ordersuccess(request):
-    if not request.user.is_authenticated:
-        return redirect('userlogin')
 
-    order_id = request.session.get('last_order_id')
-    if not order_id:
-        messages.error(request, 'No order found')
-        return redirect('myorder')
-
+def order_success(request):
     try:
-        order = get_object_or_404(Order, id=order_id, user=request.user)
+        order_id = request.session.get('last_order_id')
+        if not order_id:
+            messages.error(request, 'No order found.')
+            return redirect('userhome')
+
+        order = Order.objects.get(id=order_id, user=request.user)
         
-        # Verify order status
-        if order.status not in ['processing', 'pending']:
-            messages.error(request, 'Invalid order status')
-            return redirect('myorder')
-
-        order_items = OrderItem.objects.filter(order=order)
-
-        # Clear session data
-        request.session.pop('last_order_id', None)
-        request.session.pop('pending_order_id', None)
-
+        # Ensure user stays logged in
+        request.session.modified = True
+        
         context = {
             'order': order,
-            'order_items': order_items
+            'user': request.user
         }
+        
         return render(request, 'user/order_success.html', context)
-
+    
     except Order.DoesNotExist:
-        messages.error(request, 'Order not found')
-        return redirect('myorder')
-    except Exception as e:
-        logger.error(f"Error in order success page: {str(e)}")
-        messages.error(request, 'Error retrieving order details')
-        return redirect('myorder')
+        messages.error(request, 'Order not found.')
+        return redirect('userhome')
 
 
 
 def myorder(request):
+    try:
+        orders = (
+            Order.objects.filter(user=request.user)
+            .prefetch_related('items__product_variant__product',
+                              'items__product_variant__productimage_set')
+            .order_by('-created_at')
+        )
+        
+        status_filter = request.GET.get('status')
 
-    if not request.user.is_authenticated:
-        return redirect('userlogin')
+        if status_filter and status_filter != 'All':
+            orders = orders.filter(status__iexact=status_filter)
 
-    user = request.user
-    orders = (
-        Order.objects.filter(user=user)
-        .prefetch_related('items__product_variant__product',
-                          'items__product_variant__productimage_set')
-        .order_by('-created_at')
-    )
-    
-    status_filter = request.GET.get('status')
+        for order in orders:
+            order.subtotal = order.total_price + order.discount
 
-    if status_filter and status_filter != 'All':
-        orders = orders.filter(status__iexact=status_filter)
+        context = {
+            'orders': orders,
+            'current_status': status_filter or 'All',
+            'user': request.user
+        }
 
-    orders = orders.order_by('-created_at')
-
-
-    for order in orders:
-        order.subtotal = order.total_price + order.discount
-
-
-
-    
-
-    context = {
-        'orders':orders,
-        'current_status': status_filter or 'All'
-    }
-
-    return render(request,'user/order.html',context)
+        return render(request, 'user/order.html', context)
+    except Exception as e:
+        messages.error(request, f'Error retrieving orders: {str(e)}')
+        return redirect('userhome')
 
 def generate_invoice(request, order_id):
-    if not request.user.is_authenticated:
-        return redirect('userlogin')
+    # Get the order with related items and product variants
+    order = get_object_or_404(Order.objects.prefetch_related(
+        'items__product_variant__product',
+        'items__product_variant__productimage_set'
+    ).select_related('user', 'address'), id=order_id, user=request.user)
     
-    order = get_object_or_404(Order, id=order_id, user=request.user)
-    
-    if order.status != 'delivered':
-        messages.error(request, 'Invoice is only available for delivered orders.')
-        return redirect('myorder')
-
-    # Initialize document
+    # Create a file-like buffer to receive PDF data
     buffer = BytesIO()
-    width, height = A4
-    p = canvas.Canvas(buffer, pagesize=A4)
-
-    # Colors
-    PURPLE_COLOR = colors.HexColor('#4B0082')
-    LIGHT_PURPLE = colors.HexColor('#E6E6FA')
     
-    def draw_header():
-        # Main Invoice Header
-        p.setFillColor(PURPLE_COLOR)
-        p.rect(30, height-80, width-60, 50, fill=1)
-        p.setFillColor(colors.white)
-        p.setFont("Helvetica-Bold", 30)
-        p.drawString(50, height-55, "INVOICE")
+    # Create the PDF object, using the buffer as its "file."
+    p = canvas.Canvas(buffer, pagesize=A4)
+    
+    # Set up initial coordinates
+    y = 800  # Starting y position
+    
+    # Add company logo/header
+    p.setFont("Helvetica-Bold", 24)
+    p.drawString(50, y, "PODCRAZE")
+    
+    # Add invoice details
+    p.setFont("Helvetica-Bold", 16)
+    y -= 30
+    p.drawString(50, y, f"Invoice #{order.id}")
+    
+    # Add date
+    p.setFont("Helvetica", 12)
+    y -= 20
+    p.drawString(50, y, f"Date: {order.created_at.strftime('%d/%m/%Y')}")
+    
+    # Add customer details
+    y -= 40
+    p.drawString(50, y, "Bill To:")
+    y -= 20
+    p.drawString(50, y, f"Name: {order.user.first_name} {order.user.last_name}")
+    y -= 20
+    p.drawString(50, y, f"Email: {order.user.email}")
+    
+    # Add shipping address if available
+    if order.address:
+        y -= 20
+        p.drawString(50, y, "Shipping Address:")
+        y -= 20
+        p.drawString(50, y, f"{order.address.address}")
+        y -= 20
+        p.drawString(50, y, f"{order.address.city}, {order.address.state}")
+        y -= 20
+        p.drawString(50, y, f"PIN: {order.address.pin_code}")
+        y -= 20
+        p.drawString(50, y, f"Phone: {order.address.phone}")
+    
+    # Create table for order items
+    data = [['Product', 'Quantity', 'Price', 'Total']]
+    
+    # Calculate totals
+    subtotal = 0
+    
+    # Add order items to table
+    for item in order.items.all():
+        item_total = item.quantity * item.price
+        subtotal += item_total
         
-        # Logo placeholder (right side of header)
-        p.setFillColor(colors.white)
-        p.rect(width-150, height-70, 70, 30, fill=0)
-        p.setFont("Helvetica-Bold", 14)
-        p.drawString(width-140, height-55, "PodCraze")
-
-    def draw_business_info():
-        # Left side
-        p.setFillColor(colors.black)
-        p.setFont("Helvetica-Bold", 10)
-        left_info = [
-            ("Business Name:", "PodCraze"),
-            ("Address:", "123 Business Street"),
-            ("Phone Number:", "+91 9876543210")
-        ]
-        
-        y_pos = height-110
-        for label, value in left_info:
-            p.drawString(40, y_pos, label)
-            p.setFont("Helvetica", 10)
-            p.drawString(120, y_pos, value)
-            p.setFont("Helvetica-Bold", 10)
-            y_pos -= 15
-
-        # Right side
-        right_info = [
-            ("GSTIN No:", "29ABCDE1234F1Z5"),
-            ("Invoice No:", f"INV-{order.id}"),
-            ("Date:", datetime.now().strftime("%d-%m-%Y")),
-            ("State:", "Kerala")
-        ]
-        
-        y_pos = height-110
-        for label, value in right_info:
-            p.drawString(350, y_pos, label)
-            p.setFont("Helvetica", 10)
-            p.drawString(420, y_pos, value)
-            p.setFont("Helvetica-Bold", 10)
-            y_pos -= 15
-
-    def draw_address_sections():
-        # Address Headers
-        p.setFillColor(PURPLE_COLOR)
-        # Bill To header
-        p.rect(30, height-200, (width-70)/2, 25, fill=1)
-        # Ship To header
-        p.rect((width/2)+10, height-200, (width-70)/2, 25, fill=1)
-        
-        p.setFillColor(colors.white)
-        p.setFont("Helvetica-Bold", 12)
-        p.drawString(45, height-190, "BILL TO")
-        p.drawString((width/2)+25, height-190, "SHIP TO")
-
-        # Address Content
-        p.setFillColor(colors.black)
-        p.setFont("Helvetica", 10)
-        
-        # Function to draw address
-        def draw_address(x, address_data):
-            y = height-220
-            for label, value in address_data:
-                p.setFont("Helvetica-Bold", 10)
-                p.drawString(x, y, f"{label}:")
-                p.setFont("Helvetica", 10)
-                p.drawString(x+60, y, str(value))
-                y -= 15
-
-        # Bill To Address
-        bill_address = [
-            ("Name", f"{order.user.first_name} {order.user.last_name}"),
-            ("Address", order.address.address),
-            ("Phone", order.address.phone),
-            ("GSTIN", "N/A"),
-            ("State", order.address.state)
-        ]
-        draw_address(40, bill_address)
-
-        # Ship To Address
-        ship_address = [
-            ("Name", f"{order.user.first_name} {order.user.last_name}"),
-            ("Address", order.address.address),
-            ("Phone", order.address.phone),
-            ("GSTIN", "N/A"),
-            ("State", order.address.state)
-        ]
-        draw_address((width/2)+20, ship_address)
-
-    def draw_items_table():
-        # Table Header and Data
-        table_data = [['S.No', 'Goods Description', 'HSN', 'QTY', 'MRP', 'Amount']]
-        
-        for idx, item in enumerate(order.items.all(), 1):
-            table_data.append([
-                str(idx),
-                item.product_variant.product.name,
-                "N/A",
-                str(item.quantity),
-                f"Rs.{item.price:,.2f}",
-                f"Rs.{item.price * item.quantity:,.2f}"
-            ])
-
-        # Create table
-        table = Table(table_data, colWidths=[40, 200, 60, 60, 80, 80])
-        table.setStyle(TableStyle([
-            # Header style
-            ('BACKGROUND', (0, 0), (-1, 0), PURPLE_COLOR),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-            ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 11),
-            # Content style
-            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-            ('FONTSIZE', (0, 1), (-1, -1), 10),
-            ('ALIGN', (0, 0), (0, -1), 'CENTER'),  # S.No center
-            ('ALIGN', (-2, 0), (-1, -1), 'RIGHT'),  # Price columns right
-            # Grid
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
-            # Padding
-            ('TOPPADDING', (0, 0), (-1, -1), 6),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-        ]))
-        
-        table.wrapOn(p, width-60, height)
-        table.drawOn(p, 30, height-450)
-
-    def draw_footer():
-        # Amount in words
-        p.setFont("Helvetica-Bold", 10)
-        p.drawString(40, height-480, "Amount in Words:")
-        p.setFont("Helvetica", 10)
-        amount_words = num2words(order.total_price, lang='en_IN').title()
-        p.drawString(130, height-480, f"{amount_words} Rupees Only")
-
-        # Calculations
-        calculations = [
-            ("Sub Total:", f"Rs.{order.total_price + order.discount:,.2f}"),
-            ("Discount:", f"Rs.{order.discount:,.2f}"),
-            ("SGST (9%):", f"Rs.{0:,.2f}"),
-            ("CGST (9%):", f"Rs.{0:,.2f}"),
-            ("Total:", f"Rs.{order.total_price:,.2f}")
-        ]
-
-        y_pos = height-680
-        for label, value in calculations:
-            p.setFont("Helvetica-Bold", 10)
-            p.drawString(350, y_pos, label)
-            p.setFont("Helvetica", 10)
-            p.drawString(450, y_pos, value)
-            y_pos -= 20
-
-        # Bank Details
-        p.setFont("Helvetica-Bold", 10)
-        p.drawString(40, height-580, "Bank Details:")
-        
-        bank_details = [
-            ("Bank Name", "ABCXXXX"),
-            ("Account Name", "PODCRAZE"),
-            ("Account Number", "9876578765"),
-            ("IFSC Code", "SIH87667"),
-            ("Branch", "ABC")
-        ]
-
-        y_pos = height-600
-        for label, value in bank_details:
-            p.setFont("Helvetica-Bold", 10)
-            p.drawString(40, y_pos, f"{label}:")
-            p.setFont("Helvetica", 10)
-            p.drawString(130, y_pos, value)
-            y_pos -= 15
-
-        # Terms and Conditions
-        p.setFont("Helvetica-Bold", 8)
-        p.drawString(40, 50, "Terms & Conditions:")
-        p.setFont("Helvetica", 8)
-        terms = [
-            "1. Goods once sold will not be taken back or exchanged.",
-            "2. All disputes are subject to local jurisdiction only.",
-            "3. E.& O.E."
-        ]
-        y_pos = 40
-        for term in terms:
-            p.drawString(40, y_pos, term)
-            y_pos -= 10
-
-    # Draw all components
-    draw_header()
-    draw_business_info()
-    draw_address_sections()
-    draw_items_table()
-    draw_footer()
-
-    # Finish and return PDF
+        data.append([
+            item.product_variant.product.name,
+            str(item.quantity),
+            f"Rs {item.price}",
+            f"Rs {item_total}"
+        ])
+    
+    # Draw table
+    table = Table(data, colWidths=[200, 100, 100, 100])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+        ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 1), (-1, -1), 10),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ('ALIGN', (1, 0), (-1, -1), 'RIGHT'),  # Right align numbers
+    ]))
+    
+    # Position the table
+    y -= 40
+    table.wrapOn(p, 400, 200)
+    table.drawOn(p, 50, y - 100)
+    
+    # Add total calculations
+    y -= 150  # Adjust based on table height
+    p.drawString(350, y, f"Subtotal: Rs {subtotal}")
+    y -= 20
+    if order.discount:
+        p.drawString(350, y, f"Discount: Rs {order.discount}")
+        y -= 20
+    p.setFont("Helvetica-Bold", 14)
+    p.drawString(350, y, f"Total Amount: Rs {order.total_price}")
+    
+    # Add footer
+    p.setFont("Helvetica", 10)
+    y = 50  # Set to bottom of page
+    p.drawString(50, y, "Thank you for shopping with PODCRAZE!")
+    y -= 20
+    p.drawString(50, y, "This is a computer generated invoice.")
+    
+    # Close the PDF object cleanly
     p.showPage()
     p.save()
-    pdf = buffer.getvalue()
-    buffer.close()
     
+    # Get the value of the BytesIO buffer and write it to the response
+    buffer.seek(0)
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="PodCraze_Invoice_{order.id}.pdf"'
-    response.write(pdf)
+    response['Content-Disposition'] = f'attachment; filename="invoice_{order.id}.pdf"'
+    response.write(buffer.getvalue())
+    buffer.close()
     
     return response
 
@@ -1937,6 +1835,7 @@ def order_return(request, order_id):
 
 
 
+
     
 
 
@@ -1980,5 +1879,90 @@ def coupon(request):
     }
 
     return render(request, 'user/coupon.html', context)
+
+from django.utils import timezone  # Ensure this import is present
+
+def cancel_order_item(request, item_id):
+    order_item = get_object_or_404(OrderItem, id=item_id, order__user=request.user)
+
+    if request.method == 'POST':
+        cancellation_reason = request.POST.get('cancellation_reason', '').strip()
+
+        if cancellation_reason:
+            if order_item.status in ['pending', 'processing', 'shipped']:
+                order_item.status = 'cancelled'
+                order_item.cancellation_reason = cancellation_reason
+                order_item.cancelled_at = timezone.now()
+                order_item.save()
+
+                # Update product variant stock
+                product_variant = order_item.product_variant
+                product_variant.stock += order_item.quantity
+                product_variant.save()
+
+                # Calculate refund amount
+                refund_amount = order_item.quantity * order_item.price
+
+                # Handle refund through wallet
+                try:
+                    wallet, created = Wallet.objects.get_or_create(
+                        user=request.user,
+                        defaults={'balance': Decimal('0')}
+                    )
+                    
+                    # Update wallet balance
+                    wallet.balance += refund_amount
+                    wallet.save()
+
+                    # Create wallet transaction
+                    WalletTransaction.objects.create(
+                        wallet=wallet,
+                        type='credit',
+                        amount=refund_amount,
+                        product=order_item.product_variant.product,
+                        order=order_item.order
+                    )
+
+                    messages.success(
+                        request, 
+                        f'Item cancelled successfully. Rs {refund_amount:.2f} refunded to wallet.'
+                    )
+                except Exception as e:
+                    messages.error(
+                        request, 
+                        f'Item cancelled but refund failed. Please contact support. Error: {str(e)}'
+                    )
+            else:
+                messages.error(request, 'This item cannot be cancelled.')
+        else:
+            messages.error(request, 'Please provide a cancellation reason.')
+
+    return redirect('orderview', order_id=order_item.order.id)
+
+def return_order_item(request, item_id):
+    if not request.user.is_authenticated:
+        return redirect('userlogin')
+
+    order_item = get_object_or_404(OrderItem, id=item_id, order__user=request.user)
+    
+    if request.method == 'POST':
+        if order_item.status == 'delivered':
+            return_reason = request.POST.get('return_reason', '').strip()
+            if return_reason:
+                order_item.status = 'return_pending'
+                order_item.return_reason = return_reason
+                order_item.save()
+                messages.success(request, 'Return request submitted successfully.')
+            else:
+                messages.error(request, 'Please provide a return reason.')
+        else:
+            messages.error(request, 'Only delivered items can be returned.')
+    
+    return redirect('orderview', order_id=order_item.order.id)
+
+
+
+
+
 
 

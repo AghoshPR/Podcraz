@@ -122,10 +122,10 @@
                     const toast = new bootstrap.Toast(document.getElementById('wishlistToast'));
 
                     if (isWishlisted) {
-                        // Remove the product card from the DOM
+                       
                         productCard.remove();
 
-                        // Check if there are any products left
+                        
                         const remainingProducts = document.querySelectorAll('.col');
                         if (remainingProducts.length === 0) {
                             const container = document.getElementById('wishlistContainer');

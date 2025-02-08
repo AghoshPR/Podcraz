@@ -21,11 +21,11 @@
             <div class="col-lg-8">
                 <h2 class="section-title">Payment</h2>
                 
-                <form method="POST" action="{% url 'payment' %}">
+                <form method="POST" action="{% url 'payment' %}" id="paymentForm">
                     {% csrf_token %}
                     <div>
                         <label class="payment-option">
-                            <input type="radio" name="payment_method" value="wallet" class="form-check-input payment-radio">
+                            <input type="radio" name="payment_method" value="wallet" class="form-check-input payment-radio" required>
                             <span>Wallet (Balance: ₹{{ wallet_balance }})</span>
                         </label>
                         
@@ -35,7 +35,8 @@
                         </label>
                         
                         <label class="payment-option">
-                            <input type="radio" name="payment_method" value="cod" class="form-check-input payment-radio">
+                            <input type="radio" name="payment_method" value="cod" class="form-check-input payment-radio"
+                                   {% if subtotal > 1000 %}disabled{% endif %}>
                             <span>Cash On Delivery</span>
                             <small class="text-danger d-block">Available only for orders up to ₹1000</small>
                         </label>
@@ -170,4 +171,14 @@
     margin-bottom: 10px;
 }
 </style>
+
+<script>
+document.getElementById('paymentForm').addEventListener('submit', function(e) {
+    const selectedMethod = document.querySelector('input[name="payment_method"]:checked');
+    if (!selectedMethod) {
+        e.preventDefault();
+        alert('Please select a payment method');
+    }
+});
+</script>
 {% endblock %}

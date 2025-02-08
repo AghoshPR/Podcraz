@@ -57,13 +57,13 @@ urlpatterns = [
 
 
     path('orders/',views.adminorders,name='adminorders'),
-    path('ordersdetails/<int:order_id>',views.adminorders_details,name='adminorders_details'),
+    path('orders/details/<int:order_item_id>/', views.adminorders_details, name='adminorders_details'),
 
 
 
     path('deleteorder/<int:prd_id>/',views.adminorders_delete,name='prd_order_delete'),
     path('orderrequests/',views.orderrequests,name='orderrequests'),
-    path('handle-return/<int:order_id>/', views.request_handle, name='request_handle'),
+    path('handle-return/<int:order_item_id>/', views.request_handle, name='request_handle'),
 
 
 
@@ -83,9 +83,13 @@ urlpatterns = [
     path('addcoupon/', views.addcoupon, name='addcoupon'),
     path('edit_coupon/<int:coupon_id>/', views.edit_coupon, name='edit_coupon'),
     path('deletecoupon/<int:coupon_id>', views.deletecoupon, name='deletecoupon'),
+
+
+    path('salesreport/', views.salesreport, name='salesreport'),
     
 
-    path('dashboard/sales-data/', views.get_sales_data_api, name='sales_data_api'),
+    
+    
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

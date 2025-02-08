@@ -5,13 +5,13 @@
 {% block content %}
 <div class="col main-content">
     <div class="header">
-        <h2>Orders</h2>
+        <h2>Order Items</h2>
         <div class="search-box">
             <form method="GET" class="search-form">
                 <input 
                     type="text" 
                     name="search" 
-                    placeholder="Search by category name or status" 
+                    placeholder="Search by product name or status" 
                     value="{{ search_query }}"
                 >
                 <button type="submit" class="btn btn-primary">Search</button>
@@ -30,8 +30,10 @@
         <thead>
             <tr>
                 <th>#</th>
-                <th>Name</th>
-                
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Product</th>
+                <th>Quantity</th>
                 <th>Payment</th>
                 <th>Status</th>
                 <th>Price</th>
@@ -40,30 +42,32 @@
             </tr>
         </thead>
         <tbody>
-            {% for order in orders %}
+            {% for item in order_items %}
             <tr>
                 <td>{{ forloop.counter }}</td>
-                <td>{{ order.user.first_name }}</td>
-
-
-                
-
-                <td>{{ order.payment_method.name }}</td>
-                <td>{{ order.status }}</td>
-                <td>₹ {{ order.total_price }}</td>
+                <td>{{ item.order.id }}</td>
+                <td>{{ item.order.user.first_name }}</td>
+                <td>{{ item.product_variant.product.name }} ({{ item.product_variant.color }})</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.order.payment_method.name }}</td>
+                <td>{{ item.status }}</td>
+                <td>₹ {{ item.price }}</td>
                 <td>
-                    <button class="btn btn-warning"><a href="{% url 'adminorders_details' order.id %}" style="text-decoration: none; class="btn-details">More Details</a></button>
+                    <button class="btn btn-warning">
+                        <a href="{% url 'adminorders_details' item.id %}" 
+                           style="text-decoration: none;" 
+                           class="btn-details">More Details</a>
+                    </button>
                 </td>
                 <td>
-                    <a href="{% url 'prd_order_delete' order.id %}" >🗑️</a>
+                    <a href="{% url 'prd_order_delete' item.order.id %}" >🗑️</a>
                 </td>
             </tr>
             {% empty %}
                 <tr>
-                    <td colspan="8">No orders found.</td>
+                    <td colspan="10">No order items found.</td>
                 </tr>
             {% endfor %}
-           
         </tbody>
     </table>
 

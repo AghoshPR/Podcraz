@@ -152,23 +152,40 @@
 </style>
 
 <script>
-    document.querySelector('form').addEventListener('submit', function(e) {
-        // Store order ID in localStorage before form submission
-        localStorage.setItem('pending_order_id', '{{ order.id }}');
-    });
+document.querySelector('form').addEventListener('submit', function(e) {
+    e.preventDefault();
     
-    // Check for payment completion
-    window.addEventListener('message', function(e) {
-        if (e.data.event === 'payment.success') {
-            // Get the stored order ID
-            const orderId = localStorage.getItem('pending_order_id');
-            if (orderId) {
-                // Clear the stored order ID
-                localStorage.removeItem('pending_order_id');
-                // Redirect to success page
-                window.location.href = "{% url 'order_success' %}";
-            }
-        }
+    const form = e.target;
+    const formData = new FormData(form);
+    
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+    })
+    .then(response => response.text())
+    .then(html => {
+        // Replace the entire page content with the response
+        document.documentElement.innerHTML = html;
+        // Update the URL to reflect the new page
+        history.pushState({}, '', '{% url "order_success" %}');
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        window.location.href = '{% url "payment" %}';
     });
-    </script>
+});
+
+// Handle Razorpay success callback
+window.addEventListener('message', function(e) {
+    if (e.data.event === 'payment.success') {
+        const form = document.querySelector('form');
+        if (form) {
+            form.submit();
+        }
+    }
+});
+</script>
 {% endblock %}

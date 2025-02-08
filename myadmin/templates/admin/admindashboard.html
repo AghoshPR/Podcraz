@@ -3,742 +3,331 @@
 {% block title %}Podcraze - Admin Dashboard{% endblock %}
 
 {% block content %}
+<!-- Add Chart.js library at the top -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<div class="container-fluid py-4">
-    <!-- Filter Section -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="dashboard-card">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="m-0">Sales Overview</h5>
-                    <div class="d-flex gap-3">
-                        <select class="form-select bg-dark text-white" name="date_filter" id="date-filter" onchange="handleFilterChange()">
-                            <option value="all" {% if date_filter == 'all' %}selected{% endif %}>All Time</option>
-                            <option value="today" {% if date_filter == 'today' %}selected{% endif %}>Today</option>
-                            <option value="week" {% if date_filter == 'week' %}selected{% endif %}>This Week</option>
-                            <option value="month" {% if date_filter == 'month' %}selected{% endif %}>This Month</option>
-                            <option value="year" {% if date_filter == 'year' %}selected{% endif %}>This Year</option>
-                            <option value="custom" {% if date_filter == 'custom' %}selected{% endif %}>Custom Date</option>
-                        </select>
-                        <div id="custom-date-inputs" class="d-flex gap-2" style="display: none !important;">
-                            <input type="date" class="form-control bg-dark text-white" id="start-date" value="{{ start_date|default:'' }}">
-                            <input type="date" class="form-control bg-dark text-white" id="end-date" value="{{ end_date|default:'' }}">
-                            <button class="btn btn-primary" onclick="applyDateFilter()">Apply</button>
-                        </div>
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <!-- Total Orders Card -->
+    <div class="col-xl-6 col-md-6">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            TOTAL ORDERS</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_orders }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Stats Cards Row -->
-    <div class="row">
-        <!-- Revenue Card -->
-        <div class="col-md-3">
-            <div class="stats-card">
-                <div class="d-flex justify-content-between">
-                    <span>Total Revenue</span>
-                    <span class="{% if revenue_trend >= 0 %}trend-up{% else %}trend-down{% endif %}">
-                        <i class="fas fa-arrow-{% if revenue_trend >= 0 %}up{% else %}down{% endif %}"></i>
-                        {{ revenue_trend|floatformat:1 }}%
-                    </span>
-                </div>
-                <div class="mt-2">
-                    <h4>₹{{ total_revenue|floatformat:2 }}</h4>
-                    <canvas id="revenueChart" height="30"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Orders Card -->
-        <div class="col-md-3">
-            <div class="stats-card">
-                <div class="d-flex justify-content-between">
-                    <span>Total Orders</span>
-                    <span class="{% if orders_trend >= 0 %}trend-up{% else %}trend-down{% endif %}">
-                        <i class="fas fa-arrow-{% if orders_trend >= 0 %}up{% else %}down{% endif %}"></i>
-                        {{ orders_trend|floatformat:1 }}%
-                    </span>
-                </div>
-                <div class="mt-2">
-                    <h4>{{ total_orders }}</h4>
-                    <canvas id="ordersChart" height="30"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Products Card -->
-        <div class="col-md-3">
-            <div class="stats-card">
-                <div class="d-flex justify-content-between">
-                    <span>Total Products</span>
-                    <span>
-                        <i class="fas fa-box"></i>
-                    </span>
-                </div>
-                <div class="mt-2">
-                    <h4>{{ total_products }}</h4>
-                    <canvas id="productsChart" height="30"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Discounts Card -->
-        <div class="col-md-3">
-            <div class="stats-card">
-                <div class="d-flex justify-content-between">
-                    <span>Total Discounts</span>
-                    <span>
-                        <i class="fas fa-tags"></i>
-                    </span>
-                </div>
-                <div class="mt-2">
-                    <h4>₹{{ total_discounts|floatformat:2 }}</h4>
-                    <canvas id="discountsChart" height="30"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row mt-4">
-        <!-- Revenue Trend Chart -->
-        <div class="col-md-8">
-            <div class="dashboard-card">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="m-0">Sales Analytics</h6>
-                    <div class="d-flex gap-3">
-                        <select class="form-select bg-dark text-white" id="sales-period">
-                            <option value="week">This Week</option>
-                            <option value="month" selected>This Month</option>
-                            <option value="year">This Year</option>
-                        </select>
-                        <div class="d-flex gap-2">
-                            <input type="date" class="form-control bg-dark text-white" id="start-date">
-                            <input type="date" class="form-control bg-dark text-white" id="end-date">
-                            <button class="btn btn-primary" onclick="applyDateFilter()">Apply</button>
-                        </div>
+    <!-- Total Customers Card -->
+    <div class="col-xl-6 col-md-6">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            TOTAL CUSTOMERS</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_customers }}</div>
                     </div>
-                </div>
-                <canvas id="salesAnalyticsChart" height="300"></canvas>
-            </div>
-        </div>
-
-        <!-- Best Sellers -->
-        <div class="col-md-4">
-            <div class="dashboard-card">
-                <h6>Best Sellers</h6>
-                <ul class="nav nav-tabs" role="tablist">
-                    <li class="nav-item">
-                        <a class="nav-link active" data-bs-toggle="tab" href="#products">Products</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="tab" href="#categories">Categories</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="tab" href="#brands">Brands</a>
-                    </li>
-                </ul>
-                <div class="tab-content mt-3">
-                    <div id="products" class="tab-pane active">
-                        {% for product in best_selling_products %}
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>{{ product.product_variant__product__name }}</span>
-                            <span>{{ product.total_quantity }} sold</span>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    <div id="categories" class="tab-pane fade">
-                        {% for category in best_selling_categories %}
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>{{ category.product_variant__product__product_category__name }}</span>
-                            <span>{{ category.total_quantity }} sold</span>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    <div id="brands" class="tab-pane fade">
-                        {% for brand in best_selling_brands %}
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>{{ brand.product_variant__product__brand__name }}</span>
-                            <span>{{ brand.total_quantity }} sold</span>
-                        </div>
-                        {% endfor %}
+                    <div class="col-auto">
+                        <i class="fas fa-users fa-2x text-gray-300"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Sales Report Section -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="dashboard-card">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5>Sales Report</h5>
-                    <div class="d-flex gap-3 align-items-center">
-                        <!-- Date Filter Controls -->
-                        <form method="get" class="d-flex gap-2">
-                            <!-- Preserve other GET parameters if they exist -->
-                            {% if date_filter %}
-                                <input type="hidden" name="date_filter" value="{{ date_filter }}">
-                            {% endif %}
-                            {% if start_date %}
-                                <input type="hidden" name="start_date" value="{{ start_date }}">
-                            {% endif %}
-                            {% if end_date %}
-                                <input type="hidden" name="end_date" value="{{ end_date }}">
-                            {% endif %}
-                            
-                            <input type="date" 
-                                   class="form-control bg-dark text-white" 
-                                   name="sales_start_date" 
-                                   value="{{ sales_start_date|default:'' }}" 
-                                   required>
-                            <input type="date" 
-                                   class="form-control bg-dark text-white" 
-                                   name="sales_end_date" 
-                                   value="{{ sales_end_date|default:'' }}" 
-                                   required>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-search"></i> Search
-                            </button>
-                            {% if sales_start_date or sales_end_date %}
-                                <a href="?" class="btn btn-secondary">
-                                    <i class="fas fa-times"></i> Clear
-                                </a>
-                            {% endif %}
-                        </form>
-                        <!-- Export Buttons -->
-                        <div class="d-flex gap-2">
-                            <form method="get" class="d-inline">
-                                {% if sales_start_date %}
-                                    <input type="hidden" name="sales_start_date" value="{{ sales_start_date }}">
-                                {% endif %}
-                                {% if sales_end_date %}
-                                    <input type="hidden" name="sales_end_date" value="{{ sales_end_date }}">
-                                {% endif %}
-                                <input type="hidden" name="export" value="excel">
-                                <button type="submit" class="btn btn-success">
-                                    <i class="fas fa-file-excel"></i> Export Excel
-                                </button>
-                            </form>
-                            <form method="get" class="d-inline">
-                                {% if sales_start_date %}
-                                    <input type="hidden" name="sales_start_date" value="{{ sales_start_date }}">
-                                {% endif %}
-                                {% if sales_end_date %}
-                                    <input type="hidden" name="sales_end_date" value="{{ sales_end_date }}">
-                                {% endif %}
-                                <input type="hidden" name="export" value="pdf">
-                                <button type="submit" class="btn btn-danger">
-                                    <i class="fas fa-file-pdf"></i> Export PDF
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-    
+<!-- Top Products, Categories, and Brands Row -->
+<div class="row mb-4">
+    <!-- Best Selling Products -->
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Best Selling Products</h6>
+            </div>
+            <div class="card-body">
                 <div class="table-responsive">
-                    {% if sales_report %}
-                        <table class="table table-dark table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Order ID</th>
-                                    <th>Customer</th>
-                                    <th>Original Price</th>
-                                    <th>Offer Discount</th>
-                                    <th>Coupon Discount</th>
-                                    <th>Final Price</th>
-                                    <th>Offer Applied</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for sale in sales_report %}
-                                <tr>
-                                    <td>{{ sale.date }}</td>
-                                    <td class="text-primary">#{{ sale.order_id }}</td>
-                                    <td>{{ sale.customer }}</td>
-                                    <td>₹{{ sale.original_price|floatformat:2 }}</td>
-                                    <td class="text-danger">₹{{ sale.offer_discount|floatformat:2 }}</td>
-                                    <td class="text-danger">₹{{ sale.coupon_discount|floatformat:2 }}</td>
-                                    <td class="text-success">₹{{ sale.final_price|floatformat:2 }}</td>
-                                    <td>
-                                        {% if sale.offer_applied == "No Offer" %}
-                                            <span class="text-white">No Offer</span>
-                                        {% else %}
-                                            <span class="text-success">{{ sale.offer_applied }}</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                            <tfoot>
-                                <tr class="bg-dark">
-                                    <td colspan="3" class="text-end"><strong>Totals:</strong></td>
-                                    <td><strong>₹{{ total_original_price|floatformat:2 }}</strong></td>
-                                    <td class="text-danger"><strong>₹{{ total_offer_discount|floatformat:2 }}</strong></td>
-                                    <td class="text-danger"><strong>₹{{ total_coupon_discount|floatformat:2 }}</strong></td>
-                                    <td class="text-success"><strong>₹{{ total_final_price|floatformat:2 }}</strong></td>
-                                    <td></td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    {% else %}
-                        <div class="text-center py-4">
-                            <p class="text-muted">
-                                {% if sales_start_date or sales_end_date %}
-                                    No sales records found for the selected date range.
-                                {% else %}
-                                    Please select a date range to view sales reports.
-                                {% endif %}
-                            </p>
-                        </div>
-                    {% endif %}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Quantity Sold</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in top_products %}
+                            <tr>
+                                <td>{{ product.product_variant__product__name }}</td>
+                                <td>{{ product.total_quantity }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="2" class="text-center">No products found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
 
-        <!-- Period Summary Cards -->
-        <div class="row mt-4">
-            <div class="col-md-4">
-                <div class="dashboard-card">
-                    <h6>Today's Sales</h6>
-                    <div class="mt-3">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Total Sales:</span>
-                            <span class="text-success">₹{{ today_sales|floatformat:2 }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Total Discounts:</span>
-                            <span class="text-danger">₹{{ today_discounts|floatformat:2 }}</span>
-                        </div>
-                    </div>
-                </div>
+    <!-- Top Categories -->
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Top Categories</h6>
             </div>
-            <div class="col-md-4">
-                <div class="dashboard-card">
-                    <h6>This Week's Sales</h6>
-                    <div class="mt-3">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Total Sales:</span>
-                            <span class="text-success">₹{{ week_sales|floatformat:2 }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Total Discounts:</span>
-                            <span class="text-danger">₹{{ week_discounts|floatformat:2 }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="dashboard-card">
-                    <h6>This Month's Sales</h6>
-                    <div class="mt-3">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Total Sales:</span>
-                            <span class="text-success">₹{{ month_sales|floatformat:2 }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Total Discounts:</span>
-                            <span class="text-danger">₹{{ month_discounts|floatformat:2 }}</span>
-                        </div>
-                    </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Quantity Sold</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for category in top_categories %}
+                            <tr>
+                                <td>{{ category.product_variant__product__product_category__name }}</td>
+                                <td>{{ category.total_quantity }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="2" class="text-center">No categories found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
-    
-    <style>
-        body {
-            background-color: #1a1a1a;
-            color: white;
-        }
-        .dashboard-card {
-            background-color: #212121;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .stats-card {
-            background-color: #000;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
-        }
-        .stats-card:hover {
-            transform: translateY(-5px);
-        }
-        .trend-up {
-            color: #4CAF50;
-        }
-        .trend-down {
-            color: #f44336;
-        }
-        .form-control, .form-select {
-            background-color: #333;
-            border-color: #444;
-            color: white;
-        }
-        .form-control:focus, .form-select:focus {
-            background-color: #444;
-            border-color: #555;
-            color: white;
-            box-shadow: none;
-        }
-        .nav-tabs {
-            border-bottom-color: #444;
-        }
-        .nav-tabs .nav-link {
-            color: #fff;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px 4px 0 0;
-        }
-        .nav-tabs .nav-link:hover {
-            background-color: #333;
-            border-color: transparent;
-        }
-        .nav-tabs .nav-link.active {
-            background-color: #333;
-            color: #fff;
-            border: none;
-            border-bottom: 2px solid #007bff;
-        }
-        .table {
-            margin-bottom: 0;
-        }
-        .btn {
-            padding: 8px 16px;
-            border-radius: 4px;
-            transition: all 0.3s ease;
-        }
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        h4 {
-            margin: 10px 0;
-            font-size: 24px;
-            font-weight: 600;
-        }
-        h6 {
-            font-weight: 600;
-            margin-bottom: 15px;
-        }
-    </style>
-    
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        let salesChart = null;
-        
-        function updateSalesChart(startDate = null, endDate = null) {
-            const period = document.getElementById('sales-period').value;
-            let url = `/myadmin/dashboard/sales-data/?period=${period}`;
-            
-            if (startDate && endDate) {
-                url += `&start_date=${startDate}&end_date=${endDate}`;
-            }
-            
-            fetch(url)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Received data:', data); // Debug log
-                    
-                    if (salesChart) {
-                        salesChart.destroy();
-                    }
-                    
-                    const ctx = document.getElementById('salesAnalyticsChart').getContext('2d');
-                    salesChart = new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: data.labels,
-                            datasets: [{
-                                label: 'Revenue (₹)',
-                                data: data.revenue,
-                                borderColor: '#4CAF50',
-                                backgroundColor: 'rgba(76, 175, 80, 0.1)',
-                                fill: true,
-                                tension: 0.4,
-                                yAxisID: 'y'
-                            }, {
-                                label: 'Orders',
-                                data: data.sales,
-                                borderColor: '#2196F3',
-                                backgroundColor: 'rgba(33, 150, 243, 0.1)',
-                                fill: true,
-                                tension: 0.4,
-                                yAxisID: 'y1'
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            interaction: {
-                                intersect: false,
-                                mode: 'index'
-                            },
-                            scales: {
-                                y: {
-                                    type: 'linear',
-                                    display: true,
-                                    position: 'left',
-                                    title: {
-                                        display: true,
-                                        text: 'Revenue (₹)',
-                                        color: 'white'
-                                    },
-                                    grid: {
-                                        color: 'rgba(255, 255, 255, 0.1)'
-                                    },
-                                    ticks: {
-                                        color: 'white',
-                                        callback: function(value) {
-                                            if (value >= 1000000) {
-                                                return '₹' + (value / 1000000).toFixed(1) + 'M';
-                                            }
-                                            if (value >= 1000) {
-                                                return '₹' + (value / 1000).toFixed(1) + 'K';
-                                            }
-                                            return '₹' + value;
-                                        }
-                                    }
-                                },
-                                y1: {
-                                    type: 'linear',
-                                    display: true,
-                                    position: 'right',
-                                    title: {
-                                        display: true,
-                                        text: 'Number of Orders',
-                                        color: 'white'
-                                    },
-                                    grid: {
-                                        drawOnChartArea: false
-                                    },
-                                    ticks: {
-                                        color: 'white',
-                                        stepSize: 1,
-                                        beginAtZero: true
-                                    }
-                                },
-                                x: {
-                                    grid: {
-                                        color: 'rgba(255, 255, 255, 0.1)'
-                                    },
-                                    ticks: {
-                                        color: 'white'
-                                    }
-                                }
-                            },
-                            plugins: {
-                                legend: {
-                                    labels: {
-                                        color: 'white'
-                                    }
-                                },
-                                tooltip: {
-                                    callbacks: {
-                                        label: function(context) {
-                                            let label = context.dataset.label || '';
-                                            if (label) {
-                                                label += ': ';
-                                            }
-                                            if (context.dataset.yAxisID === 'y') {
-                                                label += '₹' + context.parsed.y.toLocaleString();
-                                            } else {
-                                                label += context.parsed.y;
-                                            }
-                                            return label;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    });
-                })
-                .catch(error => {
-                    console.error('Error fetching sales data:', error);
-                });
-        }
 
-        function applyDateFilter() {
-            const startDate = document.getElementById('start-date').value;
-            const endDate = document.getElementById('end-date').value;
-            
-            if (!startDate || !endDate) {
-                alert('Please select both start and end dates');
-                return;
-            }
-            
-            updateSalesChart(startDate, endDate);
-        }
+    <!-- Top Brands -->
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Top Brands</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Brand</th>
+                                <th>Quantity Sold</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for brand in top_brands %}
+                            <tr>
+                                <td>{{ brand.product_variant__product__brand__name }}</td>
+                                <td>{{ brand.total_quantity }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="2" class="text-center">No brands found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-        // Add event listeners
-        document.getElementById('sales-period').addEventListener('change', () => updateSalesChart());
-        
-        // Initialize with current date range
-        const today = new Date();
-        const thirtyDaysAgo = new Date(today);
-        thirtyDaysAgo.setDate(today.getDate() - 30);
-        
-        document.getElementById('start-date').value = thirtyDaysAgo.toISOString().split('T')[0];
-        document.getElementById('end-date').value = today.toISOString().split('T')[0];
-        
-        // Initial chart load
-        updateSalesChart();
-    });
+<!-- Add this before the sales graph card -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-body">
+                <form method="GET" class="form-inline justify-content-end">
+                    <select name="date_filter" class="form-control mr-2" onchange="this.form.submit()">
+                        <option value="weekly" {% if date_filter == 'weekly' %}selected{% endif %}>Last 7 Days</option>
+                        <option value="monthly" {% if date_filter == 'monthly' %}selected{% endif %}>This Month</option>
+                        <option value="yearly" {% if date_filter == 'yearly' %}selected{% endif %}>This Year</option>
+                        <option value="today" {% if date_filter == 'today' %}selected{% endif %}>Today</option>
+                    </select>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
-    // Handle date filter visibility
-    function handleFilterChange() {
-        const filterSelect = document.getElementById('date-filter');
-        const customDateInputs = document.getElementById('custom-date-inputs');
-        
-        if (filterSelect.value === 'custom') {
-            customDateInputs.style.display = 'flex !important';
-        } else {
-            customDateInputs.style.display = 'none !important';
-            window.location.href = `?date_filter=${filterSelect.value}`;
-        }
-    }
+<!-- Sales Graph -->
+<div class="row">
+    <div class="col-xl-12 col-lg-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Weekly Revenue Sales Report</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="salesChart" style="height: 300px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
 
-    // Generate reports
-    function generateReport(format) {
-        const currentUrl = new URL(window.location.href);
-        currentUrl.searchParams.set('export', format);
-        window.location.href = currentUrl.toString();
-    }
+<style>
+.form-select {
+    padding: 0.375rem 2.25rem 0.375rem 0.75rem;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #212529;
+    background-color: #fff;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    margin-right: 10px;
+}
 
-    // Initialize charts
-    document.addEventListener('DOMContentLoaded', function() {
-        {% if monthly_data %}
-            const monthlyData = {{ monthly_data|safe }};
-            
-            // Create mini charts
-            createMiniChart('revenueChart', monthlyData.map(item => item.revenue || 0), '#4CAF50');
-            createMiniChart('ordersChart', monthlyData.map(item => item.order_count || 0), '#2196F3');
-            createMiniChart('productsChart', [10, 15, 12, 18, 20, 25], '#FFC107');
-            createMiniChart('discountsChart', monthlyData.map(item => item.total_discount || 0), '#9C27B0');
+.card-body {
+    padding: 1.25rem;
+    background-color: white;
+}
 
-            // Create main revenue chart
-            createMainChart(monthlyData);
-        {% endif %}
+.card {
+    border: none;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
 
-        // Show/hide custom date inputs based on initial filter value
-        handleFilterChange();
-    });
+.table {
+    margin-bottom: 0;
+    font-size: 0.9rem;
+}
 
-    function createMiniChart(id, data, color) {
-        const ctx = document.getElementById(id)?.getContext('2d');
-        if (!ctx) return;
-        
-        return new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: Array(data.length).fill(''),
-                datasets: [{
-                    data: data,
-                    borderColor: color,
-                    borderWidth: 2,
-                    fill: false,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { display: false },
-                    y: { display: false }
-                },
-                elements: {
-                    point: { radius: 0 }
-                }
-            }
-        });
-    }
+.table th {
+    background-color: #f8f9fc;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
 
-    function createMainChart(data) {
-        const ctx = document.getElementById('mainChart')?.getContext('2d');
-        if (!ctx) return;
-    
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: data.map(item => {
-                    const date = new Date(2024, item.month - 1);
-                    return date.toLocaleString('default', { month: 'short' });
-                }),
-                datasets: [{
-                    label: 'Revenue',
-                    data: data.map(item => item.revenue || 0),
-                    borderColor: '#ff9800',
-                    borderWidth: 2,
-                    fill: false,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    x: {
-                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                        ticks: { color: 'white' }
+.table td, .table th {
+    padding: 0.75rem;
+    vertical-align: middle;
+}
+
+.card-header {
+    background-color: #f8f9fc;
+    border-bottom: 1px solid #e3e6f0;
+}
+
+.text-primary {
+    color: #4e73df !important;
+}
+
+.table-responsive {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.card {
+    background-color: #fff;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
+.card-header {
+    background-color: #f8f9fc;
+    border-bottom: 1px solid #e3e6f0;
+    padding: 1rem;
+}
+
+.card-body {
+    padding: 1.25rem;
+}
+
+.form-control {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: #6e707e;
+    background-color: #fff;
+    border: 1px solid #d1d3e2;
+    border-radius: 0.35rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus {
+    border-color: #bac8f3;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var ctx = document.getElementById('salesChart').getContext('2d');
+    var salesChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ labels|safe }},
+            datasets: [{
+                label: 'Revenue',
+                data: {{ sales_amounts|safe }},
+                borderColor: '#4e73df',
+                backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                borderWidth: 2,
+                pointRadius: 3,
+                pointBackgroundColor: '#4e73df',
+                pointBorderColor: '#4e73df',
+                pointHoverRadius: 5,
+                pointHoverBackgroundColor: '#4e73df',
+                pointHoverBorderColor: '#4e73df',
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)',
+                        drawBorder: false
                     },
-                    y: {
-                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                        ticks: {
-                            color: 'white',
-                            callback: value => {
-                                if (value >= 1000000) return '₹' + (value/1000000).toFixed(1) + 'M';
-                                if (value >= 1000) return '₹' + (value/1000).toFixed(1) + 'k';
-                                return '₹' + value;
-                            }
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + value.toLocaleString();
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'Revenue: ₹' + context.parsed.y.toLocaleString();
                         }
                     }
                 }
             }
-        });
-    }
+        }
+    });
+});
+</script>
 
-    function applySalesDateFilter() {
-        const startDate = document.getElementById('sales-start-date').value;
-        const endDate = document.getElementById('sales-end-date').value;
-        
-        if (!startDate || !endDate) {
-            alert('Please select both start and end dates');
-            return;
-        }
-    
-        window.location.href = `?sales_start_date=${startDate}&sales_end_date=${endDate}`;
-    }
-    
-    function generateReport(format) {
-        const startDate = document.getElementById('sales-start-date').value;
-        const endDate = document.getElementById('sales-end-date').value;
-        let url = new URL(window.location.href);
-        
-        url.searchParams.set('export', format);
-        if (startDate && endDate) {
-            url.searchParams.set('sales_start_date', startDate);
-            url.searchParams.set('sales_end_date', endDate);
-        }
-        
-        window.location.href = url.toString();
-    }
-    </script>
-    {% endblock %}
+{% endblock %}

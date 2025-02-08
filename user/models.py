@@ -26,7 +26,7 @@ class ProductCategory(models.Model):
     status = models.CharField(
         max_length=10,
         choices=[('Active', 'Active'), ('Blocked', 'Blocked')],
-        default='Active'  # Default status is Active
+        default='Active' 
     )
 
     def __str__(self):
@@ -55,12 +55,12 @@ class ProductVariant(models.Model):
     discounted_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
     def apply_discount(self, discount_value, discount_type):
-        print(f"Applying discount: {discount_value} ({discount_type}) to {self}")
+        
         if discount_type == 'percentage':
             self.discounted_price = self.price - (self.price * Decimal(str(discount_value)) / 100)
         else:  # fixed amount
             self.discounted_price = self.price - Decimal(str(discount_value))
-        print(f"New discounted price: {self.discounted_price}")
+        
         self.save()
 
     def remove_discount(self):
@@ -160,6 +160,8 @@ class Order(models.Model):
         ('pending', 'Pending'),
         ('processing', 'Processing'),
         ('delivered', 'Delivered'),
+        ('payment_failed', 'Payment Failed'),
+        ('payment_pending', 'Payment Pending'),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -170,12 +172,19 @@ class Order(models.Model):
     payment_method = models.ForeignKey('PaymentMethod', on_delete=models.SET_NULL, null=True)
     cancellation_reason = models.TextField(null=True, blank=True)
     return_reason = models.TextField(null=True, blank=True)
-
+    is_paid = models.BooleanField(default=False)
     discount = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
 
     razorpay_order_id = models.CharField(max_length=100, null=True, blank=True)
     razorpay_payment_id = models.CharField(max_length=100, null=True, blank=True)
     razorpay_signature = models.CharField(max_length=255, null=True, blank=True)
+
+    def get_total_original_price(self):
+        return sum(item.product_variant.price * item.quantity for item in self.items.all())
+
+    def get_total_product_discount(self):
+        return sum((item.product_variant.price * item.quantity) - (item.price * item.quantity) 
+                  for item in self.items.all())
 
 # OrderItem Model
 class OrderItem(models.Model):
@@ -185,6 +194,7 @@ class OrderItem(models.Model):
         ('shipped', 'Shipped'),
         ('delivered', 'Delivered'),
         ('cancelled', 'Cancelled'),
+        ('payment_failed', 'Payment Failed'),
         ('return_pending', 'Return Pending'),
         ('return_approved', 'Return Approved'),
         ('return_rejected', 'Return Rejected'),
