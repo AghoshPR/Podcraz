@@ -126,6 +126,12 @@
                                     Retry Payment
                                 </a>
                             {% endif %}
+
+                            {% if order.status == 'pending' or order.status == 'processing' %}
+                                <a href="{% url 'generate_invoice' order.id %}" class="invoice-btn">
+                                    <i class="fas fa-file-invoice"></i> Download Invoice
+                                </a>
+                            {% endif %}
                         </div>
                         <a href="{% url 'orderview' order.id %}" class="view-details-btn">
                             <i class="fas fa-eye"></i> View Order Details

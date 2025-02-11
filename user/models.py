@@ -168,7 +168,7 @@ class Order(models.Model):
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES)
     created_at = models.DateTimeField(auto_now_add=True)
-    address = models.ForeignKey('Address', on_delete=models.CASCADE) #on_delete=models.PROTECT
+    address = models.ForeignKey('Address', on_delete=models.CASCADE)
     payment_method = models.ForeignKey('PaymentMethod', on_delete=models.SET_NULL, null=True)
     cancellation_reason = models.TextField(null=True, blank=True)
     return_reason = models.TextField(null=True, blank=True)
@@ -266,8 +266,14 @@ class Address(models.Model):
     state = models.CharField(max_length=255)
     pin_code = models.CharField(max_length=10)
     address = models.TextField()
+    is_delete =  models.BooleanField(default=False)
     is_default = models.BooleanField(default=False)
     order_address = models.BooleanField(default=False)
+
+    def soft_delete(self):
+             self.is_delete = True
+             self.save()
+ 
 
 
 

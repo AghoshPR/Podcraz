@@ -284,9 +284,9 @@
     
                     // Highlight button
                     if (!isWishlisted) {
-                        this.classList.add('wishlist-active'); // Add class to highlight
+                        this.classList.add('wishlist-active'); 
                     } else {
-                        this.classList.remove('wishlist-active'); // Remove highlight
+                        this.classList.remove('wishlist-active'); 
                     }
     
                     // Display feedback
@@ -329,12 +329,12 @@
                 return response.json();
             })
             .then(data => {
-                if (data.status === 'success') {
-                    // Show success toast
-                    const toast = new bootstrap.Toast(document.getElementById('wishlistToast'));
-                    document.getElementById('wishlistToastMessage').textContent = data.message;
-                    toast.show();
+                // Show toast message for both success and error cases
+                const toast = new bootstrap.Toast(document.getElementById('wishlistToast'));
+                document.getElementById('wishlistToastMessage').textContent = data.message;
+                toast.show();
     
+                if (data.status === 'success') {
                     // Change cart icon temporarily
                     icon.classList.remove('bi-cart-plus');
                     icon.classList.add('bi-cart-check-fill');
@@ -342,13 +342,10 @@
                         icon.classList.remove('bi-cart-check-fill');
                         icon.classList.add('bi-cart-plus');
                     }, 2000);
-                } else {
-                    alert(data.message);
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-               
             });
         });
     });

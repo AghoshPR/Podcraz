@@ -309,6 +309,8 @@ def reset_password(request):
 
     return render(request,'user/new_password.html')
 
+
+
 ########### user password and user new password ###############
 @never_cache
 def userhome(request):
@@ -335,7 +337,7 @@ def userhome(request):
         '-order_count'
     )[:4]
 
-    # Get wishlist items if user is authenticated
+    
     user_wishlist = []
     if request.user.is_authenticated:
         user_wishlist = Wishlist.objects.filter(
@@ -500,13 +502,18 @@ def userproducts(request):
     return render(request,'user/products.html',context)
 
 def userproductview(request, variant_id):
-   
-   
-    product_variants=get_object_or_404(ProductVariant,id=variant_id)
-    product_images=ProductImage.objects.filter(product_variant=product_variants)
+    product_variants = get_object_or_404(ProductVariant, id=variant_id)
+    product_images = ProductImage.objects.filter(product_variant=product_variants)
 
-    related_variants=ProductVariant.objects.filter(product=product_variants.product)
     
+    similar_products = ProductVariant.objects.filter(
+        product__name__icontains=product_variants.product.name.split()[0] 
+    ).exclude(id=variant_id)[:4]  
+
+    
+
+    related_variants = ProductVariant.objects.filter(product=product_variants.product)
+
     cart_quantity = 0
     if request.user.is_authenticated:
         cart_item = CartItem.objects.filter(
@@ -516,16 +523,15 @@ def userproductview(request, variant_id):
         if cart_item:
             cart_quantity = cart_item.quantity
 
-
-    context={
-        
-        'product_variants':product_variants,
-        'product_images':product_images,
-        'related_variants':related_variants,
+    context = {
+        'product_variants': product_variants,
+        'product_images': product_images,
+        'related_variants': related_variants,
+        'similar_products': similar_products,  
         'cart_quantity': cart_quantity
     }
-    
-    return render(request,'user/productview.html',context)
+
+    return render(request, 'user/productview.html', context)
 
 def userwishlist(request):
 
@@ -786,19 +792,19 @@ def myprofile(request):
 
 @login_required
 def address(request):
+    user = request.user
+   
+    addresses = Address.objects.filter(user=user, is_delete=False)
+    default_address = addresses.filter(is_default=True).first()
+    other_addresses = addresses.filter(is_default=False)
 
-    user=request.user
-    addresses=Address.objects.filter(user=request.user)
-    default_address=addresses.filter(is_default=True).first()
-    other_addresses=addresses.filter(is_default=False)
-
-    context={
-        'default_address':default_address,
-        'other_addresses':other_addresses,
-        'user':user,
+    context = {
+        'default_address': default_address,
+        'other_addresses': other_addresses,
+        'user': user,
     }
 
-    return render(request,'user/address.html',context)
+    return render(request, 'user/address.html', context)
 
 @login_required
 def add_address(request):
@@ -966,14 +972,16 @@ def editaddress(request,address_id):
 
     return render(request,'user/edit_address.html',context)
 
-def delete_address(request,address_id):
-    address=get_object_or_404(Address,id=address_id,user=request.user)
+@login_required
+def delete_address(request, address_id):
+    address = get_object_or_404(Address, id=address_id, user=request.user)
 
-    if request.POST:
-        address.delete()
-        messages.error(request,"Address deleted Successfully!")
-        return redirect('address')
-    messages.error(request,"Invalid Request.")
+    if request.method == 'POST':
+        address.soft_delete() 
+        messages.success(request, "Address deleted successfully!")
+        return redirect('address') 
+
+    messages.error(request, "Invalid request.")
     return redirect('address')
 
 @login_required
@@ -1300,9 +1308,17 @@ def retry_payment(request, order_id):
             'customer_email': request.user.email,
             'customer_phone': request.user.phone,
             'order_id': order.id,
+           
         }
 
-        return render(request, 'user/retry_payment.html', {'payment_data': payment_data})
+        context = {
+        'order': order,
+        'payment_data': payment_data,
+    }
+
+        
+
+        return render(request, 'user/retry_payment.html',context)
 
     except Exception as e:
         messages.error(request, f'Error initiating payment: {str(e)}')
@@ -1552,7 +1568,7 @@ def myorder(request):
         return redirect('userhome')
 
 def generate_invoice(request, order_id):
-    # Get the order with related items and product variants
+    
     order = get_object_or_404(Order.objects.prefetch_related(
         'items__product_variant__product',
         'items__product_variant__productimage_set'
@@ -1561,27 +1577,27 @@ def generate_invoice(request, order_id):
     # Create a file-like buffer to receive PDF data
     buffer = BytesIO()
     
-    # Create the PDF object, using the buffer as its "file."
+   
     p = canvas.Canvas(buffer, pagesize=A4)
     
-    # Set up initial coordinates
-    y = 800  # Starting y position
     
-    # Add company logo/header
+    y = 800  
+    
+    
     p.setFont("Helvetica-Bold", 24)
     p.drawString(50, y, "PODCRAZE")
     
-    # Add invoice details
+    
     p.setFont("Helvetica-Bold", 16)
     y -= 30
     p.drawString(50, y, f"Invoice #{order.id}")
     
-    # Add date
+    
     p.setFont("Helvetica", 12)
     y -= 20
     p.drawString(50, y, f"Date: {order.created_at.strftime('%d/%m/%Y')}")
     
-    # Add customer details
+    
     y -= 40
     p.drawString(50, y, "Bill To:")
     y -= 20
@@ -1589,7 +1605,7 @@ def generate_invoice(request, order_id):
     y -= 20
     p.drawString(50, y, f"Email: {order.user.email}")
     
-    # Add shipping address if available
+   
     if order.address:
         y -= 20
         p.drawString(50, y, "Shipping Address:")
@@ -1602,7 +1618,7 @@ def generate_invoice(request, order_id):
         y -= 20
         p.drawString(50, y, f"Phone: {order.address.phone}")
     
-    # Create table for order items
+    
     data = [['Product', 'Quantity', 'Price', 'Total']]
     
     # Calculate totals
@@ -1634,16 +1650,16 @@ def generate_invoice(request, order_id):
         ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
         ('FONTSIZE', (0, 1), (-1, -1), 10),
         ('GRID', (0, 0), (-1, -1), 1, colors.black),
-        ('ALIGN', (1, 0), (-1, -1), 'RIGHT'),  # Right align numbers
+        ('ALIGN', (1, 0), (-1, -1), 'RIGHT'),  
     ]))
     
-    # Position the table
+    
     y -= 40
     table.wrapOn(p, 400, 200)
     table.drawOn(p, 50, y - 100)
     
-    # Add total calculations
-    y -= 150  # Adjust based on table height
+   
+    y -= 150 
     p.drawString(350, y, f"Subtotal: Rs {subtotal}")
     y -= 20
     if order.discount:
@@ -1657,7 +1673,7 @@ def generate_invoice(request, order_id):
     y = 50  # Set to bottom of page
     p.drawString(50, y, "Thank you for shopping with PODCRAZE!")
     y -= 20
-    p.drawString(50, y, "This is a computer generated invoice.")
+   
     
     # Close the PDF object cleanly
     p.showPage()
@@ -1826,17 +1842,6 @@ def order_return(request, order_id):
     
     messages.error(request, 'Invalid request.')
     return redirect('myorder')
-
-
-
-
-
-
-
-
-
-
-    
 
 
 

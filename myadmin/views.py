@@ -29,7 +29,6 @@ from django.db.models import Min
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import inch
 
-# Create your views here.
 
 User = get_user_model
 
@@ -60,7 +59,7 @@ def adminlogout(request):
 
 
 
-
+@login_required(login_url='adminlogin')
 def block_user(request,user_id):
 
     try:
@@ -75,6 +74,7 @@ def block_user(request,user_id):
     
     return redirect('admincustomers')
 
+@login_required(login_url='adminlogin')
 def unblock_user(request, user_id):
 
     try:
@@ -91,13 +91,6 @@ def unblock_user(request, user_id):
 
 
 
-    
-
-
-
-
-
-
 ################# user block and unblock ####################
 
 
@@ -110,10 +103,10 @@ def admindashboard(request):
     if not request.user.is_superuser:
         return HttpResponse("You are restricted to enter this page")
     
-    # Get filter parameter
-    date_filter = request.GET.get('date_filter', 'weekly')  # Default to weekly
+   
+    date_filter = request.GET.get('date_filter', 'weekly') 
 
-    # Calculate date range based on filter
+    
     end_date = timezone.now()
     labels = []
     sales_amounts = []
@@ -124,25 +117,23 @@ def admindashboard(request):
         start_date = end_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     elif date_filter == 'yearly':
         start_date = end_date.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
-    else:  # weekly (default)
+    else:  
         start_date = end_date - timedelta(days=7)
 
-    # Get base queryset for orders
+   
     orders = Order.objects.filter(
         created_at__range=(start_date, end_date)
     )
     
-    # Debug print to check orders
-    print("Date Range:", start_date, "to", end_date)
-    print("Total Orders Found:", orders.count())
+    
     for order in orders:
         print(f"Order ID: {order.id}, Date: {order.created_at}, Amount: {order.total_price}")
 
     if date_filter == 'yearly':
-        # Create a dictionary to store monthly totals
+       
         monthly_totals = {}
         
-        # Iterate through orders and group by month
+        
         for order in orders:
             order_month = order.created_at.month
             if order_month in monthly_totals:
@@ -150,7 +141,7 @@ def admindashboard(request):
             else:
                 monthly_totals[order_month] = float(order.total_price)
         
-        # Fill in all months
+       
         for month in range(1, 13):
             month_name = datetime(2000, month, 1).strftime('%b')
             labels.append(month_name)
@@ -159,10 +150,10 @@ def admindashboard(request):
         print("Monthly Totals:", monthly_totals)
 
     elif date_filter == 'monthly':
-        # Create a dictionary to store daily totals
+      
         daily_totals = {}
         
-        # Iterate through orders and group by date
+       
         for order in orders:
             order_date = order.created_at.date()
             if order_date in daily_totals:
@@ -170,7 +161,7 @@ def admindashboard(request):
             else:
                 daily_totals[order_date] = float(order.total_price)
         
-        # Fill in all dates in the month
+       
         current_date = start_date.date()
         end_date = end_date.date()
         
@@ -182,10 +173,10 @@ def admindashboard(request):
         print("Daily Totals for Month:", daily_totals)
 
     elif date_filter == 'today':
-        # Create a dictionary to store hourly totals
+        
         hourly_totals = {}
         
-        # Iterate through orders and group by hour
+      
         for order in orders:
             order_hour = order.created_at.hour
             if order_hour in hourly_totals:
@@ -193,7 +184,7 @@ def admindashboard(request):
             else:
                 hourly_totals[order_hour] = float(order.total_price)
         
-        # Fill in all hours
+       
         for hour in range(24):
             time_label = f"{hour:02d}:00"
             labels.append(time_label)
@@ -201,11 +192,11 @@ def admindashboard(request):
 
         print("Hourly Totals:", hourly_totals)
 
-    else:  # weekly
-        # Create a dictionary to store daily totals
+    else:  
+       
         daily_totals = {}
         
-        # Iterate through orders and group by date
+       
         for order in orders:
             order_date = order.created_at.date()
             if order_date in daily_totals:
@@ -213,7 +204,7 @@ def admindashboard(request):
             else:
                 daily_totals[order_date] = float(order.total_price)
         
-        # Fill in all dates in the week
+       
         current_date = start_date.date()
         end_date = end_date.date()
         
@@ -222,13 +213,7 @@ def admindashboard(request):
             sales_amounts.append(daily_totals.get(current_date, 0))
             current_date += timedelta(days=1)
 
-        print("Daily Totals for Week:", daily_totals)
 
-    # Print final data for debugging
-    print("Final Labels:", labels)
-    print("Final Sales Amounts:", sales_amounts)
-
-    # Rest of your existing code...
     total_orders = Order.objects.filter(
         status__in=['Delivered', 'Processing', 'Shipped', 'Pending']
     ).count()
@@ -242,7 +227,7 @@ def admindashboard(request):
         status__in=['Processing', 'Shipped', 'Pending']
     )
 
-    # Get top selling products from current orders
+    # top selling products 
     top_products = OrderItem.objects.filter(
         order__in=current_orders
     ).values(
@@ -251,7 +236,7 @@ def admindashboard(request):
         total_quantity=Sum('quantity')
     ).order_by('-total_quantity')[:5]
 
-    # Get top categories from current orders
+    # top categories f
     top_categories = OrderItem.objects.filter(
         order__in=current_orders
     ).values(
@@ -260,7 +245,7 @@ def admindashboard(request):
         total_quantity=Sum('quantity')
     ).order_by('-total_quantity')[:5]
 
-    # Get top brands from current orders
+    # top brands
     top_brands = OrderItem.objects.filter(
         order__in=current_orders
     ).values(
@@ -286,14 +271,14 @@ def admindashboard(request):
 
 @login_required(login_url='adminlogin')
 def salesreport(request):
-    # Get filter parameters
+    
     search_query = request.GET.get('search', '')
     date_filter = request.GET.get('date_filter', 'all')
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
 
-    # Base queryset with all orders
-    orders = Order.objects.select_related(
+    # Initial queryset
+    filtered_orders = Order.objects.select_related(
         'user', 
         'payment_method'
     ).prefetch_related(
@@ -302,155 +287,145 @@ def salesreport(request):
         'items__product_variant__product'
     )
 
-    # Apply date filters
+    
     today = timezone.localtime(timezone.now()).date()
     
     if date_filter == 'daily':
-        # Filter for today's orders using date range to handle timezone correctly
         today_start = timezone.make_aware(datetime.combine(today, datetime.min.time()))
         today_end = timezone.make_aware(datetime.combine(today, datetime.max.time()))
-        orders = orders.filter(created_at__range=(today_start, today_end))
+        filtered_orders = filtered_orders.filter(created_at__range=(today_start, today_end))
     elif date_filter == 'weekly':
-        # Get start of current week (Monday)
         start_of_week = today - timedelta(days=today.weekday())
         end_of_week = timezone.make_aware(datetime.combine(today, datetime.max.time()))
         start_of_week = timezone.make_aware(datetime.combine(start_of_week, datetime.min.time()))
-        orders = orders.filter(
-            created_at__range=(start_of_week, end_of_week)
-        )
+        filtered_orders = filtered_orders.filter(created_at__range=(start_of_week, end_of_week))
     elif date_filter == 'monthly':
-        # Get current month's orders
         start_of_month = today.replace(day=1)
         if today.month == 12:
             end_of_month = today.replace(year=today.year + 1, month=1, day=1) - timedelta(days=1)
         else:
             end_of_month = today.replace(month=today.month + 1, day=1) - timedelta(days=1)
-            
         start_datetime = timezone.make_aware(datetime.combine(start_of_month, datetime.min.time()))
         end_datetime = timezone.make_aware(datetime.combine(end_of_month, datetime.max.time()))
-        orders = orders.filter(created_at__range=(start_datetime, end_datetime))
-    elif date_filter == 'yearly':
-        # Get current year's orders
-        start_of_year = today.replace(month=1, day=1)
-        end_of_year = today.replace(month=12, day=31)
-        
-        start_datetime = timezone.make_aware(datetime.combine(start_of_year, datetime.min.time()))
-        end_datetime = timezone.make_aware(datetime.combine(end_of_year, datetime.max.time()))
-        orders = orders.filter(created_at__range=(start_datetime, end_datetime))
+        filtered_orders = filtered_orders.filter(created_at__range=(start_datetime, end_datetime))
     elif date_filter == 'custom' and start_date and end_date:
         try:
-            # Convert string dates to datetime objects
             start = datetime.strptime(start_date, '%Y-%m-%d')
             end = datetime.strptime(end_date, '%Y-%m-%d')
-            
-            # Validate dates
-            if start > end:
-                messages.error(request, "Start date must be before end date")
-            else:
-                # Create timezone-aware datetime objects for the full day range
-                start_datetime = timezone.make_aware(datetime.combine(start, datetime.min.time()))
-                end_datetime = timezone.make_aware(datetime.combine(end, datetime.max.time()))
-                
-                # Filter orders within the date range
-                orders = orders.filter(created_at__range=(start_datetime, end_datetime))
-                
-                if not orders.exists():
-                    messages.info(request, "No orders found in the selected date range")
-                
-        except ValueError as e:
-            messages.error(request, "Invalid date format. Please use YYYY-MM-DD format.")
-        except Exception as e:
-            messages.error(request, f"An error occurred: {str(e)}")
+            start_datetime = timezone.make_aware(datetime.combine(start, datetime.min.time()))
+            end_datetime = timezone.make_aware(datetime.combine(end, datetime.max.time()))
+            filtered_orders = filtered_orders.filter(created_at__range=(start_datetime, end_datetime))
+        except ValueError:
+            messages.error(request, "Invalid date format")
 
-    # Apply search filter if provided
+    
     if search_query:
-        orders = orders.filter(
+        filtered_orders = filtered_orders.filter(
             Q(id__icontains=search_query) |
             Q(user__username__icontains=search_query) |
             Q(status__icontains=search_query)
         )
 
-    # Order by newest first
-    orders = orders.order_by('-created_at')
+    # Apply status filter
+    filtered_orders = filtered_orders.filter(
+        status__in=['Delivered', 'Processing', 'Shipped', 'Pending']
+    ).order_by('-created_at')
 
-    # Calculate totals for filtered orders
-    total_original_price = sum(order.get_total_original_price() for order in orders)
-    total_product_discount = sum(order.get_total_product_discount() for order in orders)
-    total_final_price = sum(order.total_price for order in orders)
-    
+    # Calculate totals from filtered orders
+    total_original_price = sum(order.get_total_original_price() for order in filtered_orders)
+    total_product_discount = sum(order.get_total_product_discount() for order in filtered_orders)
+    total_final_price = sum(order.total_price for order in filtered_orders)
+    total_coupon_discount = sum(order.discount or 0 for order in filtered_orders)
+
     total_sales = {
-        'total_orders': orders.count(),
+        'total_orders': filtered_orders.count(),
         'total_original_price': total_original_price,
         'total_discount': total_product_discount
     }
-    
-    total_coupon_discount = sum(order.discount or 0 for order in orders)
-    net_total = total_final_price
 
-    # Pagination
-    paginator = Paginator(orders, 10)
+    # Handle export requests
+    if request.GET.get('export') == 'excel':
+        orders_list = list(filtered_orders)  
+        return export_to_excel(
+            orders_list,
+            total_sales,
+            total_product_discount,
+            total_coupon_discount,
+            total_final_price
+        )
+
+    if request.GET.get('export') == 'pdf':
+        orders_list = list(filtered_orders)  
+        return export_to_pdf(
+            orders_list,
+            total_sales,
+            total_product_discount,
+            total_coupon_discount,
+            total_final_price
+        )
+
+    # Apply pagination for display
+    paginator = Paginator(filtered_orders, 10)
     page = request.GET.get('page', 1)
     
     try:
-        orders = paginator.page(page)
+        orders_page = paginator.page(page)
     except PageNotAnInteger:
-        orders = paginator.page(1)
+        orders_page = paginator.page(1)
     except EmptyPage:
-        orders = paginator.page(paginator.num_pages)
+        orders_page = paginator.page(paginator.num_pages)
 
     context = {
-        'orders': orders,
+        'orders': orders_page,
         'search_query': search_query,
         'date_filter': date_filter,
         'start_date': start_date,
         'end_date': end_date,
         'total_sales': total_sales,
-        'total_coupon_discount': total_coupon_discount,   
-        'net_total': net_total,
+        'total_coupon_discount': total_coupon_discount,
+        'net_total': total_final_price,
         'total_original_price': total_original_price,
         'total_product_discount': total_product_discount,
         'total_final_price': total_final_price,
     }
 
-    # Handle export requests
-    if request.GET.get('export') == 'excel':
-        return export_to_excel(orders, total_sales, total_sales['total_discount'], 
-                             total_coupon_discount, net_total)
-    elif request.GET.get('export') == 'pdf':
-        return export_to_pdf(orders, total_sales, total_sales['total_discount'], 
-                           total_coupon_discount, net_total)
-
     return render(request, 'admin/salesreport.html', context)
 
-def export_to_excel(orders, total_sales, product_discounts, coupon_discounts, final_price):
+def export_to_excel(filtered_orders, total_sales, product_discounts, coupon_discounts, final_price):
     output = BytesIO()
     workbook = xlsxwriter.Workbook(output)
     worksheet = workbook.add_worksheet()
 
+    company_name = "Your Company Name"
+    billing_date = timezone.localtime(timezone.now()).date()
+
     # Add headers
     headers = ['Date', 'Order ID', 'Customer', 'Product', 'Original Price', 
-              'Product Discount', 'Coupon Discount', 'Final Price']
+               'Product Discount', 'Coupon Discount', 'Final Price']
     for col, header in enumerate(headers):
         worksheet.write(0, col, header)
 
-    # Add data
-    for row, order in enumerate(orders, 1):
+    # Add data from filtered orders
+    for row, order in enumerate(filtered_orders, 1):
+        first_item = order.items.first()
+        product_name = first_item.product_variant.product.name if first_item else "N/A"
+        
         worksheet.write(row, 0, order.created_at.strftime('%Y-%m-%d'))
         worksheet.write(row, 1, f"#{order.id}")
-        worksheet.write(row, 2, order.user.username)
-        worksheet.write(row, 3, order.items.first().product_variant.product.name)
-        worksheet.write(row, 4, order.get_total_original_price())
-        worksheet.write(row, 5, order.get_total_product_discount())
-        worksheet.write(row, 6, order.discount or 0)
-        worksheet.write(row, 7, order.total_price)
+        worksheet.write(row, 2, order.user.first_name)
+        worksheet.write(row, 3, product_name)
+        worksheet.write(row, 4, float(order.get_total_original_price()))
+        worksheet.write(row, 5, float(order.get_total_product_discount()))
+        worksheet.write(row, 6, float(order.discount or 0))
+        worksheet.write(row, 7, float(order.total_price))
 
-    # Add totals
-    row = len(orders) + 2
+    # Add totals row
+    row = len(filtered_orders) + 1
     worksheet.write(row, 0, "Totals")
-    worksheet.write(row, 4, total_sales['total_original_price'] or 0)
-    worksheet.write(row, 5, product_discounts)
-    worksheet.write(row, 6, coupon_discounts)
-    worksheet.write(row, 7, final_price - coupon_discounts)
+    worksheet.write(row, 4, float(total_sales['total_original_price']))
+    worksheet.write(row, 5, float(product_discounts))
+    worksheet.write(row, 6, float(coupon_discounts))
+    worksheet.write(row, 7, float(final_price))
 
     workbook.close()
     output.seek(0)
@@ -462,51 +437,58 @@ def export_to_excel(orders, total_sales, product_discounts, coupon_discounts, fi
     response['Content-Disposition'] = 'attachment; filename=sales_report.xlsx'
     return response
 
-def export_to_pdf(orders, total_sales, product_discounts, coupon_discounts, final_price):
+def export_to_pdf(filtered_orders, total_sales, product_discounts, coupon_discounts, final_price):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename=sales_report.pdf'
 
     doc = SimpleDocTemplate(response, pagesize=landscape(letter))
     elements = []
 
-    # Prepare data for table
+    
     data = [['Date', 'Order ID', 'Customer', 'Product', 'Original Price', 
              'Product Discount', 'Coupon Discount', 'Final Price']]
     
-    for order in orders:
+    
+    for order in filtered_orders:
+        first_item = order.items.first()
+        product_name = first_item.product_variant.product.name if first_item else "N/A"
+        
         data.append([
             order.created_at.strftime('%Y-%m-%d'),
             f"#{order.id}",
-            order.user.username,
-            order.items.first().product_variant.product.name,
-            f"₹{order.get_total_original_price()}",
-            f"₹{order.get_total_product_discount()}",
-            f"₹{order.discount or 0}",
-            f"₹{order.total_price}"
+            order.user.first_name,
+            product_name,
+            f"Rs{order.get_total_original_price()}",
+            f"Rs{order.get_total_product_discount()}",
+            f"Rs{order.discount or 0}",
+            f"Rs{order.total_price}"
         ])
 
-    # Add totals
+    
     data.append([
         "Totals", "", "", "",
-        f"₹{total_sales['total_original_price'] or 0}",
-        f"₹{product_discounts}",
-        f"₹{coupon_discounts}",
-        f"₹{final_price - coupon_discounts}"
+        f"Rs{total_sales['total_original_price']}",
+        f"Rs{product_discounts}",
+        f"Rs{coupon_discounts}",
+        f"Rs{final_price}"
     ])
 
-    # Create table
-    table = Table(data)
+   
+    col_widths = [60, 80, 100, 100, 100, 100, 100, 100]  
+    table = Table(data, colWidths=col_widths)
+
+    
     table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 14),
+        ('FONTSIZE', (0, 0), (-1, 0), 12),
         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
         ('BACKGROUND', (0, -1), (-1, -1), colors.beige),
         ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
         ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-        ('FONTSIZE', (0, 1), (-1, -1), 12),
+        ('FONTSIZE', (0, 1), (-1, -1), 10),
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
         ('GRID', (0, 0), (-1, -1), 1, colors.black)
     ]))
@@ -1243,15 +1225,15 @@ def request_handle(request, order_item_id):
                 order_item.status = 'return_approved'
                 order_item.save()
 
-                # Update product variant stock
+                
                 product_variant = order_item.product_variant
                 product_variant.stock += order_item.quantity
                 product_variant.save()
 
-                # Calculate refund amount
+               
                 refund_amount = order_item.quantity * order_item.price
 
-                # Handle wallet refund for this specific item
+                
                 wallet, created = Wallet.objects.get_or_create(
                     user=order_item.order.user,
                     defaults={'balance': Decimal('0.00')}
@@ -1260,7 +1242,7 @@ def request_handle(request, order_item_id):
                 wallet.balance += refund_amount
                 wallet.save()
 
-                # Create wallet transaction for this specific item
+               
                 WalletTransaction.objects.create(
                     wallet=wallet,
                     type='credit',
@@ -1310,15 +1292,19 @@ def productoffer(request):
                 datetime.strptime(request.POST.get('valid_until'), '%Y-%m-%dT%H:%M')
             )
 
-            # Validate the offer name
+           
             if not name or len(name.strip()) < 3:
                 messages.error(request, "Offer name must be at least 3 characters long")
                 return redirect('productoffer')
             if len(name) > 20:
                 messages.error(request, "Offer name cannot exceed 20 characters")
                 return redirect('productoffer')
+            
+            if valid_until <= valid_from:
+                messages.error(request, "Valid Until date must be after Valid From date")
+                return redirect('productoffer')
 
-            # Validate discount value
+           
             try:
                 discount_value = float(discount_value)
                 if discount_type == 'percentage':
@@ -1333,7 +1319,7 @@ def productoffer(request):
                 messages.error(request, "Invalid discount value")
                 return redirect('productoffer')
 
-            # Check for active offers on the selected product
+           
             if Offer.objects.filter(
                 product_id=product_id, is_active=True, valid_until__gt=now()
             ).exists():
@@ -1355,9 +1341,9 @@ def productoffer(request):
             messages.error(request, f'Error: {str(e)}')
         return redirect('productoffer')
 
-    # **Handle GET requests properly**
-    offers = Offer.objects.filter(product__isnull=False)  # Get all product offers
-    products = Product.objects.all()  # Get all products for dropdown selection
+    
+    offers = Offer.objects.filter(product__isnull=False)  
+    products = Product.objects.all() 
 
     context = {
         'offers': offers,
@@ -1410,13 +1396,9 @@ def edit_offer(request, offer_id):
                 messages.error(request, "Invalid discount value")
                 return redirect('productoffer')
             
-            # if valid_from >= valid_until:
-            #         messages.error(request, "Valid from date must be before valid until date")
-            #         return redirect('productoffer')
-
-            # if valid_from < timezone.now():
-            #     messages.error(request, "Valid from date cannot be in the past")
-            #     return redirect('productoffer')
+            if offer.valid_until <= offer.valid_from:
+                messages.error(request, "Valid Until date must be after Valid From date")
+                return redirect('productoffer')
             
             
             if Offer.objects.filter(
@@ -1591,12 +1573,7 @@ def edit_categoryoffer(request, offer_id):
                     return redirect('categoryoffer')
 
             
-            
-            
-            
 
-            
-            
             if Offer.objects.filter(
                 product_category_id=category_id,
                 is_active=True,

@@ -3,15 +3,10 @@ body {
 }
 
 .navbar-brand img {
-    height: 40px;
+    height: 80px;
 }
 
-sidebar {
-    background-color: white;
-    height: 40%;
-    padding: 20px;
-    border-radius: 10px;
-}
+
 
 .sidebar .nav-link {
     color: #333;

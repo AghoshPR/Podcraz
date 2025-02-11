@@ -38,8 +38,9 @@
             </form>
 
             <div class="export-buttons">
-                <a href="?export=excel" class="export-btn">Export Excel</a>
-                <a href="?export=pdf" class="export-btn">Export PDF</a>
+                <a href="?export=pdf&date_filter={{ date_filter }}&start_date={{ start_date }}&end_date={{ end_date }}&search={{ search_query }}" class="export-btn">Export PDF</a>
+                <a href="?export=excel&date_filter={{ date_filter }}&start_date={{ start_date }}&end_date={{ end_date }}&search={{ search_query }}" class="export-btn">Export Excel</a>
+                
             </div>
         </div>
     </div>
@@ -62,10 +63,7 @@
             <h3>Total Coupon Discount</h3>
             <p>₹{{ total_coupon_discount|default:"0" }}</p>
         </div>
-        <div class="summary-card">
-            <h3>Net Revenue</h3>
-            <p>₹{{ net_total|default:"0" }}</p>
-        </div>
+       
     </div>
 
     <!-- Sales Table -->

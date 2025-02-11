@@ -154,12 +154,7 @@
                             </div>
                         </div>
                         
-                        
-                        
-
-
-
-
+   
                         <div class="quantity-selector mb-4">
                             <button class="btn btn-outline-secondary decrease-quantity">-</button>
                             <input type="number" value="1" min="1" max="4" class="form-control quantity-input" readonly>
@@ -179,7 +174,7 @@
                                     Add to Cart
                                 </a>
                             {% endif %}
-                            <button class="btn btn-buy-now text-white flex-grow-1">Buy Now</button>
+                            <!-- <button class="btn btn-buy-now text-white flex-grow-1">Buy Now</button> -->
                         </div>
 
                     <div class="delivery-info d-flex gap-3">
@@ -199,37 +194,95 @@
         </div>
 
         <!-- Similar Products -->
-        <div class="similar-products">
-            <h4 class="mb-4">Similar Products</h4>
-            <div class="row row-cols-1 row-cols-md-4 g-4">
-                <!-- Similar product cards -->
-                <div class="col">
-                    <div class="card h-100">
-                        <div class="rating-stars p-2">
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star"></i>
-                        </div>
-                        <img src="{% static 'images/bestseller.png' %}" class="card-img-top" alt="BTG 1 Earbuds">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h5 class="product-title mb-0">BTG 1 Earbuds</h5>
-                                <span class="discount">24% off</span>
+        <div class="similar-products mt-5">
+            <h4>Similar Products</h4>
+            <div class="row row-cols-1 row-cols-md-4 row-cols-lg-4 g-4 d-flex justify-content-start">
+                {% for similar_product in similar_products %}
+                    <div class="col">
+                        <div class="card h-100">
+                            <a href="{% url 'userproductview' similar_product.id %}" class="text-decoration-none text-dark">
+                                
+                                {% if similar_product.productimage_set.first %}
+                                    <img src="{{ similar_product.productimage_set.first.image_path.url }}" class="card-img-top" alt="{{ similar_product.product.name }}">
+                                {% else %}
+                                    <img src="{% static 'images/no-image.png' %}" class="card-img-top" alt="No Image Available">
+                                {% endif %}
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h5 class="product-title mb-0">{{ similar_product.product.name }}</h5>
+                                        {% if similar_product.discounted_price %}
+                                            <span class="discount">
+                                                {{ similar_product.get_discount_percentage|floatformat:0 }}% off
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="price-container">
+                                        {% with offer_price=product_variants.get_offer_price %}
+                            {% if offer_price %}
+                                <h3 class="mb-2">
+                                    <span class="current-price" style="font-size: 1.2 rem">Price: ₹{{ offer_price|floatformat:2 }}</span>
+                                    <span class="original-price text-decoration-line-through ms-2">₹{{ product_variants.price }}</span>
+                                </h3>
+                                {% with active_offer=product_variants.get_active_offer %}
+                                    {% if active_offer %}
+                                        <div class="offer-details">
+                                            <span class="badge bg-danger">
+                                                {% if active_offer.discount_type == 'percentage' %}
+                                                    {{ active_offer.discount_value }}% off
+                                                {% else %}
+                                                    ₹{{ active_offer.discount_value }} off
+                                                {% endif %}
+                                            </span>
+                                            
+                                        </div>
+                                    {% endif %}
+                                {% endwith %}
+                            {% else %}
+                                <h3 class="mb-4">Price: ₹{{ product_variants.price }}</h3>
+                            {% endif %}
+                        {% endwith %}
+                                    </div>
+                                    <p class="free-delivery mb-0">Free Delivery</p>
+                                </div>
+                            </a>
+
+                            <!-- Wishlist Button -->
+                            <div class="wishlist-btn position-absolute" style="right: 10px; top: 10px; z-index: 1;">
+                                {% if user.is_authenticated %}
+                                    <button 
+                                        class="btn btn-link p-0 wishlist-toggle" 
+                                        data-variant-id="{{ similar_product.id }}" 
+                                        data-is-wishlisted="{% if similar_product.id in user_wishlist %}true{% else %}false{% endif %}">
+                                        <i class="bi {% if similar_product.id in user_wishlist %}bi-heart-fill text-danger{% else %}bi-heart{% endif %}" 
+                                        style="font-size: 1.5rem;"></i>
+                                    </button>
+                                {% else %}
+                                    <a href="{% url 'userlogin' %}" class="btn btn-link p-0">
+                                        <i class="bi bi-heart" style="font-size: 1.5rem;"></i>
+                                    </a>
+                                {% endif %}
                             </div>
-                            <div class="price-container mb-2">
-                                <span class="current-price">₹13999</span>
-                                <span class="original-price">₹5999</span>
-                                <button class="btn btn-outline-danger btn-sm">
-                                    <i class="bi bi-heart"></i>
+
+                            <!-- Add to Cart Button -->
+                            <div class="card-footer bg-transparent border-0">
+                                {% if user.is_authenticated %}
+                                <button 
+                                    class="btn btn-primary w-100 cart-toggle" 
+                                    data-variant-id="{{ similar_product.id }}">
+                                    Add to Cart
                                 </button>
+                                {% else %}
+                                    <a href="{% url 'userlogin' %}" 
+                                    class="btn btn-primary w-100">
+                                        Add to Cart
+                                    </a>
+                                {% endif %}
                             </div>
-                            <p class="free-delivery mb-2">Free Delivery</p>
                         </div>
                     </div>
-                </div>
-                <!-- Repeat similar blocks for other similar products -->
+                {% empty %}
+                    <p>No similar products found.</p>
+                {% endfor %}
             </div>
         </div>
     </div>
@@ -337,6 +390,108 @@
                 showToast('Error adding to cart', 'error');
             });
         });
+
+
+
+
+        document.querySelectorAll('.wishlist-toggle').forEach(button => {
+            button.addEventListener('click', function (e) {
+                e.preventDefault();
+        
+                const variantId = this.dataset.variantId;
+                const isWishlisted = this.dataset.isWishlisted === 'true';
+                const icon = this.querySelector('i');
+        
+                fetch("{% url 'toggle_wishlist' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    },
+                    body: JSON.stringify({
+                        variant_id: variantId,
+                        action: isWishlisted ? 'remove' : 'add',
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Toggle icon
+                        icon.classList.toggle('bi-heart');
+                        icon.classList.toggle('bi-heart-fill');
+                        icon.classList.toggle('text-danger');
+                        this.dataset.isWishlisted = (!isWishlisted).toString();
+        
+                        // Highlight button
+                        if (!isWishlisted) {
+                            this.classList.add('wishlist-active'); // Add class to highlight
+                        } else {
+                            this.classList.remove('wishlist-active'); // Remove highlight
+                        }
+        
+                        // Display feedback
+                        const toast = new bootstrap.Toast(document.getElementById('wishlistToast'));
+                        document.getElementById('wishlistToastMessage').textContent = data.message;
+                        toast.show();
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            });
+        });
+        
+        
+        //fetching cart items
+    
+        document.querySelectorAll('.cart-toggle').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation(); // Stop event from bubbling up to the card link
+                
+                const variantId = this.dataset.variantId;
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                const icon = this.querySelector('i');
+        
+                fetch("{% url 'add_to_cart' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: JSON.stringify({
+                        product_variant_id: variantId,
+                        quantity: 1
+                    }),
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Show success toast
+                        const toast = new bootstrap.Toast(document.getElementById('wishlistToast'));
+                        document.getElementById('wishlistToastMessage').textContent = data.message;
+                        toast.show();
+        
+                        // Change cart icon temporarily
+                        icon.classList.remove('bi-cart-plus');
+                        icon.classList.add('bi-cart-check-fill');
+                        setTimeout(() => {
+                            icon.classList.remove('bi-cart-check-fill');
+                            icon.classList.add('bi-cart-plus');
+                        }, 2000);
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                   
+                });
+            });
+        });
     
         // Toast notification function
         function showToast(message, type = 'success') {
@@ -375,6 +530,8 @@
         gap: 10px;
         width: 100px;
     }
+
+    
     
     .thumbnail-images img {
     width: 80px;
