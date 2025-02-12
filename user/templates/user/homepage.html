@@ -58,9 +58,9 @@
                     <li class="nav-item">
                         <a href="{% url 'userproducts' %}" class="nav-link text-white">Products</a>
                     </li>
-                    <li class="nav-item">
+                    <!-- <li class="nav-item">
                         <a href="#" class="nav-link text-white">Brands</a>
-                    </li>
+                    </li> -->
                     <li class="nav-item">
                         <a href="{% url 'about' %}" class="nav-link text-white">About Us</a>
                     </li>
@@ -159,13 +159,13 @@
             <div class="col">
                 <div class="card h-100">
                     <a href="{% url 'userproductview' variant.id %}" class="text-decoration-none text-dark">
-                        <div class="rating-stars">
+                        <!-- <div class="rating-stars">
                             <i class="bi bi-star-fill"></i>
                             <i class="bi bi-star-fill"></i>
                             <i class="bi bi-star-fill"></i>
                             <i class="bi bi-star-fill"></i>
                             <i class="bi bi-star"></i>
-                        </div>
+                        </div> -->
                         {% with variant.productimage_set.first as image %}
                         {% if image %}
                             <img src="{{ image.image_path.url }}" class="card-img-top" alt="{{ variant.product.name }}">
@@ -258,13 +258,13 @@
             <div class="col">
                 <div class="card h-100">
                     <a href="{% url 'userproductview' variant.id %}" class="text-decoration-none text-dark">
-                        <div class="rating-stars">
+                        <!-- <div class="rating-stars">
                             <i class="bi bi-star-fill"></i>
                             <i class="bi bi-star-fill"></i>
                             <i class="bi bi-star-fill"></i>
                             <i class="bi bi-star-fill"></i>
                             <i class="bi bi-star"></i>
-                        </div>
+                        </div> -->
                         {% with variant.productimage_set.first as image %}
                         {% if image %}
                             <img src="{{ image.image_path.url }}" class="card-img-top" alt="{{ variant.product.name }}">
@@ -361,6 +361,14 @@
 
 
      <!-- brands -->
+
+     <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="cartToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-body">
+                <span id="cartToastMessage"></span>
+            </div>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer class="bg-dark text-white py-5">
@@ -505,55 +513,52 @@
         //fetching cart items
     
         document.querySelectorAll('.cart-toggle').forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation(); // Stop event from bubbling up to the card link
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const variantId = this.dataset.variantId;
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const icon = this.querySelector('i');
+
+            fetch("{% url 'add_to_cart' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify({
+                    product_variant_id: variantId,
+                    quantity: 1
+                }),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
                 
-                const variantId = this.dataset.variantId;
-                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-                const icon = this.querySelector('i');
-        
-                fetch("{% url 'add_to_cart' %}", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': csrfToken,
-                    },
-                    body: JSON.stringify({
-                        product_variant_id: variantId,
-                        quantity: 1
-                    }),
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.status === 'success') {
-                        // Show success toast
-                        const toast = new bootstrap.Toast(document.getElementById('wishlistToast'));
-                        document.getElementById('wishlistToastMessage').textContent = data.message;
-                        toast.show();
-        
-                        // Change cart icon temporarily
-                        icon.classList.remove('bi-cart-plus');
-                        icon.classList.add('bi-cart-check-fill');
-                        setTimeout(() => {
-                            icon.classList.remove('bi-cart-check-fill');
-                            icon.classList.add('bi-cart-plus');
-                        }, 2000);
-                    } else {
-                        alert(data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
+                const toast = new bootstrap.Toast(document.getElementById('cartToast'));
+                document.getElementById('cartToastMessage').textContent = data.message;
+                toast.show();
+
+                if (data.status === 'success') {
                    
-                });
+                    icon.classList.remove('bi-cart-plus');
+                    icon.classList.add('bi-cart-check-fill');
+                    setTimeout(() => {
+                        icon.classList.remove('bi-cart-check-fill');
+                        icon.classList.add('bi-cart-plus');
+                    }, 2000);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
             });
         });
+    });
     
     
     

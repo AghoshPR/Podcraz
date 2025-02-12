@@ -72,74 +72,123 @@
             </form>
 
               <!-- Order List -->
-              {% for order in orders %}
-              <div class="order-card">
-                  <div class="order-header">
-                      <div class="left-header">
-                          <div class="order-info">
-                              <h5 class="order-number">Order #{{ order.id }}</h5>
-                              <p class="order-date">Ordered on {{ order.created_at|date:"d M Y" }}</p>
+              {% if orders %}
+                  {# Current order-based display for 'All' #}
+                  {% for order in orders %}
+                  <div class="order-card">
+                      <div class="order-header">
+                          <div class="left-header">
+                              <div class="order-info">
+                                  <h5 class="order-number">Order #{{ order.id }}</h5>
+                                  <p class="order-date">Ordered on {{ order.created_at|date:"d M Y" }}</p>
+                              </div>
                           </div>
-                          
+                          <div class="right-header">
+                              <div class="order-total">
+                                  <span class="total-label">Total Amount:</span>
+                                  <span class="total-price">₹{{ order.total_price }}</span>
+                              </div>
+                          </div>
                       </div>
-                      <div class="right-header">
-                          <div class="order-total">
-                              <span class="total-label">Total Amount:</span>
-                              <span class="total-price">₹{{ order.total_price }}</span>
+
+                      <div class="order-items-container">
+                          {% for item in order.items.all %}
+                          <div class="order-item">
+                              <img src="{{ item.product_variant.productimage_set.first.image_path.url }}" 
+                                   alt="{{ item.product_variant.product.name }}" 
+                                   class="item-image">
+                              <div class="item-details">
+                                  <h6 class="product-name">{{ item.product_variant.product.name }}</h6>
+                                  <p class="variant-details">Color: {{ item.product_variant.color }}</p>
+                                  <p class="quantity">Quantity: {{ item.quantity }}</p>
+                                  <p class="item-price">
+                                      {% with offer_price=item.product_variant.get_offer_price %}
+                                          {% if offer_price %}
+                                              <span class="current-price">₹{{ offer_price|floatformat:2 }}</span>
+                                              <span class="original-price text-decoration-line-through ms-2">₹{{ item.product_variant.price }}</span>
+                                          {% else %}
+                                              ₹{{ item.product_variant.price }}
+                                          {% endif %}
+                                      {% endwith %}
+                                  </p>
+                              </div>
+                          </div>
+                          {% if not forloop.last %}
+                          <div class="item-divider"></div>
+                          {% endif %}
+                          {% endfor %}
+                      </div>
+
+                      <div class="order-footer">
+                          <div class="d-flex justify-content-between align-items-center">
+                              <div class="action-buttons">
+                                  {% if not order.is_paid and order.payment_method.name == 'razorpay' %}
+                                      <a href="{% url 'retry_payment' order.id %}" class="btn btn-warning">
+                                          Retry Payment
+                                      </a>
+                                  {% endif %}
+
+                                  {% if order.status == 'pending' or order.status == 'processing' %}
+                                      <a href="{% url 'generate_invoice' order.id %}" class="invoice-btn">
+                                          <i class="fas fa-file-invoice"></i> Download Invoice
+                                      </a>
+                                  {% endif %}
+                              </div>
+                              <a href="{% url 'orderview' order.id %}" class="view-details-btn">
+                                  <i class="fas fa-eye"></i> View Order Details
+                              </a>
                           </div>
                       </div>
                   </div>
+                  {% endfor %}
 
-                  <div class="order-items-container">
-                      {% for item in order.items.all %}
-                      <div class="order-item">
-                          <img src="{{ item.product_variant.productimage_set.first.image_path.url }}" 
-                               alt="{{ item.product_variant.product.name }}" 
-                               class="item-image">
-                          <div class="item-details">
-                              <h6 class="product-name">{{ item.product_variant.product.name }}</h6>
-                              <p class="variant-details">Color: {{ item.product_variant.color }}</p>
-                              <p class="quantity">Quantity: {{ item.quantity }}</p>
-                              <p class="item-price">
-                                  {% with offer_price=item.product_variant.get_offer_price %}
-                                      {% if offer_price %}
-                                          <span class="current-price">₹{{ offer_price|floatformat:2 }}</span>
-                                          <span class="original-price text-decoration-line-through ms-2">₹{{ item.product_variant.price }}</span>
-                                      {% else %}
-                                          ₹{{ item.product_variant.price }}
-                                      {% endif %}
-                                  {% endwith %}
-                              </p>
+              {% elif order_items %}
+                  {# Individual item display for specific status filter #}
+                  {% for item in order_items %}
+                  <div class="order-card">
+                      <div class="order-header">
+                          <div class="left-header">
+                              <div class="order-info">
+                                  <h5 class="order-number">Order #{{ item.order.id }}</h5>
+                                  <p class="order-date">Ordered on {{ item.order.created_at|date:"d M Y" }}</p>
+                              </div>
                           </div>
                       </div>
-                      {% if not forloop.last %}
-                      <div class="item-divider"></div>
-                      {% endif %}
-                      {% endfor %}
+
+                      <div class="order-items-container">
+                          <div class="order-item">
+                              <img src="{{ item.product_variant.productimage_set.first.image_path.url }}" 
+                                   alt="{{ item.product_variant.product.name }}" 
+                                   class="item-image">
+                              <div class="item-details">
+                                  <h6 class="product-name">{{ item.product_variant.product.name }}</h6>
+                                  <p class="variant-details">Color: {{ item.product_variant.color }}</p>
+                                  <p class="quantity">Quantity: {{ item.quantity }}</p>
+                                  <p class="item-status">Status: {{ item.status|title }}</p>
+                                  <p class="item-price">
+                                      {% with offer_price=item.product_variant.get_offer_price %}
+                                          {% if offer_price %}
+                                              <span class="current-price">₹{{ offer_price|floatformat:2 }}</span>
+                                              <span class="original-price text-decoration-line-through ms-2">₹{{ item.product_variant.price }}</span>
+                                          {% else %}
+                                              ₹{{ item.product_variant.price }}
+                                          {% endif %}
+                                      {% endwith %}
+                                  </p>
+                              </div>
+                          </div>
+                      </div>
+
+                      <div class="order-footer">
+                          <div class="d-flex justify-content-between align-items-center">
+                              <a href="{% url 'orderview' item.order.id %}" class="view-details-btn">
+                                  <i class="fas fa-eye"></i> View Order Details
+                              </a>
+                          </div>
+                      </div>
                   </div>
-
-                  <div class="order-footer">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="action-buttons">
-                            {% if not order.is_paid and order.payment_method.name == 'razorpay' %}
-                                <a href="{% url 'retry_payment' order.id %}" class="btn btn-warning">
-                                    Retry Payment
-                                </a>
-                            {% endif %}
-
-                            {% if order.status == 'pending' or order.status == 'processing' %}
-                                <a href="{% url 'generate_invoice' order.id %}" class="invoice-btn">
-                                    <i class="fas fa-file-invoice"></i> Download Invoice
-                                </a>
-                            {% endif %}
-                        </div>
-                        <a href="{% url 'orderview' order.id %}" class="view-details-btn">
-                            <i class="fas fa-eye"></i> View Order Details
-                        </a>
-                    </div>
-                </div>
-              </div>
-              {% endfor %}
+                  {% endfor %}
+              {% endif %}
 
               <!-- Cancel Order Modal -->
               {% for order in orders %}

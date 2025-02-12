@@ -16,194 +16,195 @@
 
     <div class="row">
         <!-- Sidebar -->
-        <div class="col-md-3 mb-4">
+        <div class="col-md-3">
             <div class="sidebar">
                 <h5 class="mb-4">Account</h5>
-                <nav class="nav flex-column">
-                    <a class="nav-link" href="{% url 'myprofile' %}"><i class="fas fa-user me-2"></i>Profile</a>
-                    <a class="nav-link" href="{% url 'address' %}"><i class="fas fa-map-marker-alt me-2"></i>Addresses</a>
-                    <a class="nav-link active" href="{% url 'myorder' %}"><i class="fas fa-box me-2"></i>Orders</a>
-                    <a class="nav-link" href="{% url 'wallet' %}"><i class="fas fa-wallet me-2"></i>Wallet</a>
-                    <a class="nav-link" href="{% url 'coupon' %}"><i class="fas fa-ticket me-2"></i>Coupon</a>
-                    <a class="nav-link" href="{% url 'user_changepass' %}"><i class="fas fa-lock me-2"></i>Change Password</a>
-                </nav>
-                <button class="btn btn-danger mt-4 w-100">Logout</button>
+                <ul class="sidebar-menu">
+                    <li><a href="{% url 'myprofile' %}">Profile</a></li>
+                    <li><a href="{% url 'address' %}">Addresses</a></li>
+                    <li><a href="{% url 'myorder' %}" class="active">Orders</a></li>
+                    <li><a href="{% url 'wallet' %}">Wallet</a></li>
+                    <li><a href="{% url 'coupon' %}">Coupon</a></li>
+                    <li><a href="{% url 'user_changepass' %}">Change Password</a></li>
+                </ul>
+                <a href="{% url 'userlogout' %}"><button class="logout-btn mt-4">LOGOUT</button></a>
             </div>
         </div>
 
-        <!-- Order Details -->
+        <!-- Main Content -->
         <div class="col-md-9">
-            
-            <div class="order-card mb-4">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h5>Order #{{ order.id }}</h5>
-                        <p>Ordered on: {{ order.created_at|date:"d M Y" }}</p>
+            <div class="main-content">
+                <div class="order-card mb-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5>Order #{{ order.id }}</h5>
+                            <p>Ordered on: {{ order.created_at|date:"d M Y" }}</p>
+                        </div>
+                        
                     </div>
-                    
                 </div>
-            </div>
 
-            <!-- Individual Order Items -->
-            {% for item in order.items.all %}
-            <div class="order-card mb-4">
-                <div class="order-details-container">
-                    <div class="product-info">
-                        <img src="{{ item.product_variant.productimage_set.first.image_path.url }}" 
-                             alt="{{ item.product_variant.product.name }}" 
-                             class="product-image">
-                        <div class="product-details">
-                            <h4>{{ item.product_variant.product.name }}</h4>
-                            <p class="detail-item">Color: {{ item.product_variant.color }}</p>
-                            <p class="detail-item">Quantity: {{ item.quantity }}</p>
-                            <p class="detail-item">Price: 
-                                {% with offer_price=item.product_variant.get_offer_price %}
-                                    {% if offer_price %}
-                                        <span class="current-price">₹{{ offer_price|floatformat:2 }}</span>
-                                        
-                                    {% else %}
-                                        ₹{{ item.product_variant.price }}
-                                    {% endif %}
-                                {% endwith %}
-                            </p>
-                            <div class="status-container">
-                                <span class="status-label">Status:</span>
-                                <span class="status-pill {{ item.status|upper }}">
-                                    <i class="status-icon 
-                                        {% if item.status == 'pending' %}fas fa-clock
-                                        {% elif item.status == 'processing' %}fas fa-cog
-                                        {% elif item.status == 'shipped' %}fas fa-truck
-                                        {% elif item.status == 'delivered' %}fas fa-check-circle
-                                        {% elif item.status == 'cancelled' %}fas fa-times-circle
-                                        {% elif item.status == 'return_pending' %}fas fa-undo
-                                        {% elif item.status == 'return_approved' %}fas fa-check-double
-                                        {% elif item.status == 'return_rejected' %}fas fa-ban
-                                        {% endif %}">
-                                    </i>
-                                    {{ item.status|title }}
-                                </span>
+                <!-- Individual Order Items -->
+                {% for item in order.items.all %}
+                <div class="order-card mb-4">
+                    <div class="order-details-container">
+                        <div class="product-info">
+                            <img src="{{ item.product_variant.productimage_set.first.image_path.url }}" 
+                                 alt="{{ item.product_variant.product.name }}" 
+                                 class="product-image">
+                            <div class="product-details">
+                                <h4>{{ item.product_variant.product.name }}</h4>
+                                <p class="detail-item">Color: {{ item.product_variant.color }}</p>
+                                <p class="detail-item">Quantity: {{ item.quantity }}</p>
+                                <p class="detail-item">Price: 
+                                    {% with offer_price=item.product_variant.get_offer_price %}
+                                        {% if offer_price %}
+                                            <span class="current-price">₹{{ offer_price|floatformat:2 }}</span>
+                                            
+                                        {% else %}
+                                            ₹{{ item.product_variant.price }}
+                                        {% endif %}
+                                    {% endwith %}
+                                </p>
+                                <div class="status-container">
+                                    <span class="status-label">Status:</span>
+                                    <span class="status-pill {{ item.status|upper }}">
+                                        <i class="status-icon 
+                                            {% if item.status == 'pending' %}fas fa-clock
+                                            {% elif item.status == 'processing' %}fas fa-cog
+                                            {% elif item.status == 'shipped' %}fas fa-truck
+                                            {% elif item.status == 'delivered' %}fas fa-check-circle
+                                            {% elif item.status == 'cancelled' %}fas fa-times-circle
+                                            {% elif item.status == 'return_pending' %}fas fa-undo
+                                            {% elif item.status == 'return_approved' %}fas fa-check-double
+                                            {% elif item.status == 'return_rejected' %}fas fa-ban
+                                            {% endif %}">
+                                        </i>
+                                        {{ item.status|title }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Status Timeline -->
+                        <div class="status-timeline-container">
+                            <div class="status-timeline">
+                                <div class="timeline-track">
+                                    <div class="progress-track" style="width: 
+                                        {% if item.status == 'processing' %}25%
+                                        {% elif item.status == 'shipped' %}65%
+                                        {% elif item.status == 'delivered' %}100%
+                                        {% else %}0%{% endif %}">
+                                    </div>
+                                </div>
+                                <div class="timeline-points">
+                                    <div class="point {% if item.status == 'processing' or item.status == 'shipped' or item.status == 'delivered' %}active{% endif %}">
+                                        <div class="point-marker"></div>
+                                        <span class="point-label">Processing</span>
+                                    </div>
+                                    <div class="point {% if item.status == 'shipped' or item.status == 'delivered' %}active{% endif %}">
+                                        <div class="point-marker"></div>
+                                        <span class="point-label">Shipped</span>
+                                    </div>
+                                    <div class="point {% if item.status == 'delivered' %}active{% endif %}">
+                                        <div class="point-marker"></div>
+                                        <span class="point-label">Delivered</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Status Timeline -->
-                    <div class="status-timeline-container">
-                        <div class="status-timeline">
-                            <div class="timeline-track">
-                                <div class="progress-track" style="width: 
-                                    {% if item.status == 'processing' %}25%
-                                    {% elif item.status == 'shipped' %}65%
-                                    {% elif item.status == 'delivered' %}100%
-                                    {% else %}0%{% endif %}">
-                                </div>
-                            </div>
-                            <div class="timeline-points">
-                                <div class="point {% if item.status == 'processing' or item.status == 'shipped' or item.status == 'delivered' %}active{% endif %}">
-                                    <div class="point-marker"></div>
-                                    <span class="point-label">Processing</span>
-                                </div>
-                                <div class="point {% if item.status == 'shipped' or item.status == 'delivered' %}active{% endif %}">
-                                    <div class="point-marker"></div>
-                                    <span class="point-label">Shipped</span>
-                                </div>
-                                <div class="point {% if item.status == 'delivered' %}active{% endif %}">
-                                    <div class="point-marker"></div>
-                                    <span class="point-label">Delivered</span>
-                                </div>
-                            </div>
-                        </div>
+                    <!-- Item Actions -->
+                    <div class="col-md-4">
+                        {% if item.status == 'pending' or item.status == 'processing' or item.status == 'shipped' %}
+                            <button class="btn btn-danger mb-2" data-bs-toggle="modal" data-bs-target="#cancelItemModal{{ item.id }}">
+                                Cancel Item
+                            </button>
+                        {% elif item.status == 'delivered' and not item.return_reason %}
+                            <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#returnItemModal{{ item.id }}">
+                                Return Item
+                            </button>
+                        {% endif %}
                     </div>
                 </div>
 
-                <!-- Item Actions -->
-                <div class="col-md-4">
-                    {% if item.status == 'pending' or item.status == 'processing' or item.status == 'shipped' %}
-                        <button class="btn btn-danger mb-2" data-bs-toggle="modal" data-bs-target="#cancelItemModal{{ item.id }}">
-                            Cancel Item
-                        </button>
-                    {% elif item.status == 'delivered' and not item.return_reason %}
-                        <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#returnItemModal{{ item.id }}">
-                            Return Item
-                        </button>
+                <!-- Cancel Item Modal -->
+                <div class="modal fade" id="cancelItemModal{{ item.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <form method="POST" action="{% url 'cancel_order_item' item.id %}">
+                            {% csrf_token %}
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Cancel Item</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label for="cancellation_reason" class="form-label">Cancellation Reason</label>
+                                        <textarea class="form-control" name="cancellation_reason" required></textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-danger">Cancel Item</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Return Item Modal -->
+                <div class="modal fade" id="returnItemModal{{ item.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <form method="POST" action="{% url 'return_order_item' item.id %}">
+                            {% csrf_token %}
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Return Item</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label for="return_reason" class="form-label">Return Reason</label>
+                                        <textarea class="form-control" name="return_reason" required></textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-warning">Submit Return Request</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Order Summary -->
+                <div class="order-card">
+                    <h5 class="mb-4">Order Summary</h5>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <span>₹{{ order.subtotal }}</span>
+                    </div>
+                    {% if order.discount > 0 %}
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Discount:</span>
+                        <span class="text-success">-₹{{ order.discount }}</span>
+                    </div>
                     {% endif %}
-                </div>
-            </div>
-
-            <!-- Cancel Item Modal -->
-            <div class="modal fade" id="cancelItemModal{{ item.id }}" tabindex="-1">
-                <div class="modal-dialog">
-                    <form method="POST" action="{% url 'cancel_order_item' item.id %}">
-                        {% csrf_token %}
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Cancel Item</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="mb-3">
-                                    <label for="cancellation_reason" class="form-label">Cancellation Reason</label>
-                                    <textarea class="form-control" name="cancellation_reason" required></textarea>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="submit" class="btn btn-danger">Cancel Item</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Return Item Modal -->
-            <div class="modal fade" id="returnItemModal{{ item.id }}" tabindex="-1">
-                <div class="modal-dialog">
-                    <form method="POST" action="{% url 'return_order_item' item.id %}">
-                        {% csrf_token %}
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Return Item</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="mb-3">
-                                    <label for="return_reason" class="form-label">Return Reason</label>
-                                    <textarea class="form-control" name="return_reason" required></textarea>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="submit" class="btn btn-warning">Submit Return Request</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            {% endfor %}
-
-            <!-- Order Summary -->
-            <div class="order-card">
-                <h5 class="mb-4">Order Summary</h5>
-                <div class="d-flex justify-content-between mb-2">
-                    <span>Subtotal:</span>
-                    <span>₹{{ order.subtotal }}</span>
-                </div>
-                {% if order.discount > 0 %}
-                <div class="d-flex justify-content-between mb-2">
-                    <span>Discount:</span>
-                    <span class="text-success">-₹{{ order.discount }}</span>
-                </div>
-                {% endif %}
-                <div class="d-flex justify-content-between mb-2">
-                    <span>Total:</span>
-                    <strong>₹{{ order.total_price }}</strong>
-                </div>
-                <hr>
-                <div class="mt-3">
-                    <p><strong>Shipping Address:</strong><br>
-                        {{ order.address.address }}<br>
-                        {{ order.address.city }}, {{ order.address.state }} - {{ order.address.pin_code }}<br>
-                        Phone: {{ order.address.phone }}
-                    </p>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Total:</span>
+                        <strong>₹{{ order.total_price }}</strong>
+                    </div>
+                    <hr>
+                    <div class="mt-3">
+                        <p><strong>Shipping Address:</strong><br>
+                            {{ order.address.address }}<br>
+                            {{ order.address.city }}, {{ order.address.state }} - {{ order.address.pin_code }}<br>
+                            Phone: {{ order.address.phone }}
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -211,12 +212,68 @@
 </div>
 
 <style>
-
+/* Fixed sidebar styles */
 .sidebar {
-    background-color: white;
-    height: 55%;
+    background: white;
+    border-radius: 8px;
     padding: 20px;
-    border-radius: 10px;
+    position: sticky;
+    top: 20px;
+    height: fit-content;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-menu li {
+    margin-bottom: 10px;
+}
+
+.sidebar-menu a {
+    display: block;
+    padding: 8px 15px;
+    color: #333;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.sidebar-menu a:hover {
+    background-color: #f8f9fa;
+}
+
+.sidebar-menu a.active {
+    background-color: #e9ecef;
+    font-weight: 500;
+}
+
+/* Main content styles */
+.main-content {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    min-height: 500px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Logout button */
+.logout-btn {
+    width: 100%;
+    padding: 8px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.logout-btn:hover {
+    background-color: #c82333;
 }
 
 .order-details-container {

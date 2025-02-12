@@ -214,7 +214,7 @@
                     .then(data => {
                         if (data.status === 'success') {
                             // Update the quantity
-                            location.reload();
+                            
                             row.querySelector('.item-quantity').value = data.quantity;
         
                             // Update the item's total price
@@ -238,67 +238,68 @@
 
 
     document.addEventListener('DOMContentLoaded', function () {
-    // Handle remove links
-    document.querySelectorAll('.remove-link').forEach(link => {
-        link.addEventListener('click', function (e) {
-            e.preventDefault();
-            
-            const itemId = this.dataset.itemId;
-            const row = this.closest('tr');
-
-            const formData = new FormData();
-            formData.append('item_id', itemId);
-            formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
-
-            fetch('/remove-cart-item/', {
-                method: 'POST',
-                body: formData,
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        // Show toast notification
-                        const toast = new bootstrap.Toast(document.getElementById('removeItemToast'));
-                        toast.show();
-
-                        // Remove the row with animation
-                        row.style.transition = 'opacity 0.3s ease-out';
-                        row.style.opacity = '0';
-                        setTimeout(() => {
-                            row.remove();
-
-                            // Update cart total
-                            document.querySelector('.cart-subtotal').textContent = `₹${data.cart_total.toFixed(2)}`;
-                            document.querySelector('.cart-total').textContent = `₹${data.cart_total.toFixed(2)}`;
-
-                            // Check if cart is empty
-                            const remainingItems = document.querySelectorAll('.product-table tbody tr').length;
-                            if (remainingItems === 0) {
-                                document.querySelector('.product-table tbody').innerHTML = `
-                                    <tr>
-                                        <td colspan="4" class="text-center py-4">
-                                            <p>Your cart is empty!</p>
-                                            <a href="{% url 'userhome' %}" class="btn btn-primary">Continue Shopping</a>
-                                        </td>
-                                    </tr>
-                                `;
-                            }
-                        }, 300);
-                    } else {
-                        // Show error toast
+        // Handle remove links
+        document.querySelectorAll('.remove-link').forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                const itemId = this.dataset.itemId;
+                const row = this.closest('tr');
+    
+                const formData = new FormData();
+                formData.append('item_id', itemId);
+                formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+    
+                fetch('/remove-cart-item/', {
+                    method: 'POST',
+                    body: formData,
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            
+                            const toast = new bootstrap.Toast(document.getElementById('removeItemToast'));
+                            toast.show();
+    
+                           
+                            row.style.transition = 'opacity 0.3s ease-out';
+                            row.style.opacity = '0';
+                            setTimeout(() => {
+                                row.remove();
+    
+                               
+                                const cartTotalElements = document.querySelectorAll('.cart-subtotal, .cart-total');
+                                cartTotalElements.forEach(element => {
+                                    element.textContent = `₹${parseFloat(data.cart_total).toFixed(2)}`;
+                                });
+    
+                                
+                                if (data.item_count === 0) {
+                                    document.querySelector('.product-table tbody').innerHTML = `
+                                        <tr>
+                                            <td colspan="4" class="text-center py-4">
+                                                <p>Your cart is empty!</p>
+                                                <a href="{% url 'userhome' %}" class="btn btn-primary">Continue Shopping</a>
+                                            </td>
+                                        </tr>
+                                    `;
+                                }
+                            }, 300);
+                        } else {
+                            
+                            const toast = new bootstrap.Toast(document.getElementById('errorToast'));
+                            toast.show();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                       
                         const toast = new bootstrap.Toast(document.getElementById('errorToast'));
                         toast.show();
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    // Show error toast
-                    const toast = new bootstrap.Toast(document.getElementById('errorToast'));
-                    toast.show();
-                });
+                    });
+            });
         });
     });
-});
 </script>
 
 

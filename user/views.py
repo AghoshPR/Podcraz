@@ -623,51 +623,64 @@ def usercart(request):
 
 
 def add_to_cart(request):
-
     if not request.user.is_authenticated:
         return JsonResponse({'status': 'error', 'message': 'Please login to add items to cart'}, status=403)
-    
 
     if request.method == 'POST':
-        
-
         try:
+            data = json.loads(request.body)
+            product_variant_id = data.get('product_variant_id')
+            quantity = int(data.get('quantity', 1))
 
-            data=json.loads(request.body)
-            product_variant_id=data.get('product_variant_id')
-            quantity=int(data.get('quantity',1))
-
-
-            product_variant=ProductVariant.objects.get(id=product_variant_id)
-
+            product_variant = get_object_or_404(ProductVariant, id=product_variant_id)
+            
             if product_variant.stock == 0:
                 return JsonResponse({'status': 'error', 'message': 'Product is out of stock'})
 
-            cart,created=Cart.objects.get_or_create(user=request.user)
-
-            cart_item, item_created=CartItem.objects.get_or_create(
+            cart = Cart.objects.get_or_create(user=request.user)[0]
+            
+            # Use get_or_create with defaults
+            cart_item, created = CartItem.objects.get_or_create(
                 cart=cart,
                 product_variant=product_variant,
                 defaults={
-                    'price':product_variant.price,
-                    'quantity':quantity
+                    'quantity': 0,
+                    'price': product_variant.get_offer_price() or product_variant.price
                 }
             )
 
-            if not item_created:
-               
-                if cart_item.quantity + quantity > 4:
-                    return JsonResponse({'status': 'error', 'message': 'You cannot add more than 4 of this product to the cart'}, status=400)
-                
-                cart_item.quantity += quantity
-                cart_item.save()
+            # Update quantity
+            new_quantity = cart_item.quantity + quantity
+            if new_quantity > 4:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Cannot add more than 4 items of this product'
+                })
+            
+            if new_quantity < 1:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Quantity must be greater than 0'
+                })
 
-            return JsonResponse({'status': 'success', 'message': 'Item added to cart successfully'})
-        
-        except ProductVariant.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Invalid product'})
-        
-    return JsonResponse({'status': 'error', 'message': 'Unauthorized or bad request'})
+            cart_item.quantity = new_quantity
+            cart_item.save()
+
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Item added to cart successfully'
+            })
+
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            }, status=400)
+
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Invalid request method'
+    }, status=405)
 
     
 def update_cart_item(request):
@@ -688,16 +701,20 @@ def update_cart_item(request):
         elif action == 'decrease' and cart_item.quantity > 1:
             cart_item.quantity -= 1
 
-        if cart_item.product_variant.discounted_price:
-            cart_item.price = cart_item.product_variant.discounted_price
+        
+
+        offer_price = cart_item.product_variant.get_offer_price()
+
+        if offer_price:
+            cart_item.price = offer_price
         else:
             cart_item.price = cart_item.product_variant.price
         
         cart_item.save()
 
-        item_total = cart_item.total_price
+        item_total = cart_item.get_total_price()
         cart_items = CartItem.objects.filter(cart__user=request.user)
-        cart_total = sum(item.total_price for item in cart_items)
+        cart_total = sum(item.get_total_price() for item in cart_items)
 
         return JsonResponse({
             'status': 'success',
@@ -716,21 +733,34 @@ def update_cart_item(request):
 
 def remove_cart_item(request):
     if request.method == 'POST':
-        item_id=request.POST.get('item_id')
+        item_id = request.POST.get('item_id')
 
-        cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
-        cart_item.delete()
+        try:
+            with transaction.atomic():
+                
+                cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
+                cart_item.delete()
 
-        
-        cart_total = sum(item.total_price for item in CartItem.objects.filter(cart__user=request.user))
+                
+                remaining_cart_items = CartItem.objects.filter(cart__user=request.user)
+                cart_total = sum(item.get_total_price() for item in remaining_cart_items)
 
-        return JsonResponse({
-                'status': 'success',
-                'cart_total': cart_total,
-            })
+                return JsonResponse({
+                    'status': 'success',
+                    'cart_total': cart_total,
+                    'item_count': remaining_cart_items.count()
+                })
+                
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            }, status=400)
+
     return JsonResponse({
-        'error':'Invalid request'
-    },status=400)
+        'status': 'error',
+        'message': 'Invalid request'
+    }, status=400)
 
 
 
@@ -1033,8 +1063,8 @@ def usercheckout(request):
     
         
     addresses=Address.objects.filter(user=request.user)
-    default_address=addresses.filter(is_default=True).first()
-    other_addresses = addresses.filter(is_default=False)
+    default_address=addresses.filter(is_default=True,is_delete=False).first()
+    other_addresses = addresses.filter(is_default=False,is_delete=False)
 
     if request.method == 'POST':
 
@@ -1541,23 +1571,31 @@ def order_success(request):
 
 def myorder(request):
     try:
-        orders = (
-            Order.objects.filter(user=request.user)
-            .prefetch_related('items__product_variant__product',
-                              'items__product_variant__productimage_set')
-            .order_by('-created_at')
-        )
-        
         status_filter = request.GET.get('status')
 
-        if status_filter and status_filter != 'All':
-            orders = orders.filter(status__iexact=status_filter)
-
-        for order in orders:
-            order.subtotal = order.total_price + order.discount
+        if not status_filter or status_filter == 'All':
+            # Keep existing order-based display for 'All'
+            orders = (
+                Order.objects.filter(user=request.user)
+                .prefetch_related('items__product_variant__product',
+                               'items__product_variant__productimage_set')
+                .order_by('-created_at')
+            )
+        else:
+            # For specific status, get individual order items
+            order_items = OrderItem.objects.filter(
+                order__user=request.user,
+                status=status_filter
+            ).select_related(
+                'order',
+                'product_variant__product'
+            ).prefetch_related(
+                'product_variant__productimage_set'
+            ).order_by('-order__created_at')
 
         context = {
-            'orders': orders,
+            'orders': orders if not status_filter or status_filter == 'All' else None,
+            'order_items': order_items if status_filter and status_filter != 'All' else None,
             'current_status': status_filter or 'All',
             'user': request.user
         }

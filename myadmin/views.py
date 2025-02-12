@@ -396,17 +396,22 @@ def export_to_excel(filtered_orders, total_sales, product_discounts, coupon_disc
     workbook = xlsxwriter.Workbook(output)
     worksheet = workbook.add_worksheet()
 
-    company_name = "Your Company Name"
+    company_name = "PODCRAZE"
     billing_date = timezone.localtime(timezone.now()).date()
 
-    # Add headers
+    # Add company name and billing date
+    bold_format = workbook.add_format({'bold': True})
+    worksheet.write(0, 0, company_name, bold_format)
+    worksheet.write(1, 0, f"Billing Date: {billing_date}", bold_format)
+
+    # Add headers (now starting from row 3)
     headers = ['Date', 'Order ID', 'Customer', 'Product', 'Original Price', 
                'Product Discount', 'Coupon Discount', 'Final Price']
     for col, header in enumerate(headers):
-        worksheet.write(0, col, header)
+        worksheet.write(3, col, header)
 
-    # Add data from filtered orders
-    for row, order in enumerate(filtered_orders, 1):
+    # Add data from filtered orders (starting from row 4)
+    for row, order in enumerate(filtered_orders, 4):
         first_item = order.items.first()
         product_name = first_item.product_variant.product.name if first_item else "N/A"
         
@@ -420,7 +425,7 @@ def export_to_excel(filtered_orders, total_sales, product_discounts, coupon_disc
         worksheet.write(row, 7, float(order.total_price))
 
     # Add totals row
-    row = len(filtered_orders) + 1
+    row = len(filtered_orders) + 4
     worksheet.write(row, 0, "Totals")
     worksheet.write(row, 4, float(total_sales['total_original_price']))
     worksheet.write(row, 5, float(product_discounts))
@@ -444,10 +449,14 @@ def export_to_pdf(filtered_orders, total_sales, product_discounts, coupon_discou
     doc = SimpleDocTemplate(response, pagesize=landscape(letter))
     elements = []
 
+    # Add company name and billing date
+    styles = getSampleStyleSheet()
+    elements.append(Paragraph("PODCRAZE - Sales Report", styles['Heading1']))
+    elements.append(Paragraph(f"Billing Date: {timezone.localtime(timezone.now()).date()}", styles['Normal']))
+    elements.append(Spacer(1, 12))  # Add some space
     
     data = [['Date', 'Order ID', 'Customer', 'Product', 'Original Price', 
              'Product Discount', 'Coupon Discount', 'Final Price']]
-    
     
     for order in filtered_orders:
         first_item = order.items.first()
@@ -464,7 +473,6 @@ def export_to_pdf(filtered_orders, total_sales, product_discounts, coupon_discou
             f"Rs{order.total_price}"
         ])
 
-    
     data.append([
         "Totals", "", "", "",
         f"Rs{total_sales['total_original_price']}",
@@ -473,11 +481,9 @@ def export_to_pdf(filtered_orders, total_sales, product_discounts, coupon_discou
         f"Rs{final_price}"
     ])
 
-   
     col_widths = [60, 80, 100, 100, 100, 100, 100, 100]  
     table = Table(data, colWidths=col_widths)
 
-    
     table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),

@@ -170,21 +170,37 @@
     </div>
 </div>
 
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="wishlistToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-body">
+            <span id="wishlistToastMessage"></span>
+        </div>
+    </div>
+</div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const placeOrderBtn = document.getElementById('placeOrderBtn');
+
+        function showToast(message, type = 'success') {
+            const toast = new bootstrap.Toast(document.getElementById('wishlistToast'));
+            const toastMessage = document.getElementById('wishlistToastMessage');
+            toastMessage.textContent = message;
+            toastMessage.className = type === 'success' ? 'text-success' : 'text-danger';
+            toast.show();
+        }
         
         placeOrderBtn.addEventListener('click', function() {
             const selectedAddress = document.querySelector('input[name="address"]:checked');
             
             if (!selectedAddress) {
-                alert('Please select a delivery address');
+                showToast('Please select a delivery address', 'error');
                 return;
             }
     
             const formData = new FormData();
             formData.append('address_id', selectedAddress.value);
-            formData.append('place_order', 'true'); // Add this line
+            formData.append('place_order', 'true'); 
             
         
             const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
@@ -207,15 +223,20 @@
                 if (data.status === 'success') {
                     window.location.href = data.redirect_url;
                 } else {
-                    alert(data.message || 'Error placing order');
+                    showToast('Product is out of stock', 'error');
+                    return;
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('An error occurred while placing your order');
+                
+                showToast('Product is out of stock', 'error');
+                return;
             });
         });
     });
 </script>
+
+
 
 {% endblock %}
