@@ -1237,7 +1237,17 @@ def request_handle(request, order_item_id):
                 product_variant.save()
 
                
-                refund_amount = order_item.quantity * order_item.price
+                
+                order = order_item.order
+                total_items = order.items.count()
+
+                
+                per_item_discount = Decimal(str(order.discount)) / Decimal(str(total_items))
+
+                
+                item_total = Decimal(str(order_item.price)) * Decimal(str(order_item.quantity))
+                
+                refund_amount = item_total - per_item_discount
 
                 
                 wallet, created = Wallet.objects.get_or_create(

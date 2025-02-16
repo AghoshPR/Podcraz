@@ -1,12 +1,9 @@
 from decouple import config
 from pathlib import Path,os
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY')
@@ -136,20 +133,8 @@ DATABASES = {
     }
 }
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': config('MYSQL_DATABASE', default='Podcraze'),
-#         'USER': config('MYSQL_USER', default='root'),
-#         'PASSWORD': config('MYSQL_PASSWORD', default='1234'),
-#         'HOST': config('MYSQL_HOST', default='127.0.0.1'),  # Use service name from docker-compose.yml
-#         'PORT': config('MYSQL_PORT', default='3307'),
-#     }
-# }
 
 
-# Password validation
-# https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -168,7 +153,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 # Internationalization
-# https://docs.djangoproject.com/en/5.1/topics/i18n/
+
 
 LANGUAGE_CODE = 'en-us'
 
@@ -179,8 +164,7 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
+
 
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Default
@@ -201,7 +185,6 @@ STATICFILES_DIRS=[
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
+
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

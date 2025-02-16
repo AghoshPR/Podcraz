@@ -1946,8 +1946,18 @@ def cancel_order_item(request, item_id):
                 product_variant.stock += order_item.quantity
                 product_variant.save()
 
+
                 # Calculate refund amount
-                refund_amount = order_item.quantity * order_item.price
+                order = order_item.order
+                total_items = order.items.count()
+
+                # Calculate per-item discount (divide total discount equally)
+                per_item_discount = Decimal(str(order.discount)) / Decimal(str(total_items))
+
+                # Calculate final refund amount (item price - per item discount)
+                item_total = Decimal(str(order_item.price)) * Decimal(str(order_item.quantity))
+                
+                refund_amount = item_total - per_item_discount
 
                 # Handle refund through wallet
                 try:

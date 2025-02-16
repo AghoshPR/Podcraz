@@ -80,8 +80,6 @@ urlpatterns = [
     path('retry-payment/<int:order_id>/', views.retry_payment, name='retry_payment'),
 
 
-
-
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
