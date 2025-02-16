@@ -1,0 +1,86 @@
+body {
+    background-color: #f0f0f0;
+}
+
+.payment-container {
+    background-color: #f0f0f0;
+    padding: 20px;
+    min-height: 70vh;
+    margin-bottom: 100px;
+}
+
+.section-title {
+    color: #333;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.payment-option {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 15px 20px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: border-color 0.2s;
+}
+
+.payment-option:hover {
+    border-color: #007bff;
+}
+
+.payment-radio {
+    margin-right: 15px;
+}
+
+.product-summary {
+    background-color: white;
+    border-radius: 4px;
+    padding: 20px;
+    height: fit-content;
+}
+
+.product-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.product-image {
+    width: 80px;
+    height: 80px;
+    margin-right: 15px;
+}
+
+.product-details {
+    flex-grow: 1;
+}
+
+.price-details {
+    margin-top: 20px;
+}
+
+.price-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.pay-now-btn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 12px 40px;
+    border-radius: 4px;
+    margin-top: 20px;
+    font-weight: 500;
+}
+
+.form-check-input {
+    width: 20px;
+    height: 20px;
+}

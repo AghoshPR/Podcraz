@@ -11,6 +11,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY')
 
+
+
+RAZORPAY_KEY_ID = config('RAZORPAY_KEY_ID')
+RAZORPAY_KEY_SECRET = config('RAZORPAY_KEY_SECRET')
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -41,7 +46,7 @@ ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
-ACCOUNT_EMAIL_VERIFICATION = 'none'  # Add this to skip email verification initially
+ACCOUNT_EMAIL_VERIFICATION = 'none'  
 SOCIALACCOUNT_ADAPTER = 'user.adapters.CustomSocialAccountAdapter'
 
 SOCIALACCOUNT_AUTO_SIGNUP = True
@@ -50,6 +55,7 @@ SOCIALACCOUNT_LOGIN_ON_GET = True
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -58,6 +64,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
 ]
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 ROOT_URLCONF = 'Podcraze.urls'
 
@@ -109,8 +117,7 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_REDIRECT_URI = 'http://localhost:8000/accounts/google/
 
 
 
-RAZORPAY_KEY_ID = 'rzp_test_LlseCqcfqNogOZ'
-RAZORPAY_KEY_SECRET = '6qjtwcqaNmXeTHSdy1RnOqIO'
+
 
 
 
@@ -123,10 +130,22 @@ DATABASES = {
         'NAME': 'Podcraze',  
         'USER': 'root',     
         'PASSWORD': '1234',  
-        'HOST': 'localhost', 
+        # 'HOST': '127.0.0.1', 
+        'HOST': 'db', 
         'PORT': '3306',      
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': config('MYSQL_DATABASE', default='Podcraze'),
+#         'USER': config('MYSQL_USER', default='root'),
+#         'PASSWORD': config('MYSQL_PASSWORD', default='1234'),
+#         'HOST': config('MYSQL_HOST', default='127.0.0.1'),  # Use service name from docker-compose.yml
+#         'PORT': config('MYSQL_PORT', default='3307'),
+#     }
+# }
 
 
 # Password validation
@@ -166,14 +185,18 @@ USE_TZ = True
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Default
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS=[
-    os.path.join(BASE_DIR,'user/templates'),
-    os.path.join(BASE_DIR,'myadmin/templates'),
+    
     os.path.join(BASE_DIR, 'user/static'),
-    os.path.join(BASE_DIR, 'myadmin/static')
+    os.path.join(BASE_DIR, 'myadmin/static'),
 ]
+
+
+
+
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

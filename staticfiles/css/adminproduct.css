@@ -1,0 +1,32 @@
+.button-group {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Adjust spacing between buttons */
+}
+
+.btn-edit {
+    background-color: #ffeb3b; /* Yellow */
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.btn-remove {
+    background-color: #f44336; /* Red */
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    color: white;
+}
+
+.btn-add-variant {
+    background-color: #4caf50; /* Green */
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    color: white;
+    padding-top: 10px;
+}

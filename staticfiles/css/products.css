@@ -1,0 +1,156 @@
+.filter-sidebar {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.filter-sidebar h5 {
+    margin-bottom: 15px;
+    color: #333;
+    font-weight: 600;
+}
+
+.filter-sidebar ul li {
+    margin-bottom: 10px;
+}
+
+.filter-sidebar .form-select {
+    margin-bottom: 15px;
+}
+
+.filter-sidebar .form-check-input {
+    margin-right: 8px;
+}
+
+.filter-sidebar label {
+    cursor: pointer;
+}
+
+.wishlist-btn {
+    transition: all 0.2s ease;
+}
+
+.wishlist-btn:hover {
+    transform: scale(1.1);
+}
+
+.wishlist-btn .bi-heart {
+    color: #6c757d;
+}
+
+.wishlist-btn .bi-heart-fill {
+    color: #dc3545;
+}
+.wishlist-active {
+    border: 2px solid red;
+    border-radius: 50%;
+    background-color: rgba(255, 0, 0, 0.1);
+}
+.cart-toggle {
+    transition: all 0.3s ease;
+}
+
+.cart-toggle:disabled {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.toast {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+
+.card {
+    border: 1px solid #eee;
+    transition: transform 0.2s;
+    margin-bottom: 20px;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+
+.cart-btn {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    z-index: 1;
+}
+
+.action-buttons {
+    position: absolute;
+    top: 10px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 10px;
+    z-index: 1;
+}
+
+.product-image {
+    padding: 15px;
+    object-fit: contain;
+    max-height: 200px; /* Ensure images don't overflow */
+    width: 100%;
+}
+
+.rating {
+    color: #198754;
+}
+
+.wishlist-btn {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    background: white;
+    border-radius: 50%;
+    padding: 5px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pagination {
+    justify-content: center;
+    margin-top: 2rem;
+    margin-right: 25rem;
+}
+
+.product-title {
+    padding: 0 1rem;
+    margin-top: 0.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.price-container {
+    padding: 0 1rem;
+}
+
+.current-price {
+    font-weight: 600;
+    font-size: 1.25rem;
+}
+
+.original-price {
+    color: #999;
+    font-size: 0.9em;
+}
+
+.discount {
+    color: #ff4444;
+    font-weight: bold;
+    font-size: 0.9em;
+}
+
+.offer-badge {
+    z-index: 1;
+    font-size: 0.8em;
+}
