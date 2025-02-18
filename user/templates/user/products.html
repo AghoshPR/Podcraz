@@ -1,5 +1,6 @@
 {% extends "user/base.html" %}
 {% load static %}
+{% load cloudinary %}
 
 {% block head %}
 <link rel="stylesheet" href="{% static 'css/products.css' %}">
@@ -181,11 +182,11 @@
                             
                             <!-- Display Product Image and Details -->
                             {% with variant.productimage_set.first as image %}
-                            {% if image %}
-                                <img src="{{ image.image_path.url }}" class="card-img-top" alt="{{ variant.product.name }}">
-                            {% else %}
-                                <img src="{% static 'images/default.png' %}" class="card-img-top" alt="{{ variant.product.name }}">
-                            {% endif %}
+                                {% if image %}
+                                    <img src="{{ image.image_path.url }}" class="card-img-top" alt="{{ variant.product.name }}">
+                                {% else %}
+                                    <img src="{% static 'images/default.png' %}" class="card-img-top" alt="{{ variant.product.name }}">
+                                {% endif %}
                             {% endwith %}
                             <h5 class="product-title">{{ variant.product.name }}</h5>
 
@@ -236,6 +237,8 @@
                 </div>
                 {% endfor %}
             </div>
+
+            
             
             <!-- Pagination -->
             <nav aria-label="Product navigation" class="mt-4">

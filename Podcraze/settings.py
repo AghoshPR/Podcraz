@@ -1,5 +1,9 @@
 from decouple import config
 from pathlib import Path,os
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -35,6 +39,8 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     'user',  
     'myadmin',
+    'cloudinary',
+    'cloudinary_storage',
 ]
 
 AUTH_USER_MODEL = 'user.User'
@@ -207,3 +213,20 @@ if not DEBUG:
 
 if not DEBUG:
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Cloudinary configuration
+cloudinary.config( 
+    cloud_name=config('CLOUDINARY_CLOUD_NAME'),
+    api_key=config('CLOUDINARY_API_KEY'),
+    api_secret=config('CLOUDINARY_API_SECRET'),
+    secure=True
+)
+
+# Existing Cloudinary storage configuration
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': config('CLOUDINARY_API_KEY'),
+    'API_SECRET': config('CLOUDINARY_API_SECRET'),
+}
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'

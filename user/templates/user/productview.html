@@ -1,5 +1,6 @@
 {% extends "user/base.html" %}
 {% load static %}
+{% load cloudinary %}
 
 {% block content %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
@@ -22,15 +23,16 @@
             <div class="col-md-6">
                 <div class="product-gallery d-flex">
                     <div class="thumbnail-images">
-                        {% for image in product_images %}
-                            <img src="{{ image.image_path.url }}" alt="Image {{ forloop.counter }}" class="thumbnail" onclick="changeMainImage('{{ image.image_path.url }}')">
+                        {% for image in product_images|slice:":4" %}
+                            <img src="{{ image.image_path.url }}" alt="Image {{ forloop.counter }}" 
+                                class="thumbnail" onclick="changeMainImage('{{ image.image_path.url }}')">
                         {% endfor %}
                     </div>
                     <div class="main-image-container">
                         {% if product_images %}
                             <img src="{{ product_images.0.image_path.url }}" alt="{{ product.name }}" class="main-image" id="main-image">
                         {% else %}
-                            <img src="/static/images/no-image.png" alt="No Image Available" class="main-image" id="main-image">
+                            <img src="{% static 'images/default.png' %}" alt="No Image Available" class="main-image" id="main-image">
                         {% endif %}
                     </div>
                 </div>

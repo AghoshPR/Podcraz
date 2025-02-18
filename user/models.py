@@ -4,6 +4,7 @@ import decimal
 from datetime import timezone
 from django.utils.timezone import now
 from decimal import Decimal
+from cloudinary.models import CloudinaryField
 
 
     
@@ -104,7 +105,7 @@ class ProductVariant(models.Model):
 
 class ProductImage(models.Model):
     product_variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE)
-    image_path = models.ImageField(upload_to='product_images/')
+    image_path = CloudinaryField('image')
     is_deleted = models.BooleanField(default=False)
 
 
