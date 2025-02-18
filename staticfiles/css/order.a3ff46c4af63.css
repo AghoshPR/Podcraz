@@ -1,0 +1,138 @@
+body {
+    background-color: #f0f0f0;
+}
+.sidebar {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.sidebar-menu li {
+    padding: 8px 0;
+    border-bottom: 1px solid #dee2e6;
+}
+.sidebar-menu li:last-child {
+    border-bottom: none;
+}
+.sidebar-menu a {
+    color: #333;
+    text-decoration: none;
+    display: block;
+    padding: 8px 15px;
+    border-radius: 4px;
+}
+.logout-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 4px;
+    width: 100%;
+    margin-top: 15px;
+}
+.main-content {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.order-filters {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+.order-filters input[type="radio"] {
+    margin-right: 5px;
+}
+.clear-filter {
+    margin-left: auto;
+    color: #007bff;
+    text-decoration: none;
+    font-size: 14px;
+}
+.order-container {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    padding: 20px;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.item-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+    align-items: center;
+}
+.item-image {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+.item-details {
+    flex-grow: 1;
+}
+.item-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+.item-quantity, .item-price {
+    color: #666;
+    font-size: 0.9em;
+}
+.order-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #dee2e6;
+}
+.order-info p {
+    font-size: 1 em;
+    font-weight: bold;
+    color: #333;
+    margin: 5px 0;
+}
+.order-actions {
+    margin-top: 15px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+.btn-invoice, .btn-cancel {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    color: white;
+}
+.btn-invoice {
+    background-color: #6c757d;
+}
+.btn-cancel {
+    background-color: #dc3545;
+}
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    gap: 10px;
+}
+.pagination button {
+    border: 1px solid #dee2e6;
+    background: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+}
+.pagination button.active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}

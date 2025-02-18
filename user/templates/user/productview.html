@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
 
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
@@ -89,6 +90,7 @@
                         </h2>
                     </div>
 
+                    
                              
                     <div class="price-container mb-4">
                         {% with offer_price=product_variants.get_offer_price %}
@@ -192,6 +194,8 @@
                 </div>
             </div>
         </div>
+        
+        
 
         <!-- Similar Products -->
         <div class="similar-products mt-5">
@@ -286,6 +290,8 @@
             </div>
         </div>
     </div>
+
+    
 
     <script>
         function changeMainImage(imageUrl) {

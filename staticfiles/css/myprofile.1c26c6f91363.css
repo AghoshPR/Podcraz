@@ -1,0 +1,126 @@
+body {
+    background-color: #f0f0f0;
+}
+.sidebar {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.sidebar-menu li {
+    padding: 8px 0;
+    border-bottom: 1px solid #dee2e6;
+}
+.sidebar-menu li:last-child {
+    border-bottom: none;
+}
+.sidebar-menu a {
+    color: #333;
+    text-decoration: none;
+    display: block;
+    padding: 8px 15px;
+    border-radius: 4px;
+}
+.main-content {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+}
+.logout-btn {
+    background-color: #ff4444;
+    color: white;
+    border: none;
+    padding: 8px;
+    border-radius: 4px;
+    width: 100%;
+}
+
+/* Profile specific styles */
+.profile-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 50%;
+    margin: 0 auto 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-avatar i {
+    font-size: 48px;
+    color: #6c757d;
+}
+
+.edit-profile-text {
+    color: #6c757d;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.profile-info {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 0 auto 20px;  /* Center the div */
+    max-width: 600px;     /* Limit width */
+}
+
+.info-row {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    margin-bottom: 15px;
+    align-items: center;
+}
+
+.info-row:last-child {
+    margin-bottom: 0;
+}
+
+.info-label {
+    color: #495057;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.info-value {
+    color: #212529;
+    font-size: 14px;
+}
+
+.edit-btn {
+    background-color: white; 
+    border: 1px solid #dee2e6;
+    color: #333;
+    padding: 8px 20px;
+    border-radius: 4px;
+    font-size: 14px;
+    display: block;
+    margin: 0 auto;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.edit-btn:hover {
+    background-color: #0e71d4;  
+    color: white; 
+}
+
+.edit-btn i {
+    margin-right: 5px;
+}
+.table-custom {
+    table-layout: fixed;
+    width: 100%;  /* Ensure the table takes up the full width of its container */
+}
+

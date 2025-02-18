@@ -59,10 +59,10 @@
                     {% else %}
                     <a href="{% url 'block_user' user.id %}" class="btn-remove">Block</a>
                     {% endif %}
-                    <form action="{% url 'delete_user' user.id %}" method="POST" style="display: inline;">
+                    <!-- <form action="{% url 'delete_user' user.id %}" method="POST" style="display: inline;">
                         {% csrf_token %}
                         <button type="submit" class="btn-delete">Remove</button>
-                    </form>
+                    </form> -->
                 </td>
             </tr>
             

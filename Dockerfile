@@ -34,6 +34,10 @@ COPY .env .env
 # Collect static files
 RUN python manage.py collectstatic --noinput
 
+# Create media and static directories with proper permissions
+RUN mkdir -p /app/media /app/staticfiles \
+    && chmod -R 755 /app/media /app/staticfiles
+
 # Expose Django's default port
 EXPOSE 8000
 

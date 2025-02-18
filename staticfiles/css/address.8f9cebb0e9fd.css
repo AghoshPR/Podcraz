@@ -1,0 +1,85 @@
+body {
+    background-color: #f0f0f0;
+}
+.sidebar {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.sidebar-menu li {
+    padding: 8px 0;
+    border-bottom: 1px solid #dee2e6;
+}
+.sidebar-menu li:last-child {
+    border-bottom: none;
+}
+.sidebar-menu a {
+    color: #333;
+    text-decoration: none;
+    display: block;
+    padding: 8px 15px;
+    border-radius: 4px;
+}
+.main-content {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+}
+.address-card {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    position: relative;
+}
+.address-actions {
+    position: absolute;
+    right: 15px;
+    top: 15px;
+}
+.address-actions button {
+    background: none;
+    border: none;
+    color: #6c757d;
+    padding: 5px;
+    cursor: pointer;
+}
+.add-address-btn {
+    background-color: transparent;
+    border: 1px solid #dee2e6;
+    color: #333;
+    padding: 8px 20px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+.set-default-btn {
+    background-color: transparent;
+    border: 1px solid #007bff;
+    color: #007bff;
+    padding: 5px 15px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+.default-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    font-size: 12px;
+    margin-bottom: 10px;
+}
+.logout-btn {
+    background-color: #ff4444;
+    color: white;
+    border: none;
+    padding: 8px;
+    border-radius: 4px;
+    width: 100%;
+}
