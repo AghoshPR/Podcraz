@@ -18,7 +18,7 @@ RAZORPAY_KEY_ID = config('RAZORPAY_KEY_ID')
 RAZORPAY_KEY_SECRET = config('RAZORPAY_KEY_SECRET')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
@@ -134,8 +134,8 @@ DATABASES = {
         'NAME': 'Podcraze',  
         'USER': 'root',     
         'PASSWORD': '1234',  
-        'HOST': '127.0.0.1', 
-        # 'HOST': 'db', 
+        # 'HOST': '127.0.0.1', 
+        'HOST': 'db', 
         'PORT': '3306',      
     }
 }
