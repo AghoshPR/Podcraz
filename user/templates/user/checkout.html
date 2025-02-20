@@ -1,5 +1,27 @@
 {% extends "user/base.html" %}
 {%load static%}
+
+{% block search %}
+<!-- Search Section -->
+<div class="container my-4">
+    <p class="text-center fs-5 fw-bold">"Choose the Best, Find Your Perfect Pair of Earbuds in Our Store."</p>
+    <form method="get" action="{% url 'userproducts' %}" class="d-flex justify-content-center">
+        <div class="input-group" style="max-width: 600px;">
+            <span class="input-group-text bg-white border-end-0">
+                <i class="bi bi-search"></i>
+            </span>
+            <input 
+                type="text" 
+                name="q" 
+                class="form-control border-start-0" 
+                placeholder="Search for products..."
+                value="{{ request.GET.q|default:'' }}">
+            <button type="submit" class="btn btn-dark px-4 rounded-end">Search</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/checkout.css' %}">
 

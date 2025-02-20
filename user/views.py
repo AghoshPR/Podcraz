@@ -489,20 +489,40 @@ def userproducts(request):
 
     brands=Brand.objects.all()
 
-    context={
-        'categories':categories,
-        'brands':brands,
-        'product_variants':product_variants,
-        'user_wishlist': user_wishlist,
+    from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
+    # Get the current page number from request
+    page = request.GET.get('page', 1)
+    
+    # Create paginator
+    paginator = Paginator(product_variants, 10)  # Show 10 products per page
+    
+    try:
+        product_variants = paginator.page(page)
+    except PageNotAnInteger:
+        product_variants = paginator.page(1)
+    except EmptyPage:
+        product_variants = paginator.page(paginator.num_pages)
+
+    # Preserve the query parameters
+    query_params = request.GET.copy()
+    if 'page' in query_params:
+        del query_params['page']
+    
+    context = {
+        'categories': categories,
+        'brands': brands,
+        'product_variants': product_variants,
+        'user_wishlist': user_wishlist,
         'selected_categories': selected_categories,
         'selected_brands': selected_brands,
         'price_range': price_range,
         'sort': sort,
         'search_query': search_query,
+        'query_params': query_params.urlencode()
     }
 
-    return render(request,'user/products.html',context)
+    return render(request, 'user/products.html', context)
 
 def userproductview(request, variant_id):
     product_variants = get_object_or_404(ProductVariant, id=variant_id)

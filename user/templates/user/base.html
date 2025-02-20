@@ -39,7 +39,166 @@
             font-weight: bold;
         }
         
-            </style>
+        /* Base responsive styles */
+        .container {
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+
+        /* Search bar responsiveness */
+        @media (max-width: 768px) {
+            .input-group {
+                width: 100%;
+                max-width: 100%;
+            }
+            
+            .navbar-nav {
+                margin-left: 0 !important;
+            }
+        }
+
+        /* General responsive adjustments */
+        @media (max-width: 576px) {
+            .card {
+                margin-bottom: 1rem;
+            }
+            
+            .btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+            
+            .table-responsive {
+                display: block;
+                width: 100%;
+                overflow-x: auto;
+            }
+        }
+
+        /* Sidebar responsiveness */
+        @media (max-width: 768px) {
+            .sidebar {
+                margin-bottom: 2rem;
+            }
+            
+            .main-content {
+                padding: 1rem;
+            }
+        }
+
+        /* Form responsiveness */
+        @media (max-width: 576px) {
+            .form-group {
+                margin-bottom: 1rem;
+            }
+            
+            input[type="text"],
+            input[type="email"],
+            input[type="password"],
+            select,
+            textarea {
+                width: 100%;
+            }
+        }
+
+        /* Card grid responsiveness */
+        @media (max-width: 992px) {
+            .row-cols-md-4 {
+                --bs-rows-per-row: 3;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .row-cols-md-4 {
+                --bs-rows-per-row: 2;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .row-cols-md-4 {
+                --bs-rows-per-row: 1;
+            }
+            
+            .product-card {
+                margin: 0 auto;
+                max-width: 320px;
+            }
+        }
+
+        /* Modal responsiveness */
+        @media (max-width: 576px) {
+            .modal-dialog {
+                margin: 0.5rem;
+            }
+            
+            .modal-content {
+                padding: 1rem;
+            }
+        }
+
+        /* Navigation responsiveness */
+        @media (max-width: 768px) {
+            .navbar-brand {
+                margin-right: 0;
+            }
+            
+            .navbar-toggler {
+                margin-left: auto;
+            }
+            
+            .navbar-collapse {
+                margin-left: 0 !important;
+            }
+        }
+
+        /* Profile and account pages */
+        @media (max-width: 768px) {
+            .profile-info {
+                width: 100% !important;
+                padding: 1rem !important;
+            }
+            
+            .info-row {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+
+        /* Cart and checkout pages */
+        @media (max-width: 768px) {
+            .cart-container,
+            .checkout-container {
+                padding: 1rem;
+            }
+            
+            .product-summary {
+                margin-top: 2rem;
+            }
+            
+            .address-card {
+                padding: 1rem;
+            }
+        }
+
+        /* Order history and details */
+        @media (max-width: 768px) {
+            .order-card {
+                padding: 1rem;
+            }
+            
+            .order-details-container {
+                flex-direction: column;
+            }
+            
+            .product-info {
+                width: 100%;
+            }
+            
+            .timeline-container {
+                margin: 2rem 0;
+            }
+        }
+    </style>
     
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow">
@@ -176,9 +335,9 @@
                 <div class="col-md-3 mb-4">
                     <h5 class="fw-bold mb-3">Account</h5>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><a href="#" class="text-white text-decoration-none">My Account</a></li>
-                        <li class="mb-2"><a href="#" class="text-white text-decoration-none">Orders</a></li>
-                        <li class="mb-2"><a href="#" class="text-white text-decoration-none">Wishlist</a></li>
+                        <li class="mb-2"><a href="{% url 'myprofile' %}" class="text-white text-decoration-none">My Account</a></li>
+                        <li class="mb-2"><a href="{% url 'myorder' %}" class="text-white text-decoration-none">Orders</a></li>
+                        <li class="mb-2"><a href="{% url 'userwishlist' %}" class="text-white text-decoration-none">Wishlist</a></li>
                     </ul>
                 </div>
                 <div class="col-md-3 mb-4">

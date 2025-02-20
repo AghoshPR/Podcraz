@@ -122,20 +122,22 @@
     
 
     <!-- Search Section -->
-
-    
-    
+    <div class="container my-4">
         <p class="text-center fs-5 fw-bold">"Choose the Best, Find Your Perfect Pair of Earbuds in Our Store."</p>
-        <div class="d-flex justify-content-center">
+        <form method="get" action="{% url 'userproducts' %}" class="d-flex justify-content-center">
             <div class="input-group" style="max-width: 600px;">
                 <span class="input-group-text bg-white border-end-0">
                     <i class="bi bi-search"></i>
                 </span>
-                <input type="text" class="form-control border-start-0" placeholder="Search for products...">
-                <button class="btn btn-dark px-4 rounded-end">Search</button>
+                <input 
+                    type="text" 
+                    name="q" 
+                    class="form-control border-start-0" 
+                    placeholder="Search for products..."
+                    value="{{ request.GET.q|default:'' }}">
+                <button type="submit" class="btn btn-dark px-4 rounded-end">Search</button>
             </div>
-        </div>
-      
+        </form>
     </div>
     
     

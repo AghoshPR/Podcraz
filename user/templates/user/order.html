@@ -1,5 +1,27 @@
 {% extends "user/base.html" %}
 {% load static %}
+
+{% block search %}
+<!-- Search Section -->
+<div class="container my-4">
+    <p class="text-center fs-5 fw-bold">"Choose the Best, Find Your Perfect Pair of Earbuds in Our Store."</p>
+    <form method="get" action="{% url 'userproducts' %}" class="d-flex justify-content-center">
+        <div class="input-group" style="max-width: 600px;">
+            <span class="input-group-text bg-white border-end-0">
+                <i class="bi bi-search"></i>
+            </span>
+            <input 
+                type="text" 
+                name="q" 
+                class="form-control border-start-0" 
+                placeholder="Search for products..."
+                value="{{ request.GET.q|default:'' }}">
+            <button type="submit" class="btn btn-dark px-4 rounded-end">Search</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/order.css' %}">
 
@@ -24,20 +46,20 @@
 
   <div class="row">
       <!-- Sidebar -->
-      <div class="col-md-3">
-          <div class="sidebar">
-              <h5>Account</h5>
-              <ul class="sidebar-menu">
-                  <li><a href="{% url 'myprofile' %}">Profile</a></li>
-                  <li><a href="{% url 'address' %}">Addresses</a></li>
-                  <li><a href="{% url 'myorder' %}" class="active">Orders</a></li>
-                  <li><a href="{% url 'wallet' %}">Wallet</a></li>
-                  <li><a href="{% url 'coupon' %}">Coupon</a></li>
-                  <li><a href="{% url 'user_changepass' %}">Change Password</a></li>
-              </ul>
-              <button class="logout-btn">LOGOUT</button>
-          </div>
-      </div>
+      <div class="col-md-3 mb-4">
+        <div class="sidebar">
+            <h5 class="mb-4">Account</h5>
+            <nav class="nav flex-column">
+                <a class="nav-link" href="{% url 'myprofile' %}"><i class="fas fa-user me-2"></i>Profile</a>
+                <a class="nav-link" href="{% url 'address' %}"><i class="fas fa-map-marker-alt me-2"></i>Addresses</a>
+                <a class="nav-link" href="{% url 'myorder' %}"><i class="fas fa-box me-2"></i>Orders</a>
+                <a class="nav-link" href="{% url 'wallet' %}"><i class="fas fa-wallet me-2"></i>Wallet</a>
+                <a class="nav-link active" href="{% url 'coupon' %}"><i class="fas fa-ticket me-2"></i>Coupon</a>
+                <a class="nav-link" href="{% url 'user_changepass' %}"><i class="fas fa-lock me-2"></i>Change Password</a>
+            </nav>
+            <button class="btn btn-danger mt-4 w-100">Logout</button>
+        </div>
+    </div>
 
       <!-- Main Content -->
       <div class="col-md-9">

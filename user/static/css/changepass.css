@@ -7,36 +7,29 @@
 
 /* Sidebar styling */
 .sidebar {
-    background-color: white;
-    padding: 1.5rem;
+    background: white;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 20px;
+    margin-bottom: 20px;
 }
-
-.sidebar h5 {
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.sidebar-menu li {
+    padding: 8px 0;
+    border-bottom: 1px solid #dee2e6;
+}
+.sidebar-menu li:last-child {
+    border-bottom: none;
+}
+.sidebar-menu a {
     color: #333;
-    font-weight: 500;
-    margin-bottom: 1.5rem;
-}
-
-.sidebar .nav-link {
-    color: #666;
-    padding: 0.5rem 0;
-    transition: color 0.3s ease;
-}
-
-.sidebar .nav-link:hover {
-    color: #007bff;
-}
-
-.sidebar .nav-link.active {
-    color: #007bff;
-    font-weight: 500;
-}
-
-.sidebar .nav-link i {
-    width: 20px;
-    margin-right: 10px;
+    text-decoration: none;
+    display: block;
+    padding: 8px 15px;
+    border-radius: 4px;
 }
 
 /* Logout button styling */
