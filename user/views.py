@@ -359,6 +359,7 @@ def userhome(request):
 
 def userlogout(request):
     logout(request)
+    request.session.flush() 
     return redirect('userlogin')
 
 def about(request):

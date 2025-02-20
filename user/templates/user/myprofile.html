@@ -58,8 +58,10 @@
                     <a class="nav-link" href="{% url 'wallet' %}"><i class="fas fa-wallet me-2"></i>Wallet</a>
                     <a class="nav-link active" href="{% url 'coupon' %}"><i class="fas fa-ticket me-2"></i>Coupon</a>
                     <a class="nav-link" href="{% url 'user_changepass' %}"><i class="fas fa-lock me-2"></i>Change Password</a>
+                    
                 </nav>
-                <button class="btn btn-danger mt-4 w-100">Logout</button>
+                <a class="nav-link text-danger fw-bold" href="{% url 'userlogout' %}"><button class="btn btn-danger mt-4 w-100">Logout</button></a>
+                
             </div>
         </div>
 
