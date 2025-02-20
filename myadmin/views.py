@@ -446,6 +446,9 @@ def export_to_pdf(filtered_orders, total_sales, product_discounts, coupon_discou
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename=sales_report.pdf'
 
+    p = canvas.Canvas(response, pagesize=landscape(letter))
+    width, height = landscape(letter) 
+
     doc = SimpleDocTemplate(response, pagesize=landscape(letter))
     elements = []
 
@@ -498,7 +501,8 @@ def export_to_pdf(filtered_orders, total_sales, product_discounts, coupon_discou
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
         ('GRID', (0, 0), (-1, -1), 1, colors.black)
     ]))
-
+    
+  
     elements.append(table)
     doc.build(elements)
     return response

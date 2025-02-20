@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from django.contrib import messages
 from django.http import *
 from django.views.decorators.cache import never_cache
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.decorators.http import require_POST
 import random,smtplib
 from datetime import  timedelta,datetime
@@ -35,6 +35,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from num2words import num2words
 from decimal import Decimal
+from functools import wraps
 
 User = get_user_model()
 
@@ -1048,6 +1049,20 @@ def set_default(request,address_id):
     return redirect('address')
 
 
+def check_user_blocked(user):
+    return user.is_authenticated and user.status != 'Blocked'
+
+def block_check_required(view_func):
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if not check_user_blocked(request.user):
+            logout(request)
+            messages.error(request, "Your account has been blocked. Please contact support for assistance.")
+            return redirect('userlogin')
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
+
+@block_check_required
 def usercheckout(request):
 
     if not request.user.is_authenticated:
@@ -1380,6 +1395,7 @@ def retry_payment(request, order_id):
 
 
 User = get_user_model()
+@block_check_required
 def payment(request):
     if not request.user.is_authenticated:
         return redirect('userlogin')
