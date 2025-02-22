@@ -4,8 +4,8 @@ services:
   db:
     image: mysql:8
     environment:
-      MYSQL_ROOT_PASSWORD: "1234"  # Only set the root password
-      MYSQL_DATABASE: "Podcraze"   # Optional: Create a default database
+      MYSQL_ROOT_PASSWORD: "1234"  
+      MYSQL_DATABASE: "Podcraze"   
     ports:
       - "3306:3306"
     healthcheck:

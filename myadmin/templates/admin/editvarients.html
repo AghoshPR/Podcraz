@@ -4,12 +4,11 @@
 {% block title %}Podcraze{% endblock %}
 
 {% block head %}
-
+<link rel="stylesheet" href="https://unpkg.com/cropperjs/dist/cropper.css">
 <link rel="stylesheet" href="{% static 'css/editproductvariant.css' %}">
 {% endblock %}
+
 {% block content %}
-
-
 {% load custom_filters %}
 
 <div class="content-wrapper">
@@ -30,27 +29,32 @@
 
             <div class="form-group">
                 <label>Stock</label>
-                <input type="number" class="form-control"  min="0" max="9999" name="stock" value="{{ variant.stock }}" required>
+                <input type="number" class="form-control" min="0" max="9999" name="stock" value="{{ variant.stock }}" required>
             </div>
 
             <div class="form-group">
-                {# Display existing images #}
                 {% for image in product_images %}
-                    <div class="image-upload-container">
+                    <div class="image-input-group">
                         <label>Product Image {{ forloop.counter }}</label>
                         {% if image.image_path %}
-                            <img src="{{ image.image_path.url }}" alt="Product Image {{ forloop.counter }}" 
-                                 style="max-width: 100px; max-height: 100px;">
+                            <div class="preview-container" id="preview{{ forloop.counter }}">
+                                <img src="{{ image.image_path.url }}" alt="Product Image {{ forloop.counter }}" 
+                                     style="max-width: 100px; max-height: 100px;">
+                            </div>
                         {% endif %}
-                        <input type="file" name="productImage{{ forloop.counter }}" accept="image/*">
+                        <input type="file" class="product-image" id="productImage{{ forloop.counter }}" 
+                               name="productImage{{ forloop.counter }}" accept="image/*">
                     </div>
                 {% endfor %}
                 
-                {# Add remaining image upload fields #}
                 {% for i in remaining_image_slots %}
-                    <div class="image-upload-container">
+                    <div class="image-input-group">
                         <label>Product Image {{ forloop.counter|add:product_images.count }}</label>
-                        <input type="file" name="productImage{{ forloop.counter|add:product_images.count }}" accept="image/*">
+                        <div class="preview-container" id="preview{{ forloop.counter|add:product_images.count }}"></div>
+                        <input type="file" class="product-image" 
+                               id="productImage{{ forloop.counter|add:product_images.count }}" 
+                               name="productImage{{ forloop.counter|add:product_images.count }}" 
+                               accept="image/*">
                     </div>
                 {% endfor %}
             </div>
@@ -62,4 +66,136 @@
     </div>
 </div>
 
+<!-- Cropper Modal -->
+<div id="cropperModal" class="modal">
+    <div class="modal-content">
+        <div id="cropper-container" class="cropper-container"></div>
+        <button onclick="cropImage()">Crop</button>
+        <button onclick="closeCropPopup()">Close</button>
+    </div>
+</div>
+
+<style>
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.7);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    width: 80%;
+    max-width: 900px;
+}
+
+.cropper-container {
+    max-height: 70vh;
+    margin-bottom: 20px;
+}
+
+.cropper-container img {
+    max-width: 100%;
+    max-height: 60vh;
+}
+
+.preview-container {
+    margin: 10px 0;
+}
+
+.preview-container img {
+    max-width: 200px;
+    max-height: 200px;
+}
+</style>
+
+<script src="https://unpkg.com/cropperjs/dist/cropper.js"></script>
+<script>
+let cropper;
+let currentInput;
+let currentPreview;
+const modal = document.getElementById('cropperModal');
+const cropperContainer = document.getElementById('cropper-container');
+
+// Add event listeners to all image inputs
+document.querySelectorAll('.product-image').forEach(input => {
+    input.addEventListener('change', function(e) {
+        if (this.files && this.files[0]) {
+            currentInput = this;
+            const imageNumber = this.id.replace('productImage', '');
+            currentPreview = document.getElementById('preview' + imageNumber);
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const image = new Image();
+                image.src = e.target.result;
+                image.onload = function() {
+                    modal.style.display = "block";
+                    cropperContainer.innerHTML = '';
+                    cropperContainer.appendChild(image);
+                    
+                    if (cropper) {
+                        cropper.destroy();
+                    }
+                    
+                    cropper = new Cropper(image, {
+                        aspectRatio: 800 / 600,
+                        viewMode: 2,
+                    });
+                };
+            };
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+});
+
+function closeCropPopup() {
+    modal.style.display = "none";
+    if (cropper) {
+        cropper.destroy();
+    }
+}
+
+function cropImage() {
+    const croppedCanvas = cropper.getCroppedCanvas({
+        width: 800,
+        height: 600
+    });
+    
+    // Convert to blob with compression
+    croppedCanvas.toBlob(function(blob) {
+        // Create a File object from the blob
+        const fileName = currentInput.files[0].name;
+        const croppedFile = new File([blob], fileName, { type: 'image/jpeg' });
+        
+        // Create a new FileList-like object
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(croppedFile);
+        currentInput.files = dataTransfer.files;
+        
+        // Show preview
+        currentPreview.innerHTML = '';
+        const previewImg = new Image();
+        previewImg.src = croppedCanvas.toDataURL('image/jpeg', 0.7);
+        previewImg.style.maxWidth = '100px';
+        previewImg.style.maxHeight = '100px';
+        currentPreview.appendChild(previewImg);
+        
+        closeCropPopup();
+    }, 'image/jpeg', 0.7);
+}
+
+// Close modal if user clicks outside
+window.onclick = function(event) {
+    if (event.target == modal) {
+        closeCropPopup();
+    }
+}
+</script>
 {% endblock %}
