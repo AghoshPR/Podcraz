@@ -40,8 +40,11 @@ services:
     image: nginx:alpine
     ports:
       - "80:80"
+      - "443:443"  # Expose HTTPS port
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certbot/conf:/etc/letsencrypt:ro   # SSL certificates
+      - ./certbot/www:/var/www/certbot:ro    # Certbot verification
       - ./media:/app/media:ro
       - ./staticfiles:/app/staticfiles:ro
     depends_on:

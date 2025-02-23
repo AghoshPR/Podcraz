@@ -117,8 +117,8 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-SOCIAL_AUTH_GOOGLE_OAUTH2_REDIRECT_URI = 'http://localhost:8000/accounts/google/login/callback/'
-
+SOCIAL_AUTH_GOOGLE_OAUTH2_REDIRECT_URI = 'https://podcraze.app-demo.live/accounts/google/login/callback/'
+# http://localhost:8000/accounts/google/login/callback/'
 
 
 
