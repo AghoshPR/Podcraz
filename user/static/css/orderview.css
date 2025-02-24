@@ -6,8 +6,6 @@ body {
     height: 80px;
 }
 
-
-
 .sidebar .nav-link {
     color: #333;
     padding: 8px 15px;
@@ -83,4 +81,35 @@ body {
 .status-label {
     font-size: 14px;
     text-align: center;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    .product-img {
+        max-width: 80px;
+    }
+
+    .order-card {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+
+    .status-circle {
+        width: 25px;
+        height: 25px;
+    }
+
+    .status-label {
+        font-size: 12px;
+    }
+
+    .progress {
+        height: 3px;
+    }
+}
+
+@media (max-width: 576px) {
+    .container {
+        padding: 10px;
+    }
 }

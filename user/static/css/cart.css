@@ -143,3 +143,46 @@ body {
     font-size: 14px;
     font-weight: 500;
 }
+
+/* Add this new file for cart responsiveness */
+@media (max-width: 768px) {
+    .cart-container {
+        padding: 10px;
+    }
+
+    .product-info {
+        flex-direction: column;
+    }
+
+    .product-table td {
+        padding: 10px 5px;
+    }
+
+    .item-quantity {
+        width: 40px;
+        padding: 5px;
+    }
+
+    .order-summary {
+        margin-top: 20px;
+    }
+
+    .place-order-btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 576px) {
+    .product-table {
+        font-size: 14px;
+    }
+
+    .product-info img {
+        width: 60px;
+        height: 60px;
+    }
+
+    .remove-link {
+        font-size: 12px;
+    }
+}

@@ -154,3 +154,142 @@
     z-index: 1;
     font-size: 0.8em;
 }
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    /* Filter sidebar for mobile */
+    .col-md-3 {
+        position: fixed;
+        top: 0;
+        left: -100%;
+        width: 85%;
+        height: 100vh;
+        z-index: 1000;
+        background: white;
+        transition: 0.3s;
+        overflow-y: auto;
+        padding: 15px;
+        box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    }
+
+    .col-md-3.active {
+        left: 0;
+    }
+
+    /* Product grid adjustments */
+    .col-md-9 {
+        width: 100%;
+        padding: 10px;
+    }
+
+    .row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        padding: 8px;
+    }
+
+    /* Card adjustments */
+    .card {
+        margin-bottom: 10px;
+    }
+
+    .card-img-top {
+        height: 120px;
+        padding: 8px;
+    }
+
+    .product-title {
+        font-size: 0.85rem;
+        padding: 8px;
+        margin-top: 0;
+    }
+
+    .price-container {
+        padding: 8px;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .current-price {
+        font-size: 0.9rem;
+    }
+
+    .original-price {
+        font-size: 0.8rem;
+    }
+
+    /* Action buttons */
+    .action-buttons {
+        padding: 5px;
+    }
+
+    .wishlist-btn {
+        width: 28px;
+        height: 28px;
+        padding: 4px;
+    }
+
+    .cart-toggle {
+        padding: 4px 8px;
+        font-size: 0.9rem;
+    }
+
+    /* Pagination adjustments */
+    .pagination {
+        margin: 15px 0;
+        justify-content: center;
+        margin-right: 0;
+    }
+
+    .page-link {
+        padding: 0.4rem 0.7rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Small mobile devices */
+@media (max-width: 480px) {
+    .row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .card-img-top {
+        height: 150px;
+    }
+
+    /* Filter toggle button */
+    .filter-toggle {
+        display: block;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 999;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: #0d6efd;
+        color: white;
+        border: none;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Search section */
+    .search-section {
+        padding: 10px;
+    }
+
+    .input-group {
+        width: 100%;
+    }
+
+    /* Toast notification */
+    .toast {
+        margin: 10px;
+        max-width: calc(100% - 20px);
+    }
+}

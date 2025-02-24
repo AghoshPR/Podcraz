@@ -118,7 +118,6 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_REDIRECT_URI = 'https://podcraze.app-demo.live/accounts/google/login/callback/'
-# http://localhost:8000/accounts/google/login/callback/'
 
 
 
@@ -134,8 +133,8 @@ DATABASES = {
         'NAME': 'Podcraze',  
         'USER': 'root',     
         'PASSWORD': '1234',  
-        # 'HOST': '127.0.0.1', 
-        'HOST': 'db', 
+        'HOST': '127.0.0.1', 
+        # 'HOST': 'db',
         'PORT': '3306',      
     }
 }

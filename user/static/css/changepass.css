@@ -95,7 +95,37 @@
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+
+    .password-card {
+        padding: 15px;
+    }
+
+    .form-control {
+        padding: 0.5rem;
+    }
+
+    .save-btn {
+        padding: 0.5rem 1.5rem;
+    }
+
     .sidebar {
-        margin-bottom: 2rem;
+        margin-bottom: 1rem;
+    }
+
+    .password-form .form-group {
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .sidebar {
+        margin-bottom: 1rem;
+    }
+
+    .password-form .form-group {
+        margin-bottom: 1rem;
     }
 }

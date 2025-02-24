@@ -1,10 +1,8 @@
-
-
 html, body {
     height: 100%;
     margin: 0;
-    display: flex;
-    flex-direction: column;
+    padding: 0;
+    overflow-x: hidden;
 }
 
 .page-wrapper {
@@ -22,7 +20,6 @@ footer {
     padding: 20px 0;
 }
 
-
 footer {
     position: relative; 
     bottom: 0;
@@ -36,6 +33,7 @@ footer ul {
     list-style-type: none;
     padding-left: 0;
 }
+
 .navbar-brand img {
     height: 75px;
     width: 75px;
@@ -43,8 +41,6 @@ footer ul {
     object-fit: contain;
     margin: -8px 0; 
 }
-
-
 
 .navbar-brand img {
     height: 90px; 
@@ -61,8 +57,6 @@ footer ul {
 .navbar-nav .nav-link:hover {
     color: rgba(255, 255, 255, 0.9);
 }
-
-
 
 .navbar-toggler {
     font-size: 1.5rem; 
@@ -130,20 +124,35 @@ footer ul {
     z-index: 2;
 }
 
+/* Base styles */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
 
+/* Card Grid Layout */
+.row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 15px;
+    overflow-x: hidden;
+}
 
-
-/* card */
-
+/* Card Styling */
 .card {
     border: none;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s;
     background: white;
-    max-width: 280px; /* Consistent card width */
-    margin: 0 15px; /* Margin between cards */
-    height: 100%; /* Ensure all cards have the same height */
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .card:hover {
@@ -160,9 +169,10 @@ footer ul {
 }
 
 .card-img-top {
-    padding: 15px;
-    height: 200px; /* Consistent image height */
+    width: 100%;
+    height: 200px;
     object-fit: contain;
+    padding: 15px;
 }
 
 .card-body {
@@ -172,23 +182,26 @@ footer ul {
 .product-title {
     font-size: 1rem;
     margin-bottom: 6px;
+    line-height: 1.2;
 }
 
 .price-container {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 4px;
+    margin: 8px 0;
 }
 
 .current-price {
     font-weight: bold;
-    font-size: 1rem;
+    font-size: 1.1rem;
 }
 
 .original-price {
     text-decoration: line-through;
     color: #6c757d;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
 }
 
 .discount {
@@ -203,45 +216,155 @@ footer ul {
     margin-top: 6px;
 }
 
-/* Ensure the cards fit in a single row */
-.row {
-    display: flex;
-    overflow-x: auto; /* Allows horizontal scrolling if needed */
-    justify-content: flex-start;
+/* Banner Styling */
+.banner {
+    width: 100%;
+    margin: 20px 0;
 }
 
-
-/* brands */
-
-.featured-brands {
-   
-    padding: 20px;
+.banner video, .banner img {
+    width: 100%;
+    height: auto;
     border-radius: 8px;
+    object-fit: cover;
+}
+
+/* Search Section */
+.search-section {
+    padding: 15px;
+    margin: 10px auto;
+    max-width: 600px;
+    width: 90%;
+}
+
+/* Featured Brands */
+.featured-brands {
+    padding: 20px;
+    margin: 20px 0;
 }
 
 .brands-container {
-    display: flex; /* Arrange child divs side by side */
-    gap: 20px; /* Space between the child divs */
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    padding: 10px;
 }
 
 .brand-item {
-    flex: 1; /* Each div takes an equal portion of space */
-    aspect-ratio: 1 / 1; /* Make each div a perfect square */
-    display: flex; /* Flexbox for image alignment */
-    align-items: center; /* Vertically center the image */
-    justify-content: center; /* Horizontally center the image */
-    overflow: hidden; /* Ensure the image doesn't overflow the div */
-    background-color: #fff; /* Optional: White background for the div */
-    border-radius: 8px; /* Optional: Rounded corners */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: Shadow for aesthetics */
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 10px;
 }
 
 .brand-logo {
-    width: 100%; /* Image fills the container's width */
-    height: 100%; /* Image fills the container's height */
-    object-fit: cover; /* Ensures the image fully covers the div without distortion */
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
 }
 
+/* Responsive Media Queries */
+@media (max-width: 768px) {
+    .row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        padding: 10px;
+    }
+
+    .card-img-top {
+        height: 150px;
+    }
+
+    .brands-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .banner {
+        margin: 10px 0;
+    }
+}
+
+@media (max-width: 576px) {
+    .row {
+        grid-template-columns: 1fr;
+    }
+
+    .card {
+        max-width: 100%;
+    }
+
+    .brands-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .search-section {
+        width: 95%;
+    }
+}
+
+/* Navigation Responsive */
+@media (max-width: 991.98px) {
+    .navbar-nav {
+        padding: 1rem 0;
+    }
+    
+    .navbar-nav .nav-item {
+        margin: 0.5rem 0;
+    }
+
+    .navbar-brand img {
+        height: 60px;
+        width: 60px;
+    }
+}
+
+/* Special Offer Banner */
+.special-offer {
+    position: relative;
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 20px 0;
+}
+
+.special-offer img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+}
+
+.special-offer-content {
+    position: absolute;
+    top: 50%;
+    left: 5%;
+    transform: translateY(-50%);
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+/* Add to Cart & Wishlist Buttons */
+.card-footer {
+    background: transparent;
+    border-top: none;
+    padding: 10px;
+    margin-top: auto;
+}
+
+.wishlist-btn {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    z-index: 1;
+    background: white;
+    border-radius: 50%;
+    padding: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
 
 /* wishlist */
 .btn-outline-danger.active i {
