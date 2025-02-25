@@ -20,7 +20,22 @@ RAZORPAY_KEY_SECRET = config('RAZORPAY_KEY_SECRET')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost','podcraze.app-demo.live',"www.podcraze.app-demo.live"]
+
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://podcraze.app-demo.live",
+    "https://www.podcraze.app-demo.live"
+]
+
+
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+
+
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 
 
 # Application definition
