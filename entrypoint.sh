@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/bin/bash
+set -e
 
 echo "Waiting for database to be ready..."
 while ! nc -z db 3306; do

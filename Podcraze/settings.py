@@ -9,7 +9,7 @@ import cloudinary.api
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# SECURITY WARNING: keep the secret key used in production secret!
+
 SECRET_KEY = config('SECRET_KEY')
 
 
@@ -17,13 +17,15 @@ SECRET_KEY = config('SECRET_KEY')
 RAZORPAY_KEY_ID = config('RAZORPAY_KEY_ID')
 RAZORPAY_KEY_SECRET = config('RAZORPAY_KEY_SECRET')
 
-# SECURITY WARNING: don't run with debug turned on in production!
+CSRF_TRUSTED_ORIGINS = ['https://podcraze.app-demo.live', 'http://127.0.0.1:8000' ,'https://api.razorpay.com']
+
+
 DEBUG = False
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost','13.201.73.133','podcraze.app-demo.live']
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -105,7 +107,7 @@ AUTHENTICATION_BACKENDS = [
 LOGIN_REDIRECT_URL = 'userhome'
 LOGOUT_REDIRECT_URL = '/'
 
-#Google Client ID and Secret from GCP
+
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
@@ -118,15 +120,15 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_REDIRECT_URI = 'https://podcraze.app-demo.live/accounts/google/login/callback/'
+                                        
 # http://localhost:8000/accounts/google/login/callback/'
 
 
 
 
 
-
 # Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
+
 
 DATABASES = {
     'default': {
@@ -174,7 +176,7 @@ USE_TZ = True
 
 
 
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Default
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  
@@ -197,11 +199,11 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Add this for production
+
 if not DEBUG:
     STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
 
-# For production
+
 if not DEBUG:
     STORAGES = {
         "default": {
@@ -215,7 +217,7 @@ if not DEBUG:
 if not DEBUG:
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Cloudinary configuration
+
 cloudinary.config( 
     cloud_name=config('CLOUDINARY_CLOUD_NAME'),
     api_key=config('CLOUDINARY_API_KEY'),
@@ -223,7 +225,7 @@ cloudinary.config(
     secure=True
 )
 
-# Existing Cloudinary storage configuration
+
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME'),
     'API_KEY': config('CLOUDINARY_API_KEY'),

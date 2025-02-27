@@ -1,4 +1,6 @@
-#!/bin/sh
+#!/usr/bin/env bash
+
+set -e
 
 echo "Waiting for database to be ready..."
 while ! nc -z db 3306; do
@@ -6,14 +8,13 @@ while ! nc -z db 3306; do
 done
 echo "Database is ready!"
 
-# Run migrations
-echo "Running database migrations..."
-python manage.py makemigrations --noinput
-python manage.py migrate --noinput
-
 # Collect static files
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
+
+# Apply database migrations
+echo "Running database migrations..."
+python manage.py migrate
 
 # Start Gunicorn server
 echo "Starting Gunicorn..."

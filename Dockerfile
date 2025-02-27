@@ -43,5 +43,5 @@ EXPOSE 8000
 # Copy the wait-for-db script
 COPY wait-for-db.sh /wait-for-db.sh
 RUN chmod +x /wait-for-db.sh
-
 ENTRYPOINT ["/wait-for-db.sh"]
+

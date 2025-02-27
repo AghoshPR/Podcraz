@@ -1,0 +1,155 @@
+[33mcommit 27305ae683e0873ab2546012b9094df4541fb3db[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m)[m
+Author: Aghosh <aghosh@gmail.com>
+Date:   Wed Feb 26 02:00:05 2025 +0530
+
+    Save changes before checkout
+
+[33mcommit 6ac354bafc555910c38e9b5656c3c9dda6169aa8[m
+Author: Aghosh <aghosh@gmail.com>
+Date:   Mon Feb 24 11:06:30 2025 +0530
+
+    updated nginx
+
+[33mcommit 59928118e88cb0727fe4b5e8fc455c27a2168ffb[m
+Author: Aghosh <aghosh@gmail.com>
+Date:   Sun Feb 23 15:22:12 2025 +0530
+
+    port
+
+[33mcommit b01995976fbe90bb8e6beb4f58c09fa5256481ec[m
+Author: Aghosh <aghosh@gmail.com>
+Date:   Sun Feb 23 13:48:52 2025 +0530
+
+    SSL Part
+
+[33mcommit 00904f11c1f98cabfdccecabcc1f799db6de0801[m[33m ([m[1;32mupdatednew-code[m[33m)[m
+Author: Aghosh <aghosh@gmail.com>
+Date:   Sat Feb 22 15:26:11 2025 +0530
+
+    code updated
+
+[33mcommit 6119cbf6be9ebfbdc8eb225b2a2cbca0b21732f9[m
+Author: Aghosh <aghosh@gmail.com>
+Date:   Thu Feb 20 15:41:45 2025 +0530
+
+    middleware aadded
+
+[33mcommit 8c54351e2e62a351152fa3ae73604e2000c9a5df[m
+Author: Aghosh <aghosh@gmail.com>
+Date:   Thu Feb 20 15:23:33 2025 +0530
+
+    User block Updated
+
+[33mcommit 701196d64cecbbf571cfa74cf6ea8a40b2256b19[m
+Author: Aghosh <aghosh@gmail.com>
+Date:   Thu Feb 20 14:25:20 2025 +0530
+
+    style udpated
+
+[33mcommit 9ef8c772a57e065ea06fad0c2eacb845b8aecf56[m
+Author: Aghosh <aghosh@gmail.com>
+Date:   Thu Feb 20 12:15:16 2025 +0530
+
+    Full code updated
+
+[33mcommit 339f81569eb64598af80b65335f3e28af07344fe[m
+Author: Aghosh <aghosh@gmail.com>
+Date:   Tue Feb 18 18:46:39 2025 +0530
+
+    image_issue_solved
+
+[33mcommit b92df748abdc5ba9e740abebdd3f5818178595b5[m
+Author: Aghosh <aghosh@gmail.com>
+Date:   Tue Feb 18 10:04:57 2025 +0530
+
+    last_updated
+
+[33mcommit b0d571f1d519de8b26e2ef55ffac9095fa339565[m
+Author: AghoshPR <aghoshpr03@gmail.com>
+Date:   Sun Feb 16 21:10:20 2025 +0530
+
+    errorpage_issue_solved
+
+[33mcommit 8296a84776233e089378664d8389f8d362a40cf5[m
+Author: AghoshPR <aghoshpr03@gmail.com>
+Date:   Sun Feb 16 18:45:30 2025 +0530
+
+    Few_changes
+
+[33mcommit 681dc36f2e16866e59bced75df492a0d40143131[m
+Author: AghoshPR <aghoshpr03@gmail.com>
+Date:   Sun Feb 16 15:57:19 2025 +0530
+
+    Completed
+
+[33mcommit 1fda3f2ac1e2c2c57d54042681a4d5cbeea39e40[m
+Author: AghoshPR <aghoshpr03@gmail.com>
+Date:   Wed Feb 12 19:05:11 2025 +0530
+
+    completed
+
+[33mcommit 20e2dbcc7f258c4bd35fc5e07ff92293f5f43a19[m
+Author: AghoshPR <aghoshpr03@gmail.com>
+Date:   Tue Feb 11 11:27:14 2025 +0530
+
+    Week4_Completed
+
+[33mcommit 4f7f3dc51d764f41b575a470b488ef6a9dc3b35a[m
+Author: AghoshPR <aghoshpr03@gmail.com>
+Date:   Sat Feb 8 18:44:26 2025 +0530
+
+    AdminDashboard
+
+[33mcommit 50853537c8665ba4f417d3c57fba879c01f41212[m
+Author: AghoshPR <aghoshpr03@gmail.com>
+Date:   Fri Jan 31 17:46:19 2025 +0530
+
+    last commit
+
+[33mcommit 6a18b7eaf795ea07755df21c495c6371e25a07b3[m
+Author: AghoshPR <aghoshpr03@gmail.com>
+Date:   Thu Jan 30 12:43:45 2025 +0530
+
+    week3Completed
+
+[33mcommit 44975de6b9bcc4809a105afd9a90214ef2ab26dc[m
+Author: AghoshPR <aghoshpr03@gmail.com>
+Date:   Thu Jan 23 10:08:58 2025 +0530
+
+    Week 2 Completed
+
+[33mcommit 0d8785186ab27fe336c53c70dd5ff3a501e8fd34[m
+Author: AghoshPR <aghoshpr03@gmail.com>
+Date:   Mon Jan 20 18:28:19 2025 +0530
+
+    Week 2 done
+
+[33mcommit ff87b702656e3e45aa91eebc68a07c74d59fb345[m
+Author: AghoshPR <aghoshpr03@gmail.com>
+Date:   Wed Jan 15 16:09:24 2025 +0530
+
+    whislist_addtocart_done
+
+[33mcommit 5008c30aef72969b2a8e4b778eb09a7f46fde818[m
+Author: AghoshPR <aghoshpr03@gmail.com>
+Date:   Sat Jan 11 16:48:43 2025 +0530
+
+    week 1
+
+[33mcommit 68f39e74ec561368df28c96bf68d220e2d7055e2[m
+Author: AghoshPR <aghoshpr03@gmail.com>
+Date:   Fri Jan 10 20:57:59 2025 +0530
+
+    third commit
+
+[33mcommit 3ec676169173f77dd22185eea1d8578c79ef7c70[m
+Author: AghoshPR <aghoshpr03@gmail.com>
+Date:   Wed Jan 8 18:39:28 2025 +0530
+
+    add_product/add_product_variants
+
+[33mcommit 19261426ba4baf99a652a10d6ec92c11635c2a3a[m
+Author: AghoshPR <aghoshpr03@gmail.com>
+Date:   Tue Jan 7 16:11:50 2025 +0530
+
+    first commit

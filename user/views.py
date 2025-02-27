@@ -1253,7 +1253,7 @@ def checkout_address(request):
 razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 # Razorpay Callback View
 
-
+RAZORPAY_SECRET = "mysecurewebhook123"
 @csrf_exempt
 def razorpay_callback(request):
     if request.method == "POST":

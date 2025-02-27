@@ -41,7 +41,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow">
         <div class="container">
             <!-- Logo -->
-            <a class="navbar-brand" href="#">
+            <a class="navbar-brand" href="{% url 'userhome' %}">
                 <img src="{% static 'images/back_remove_logo.png' %}" alt="Logo" width="70" height="50">
             </a>
     
@@ -346,21 +346,25 @@
             <!-- Parent Div -->
             <div class="brands-container d-flex justify-content-between">
                 <!-- Brand 1 -->
-                <div class="brand-item">
+               
+                <a class="brand-item" href="{% url 'userproducts' %}">
                     <img src="{% static 'images/Brands/boat.jpg' %}" alt="Boat" class="brand-logo">
-                </div>
+                </a>
                 <!-- Brand 2 -->
-                <div class="brand-item">
+               
+                <a class="brand-item" href="{% url 'userproducts' %}">
                     <img src="{% static 'images/Brands/realme.png' %}" alt="Realme" class="brand-logo">
-                </div>
+                </a>
                 <!-- Brand 3 -->
-                <div class="brand-item">
+                
+                <a class="brand-item" href="{% url 'userproducts' %}">
                     <img src="{% static 'images/Brands/mivi.jpeg' %}" alt="Mivi" class="brand-logo">
-                </div>
+                </a>
                 <!-- Brand 4 -->
-                <div class="brand-item">
+                
+                <a class="brand-item" href="{% url 'userproducts' %}">
                     <img src="{% static 'images/Brands/JBL.png' %}" alt="Noise" class="brand-logo">
-                </div>
+                </a>
             </div>
         </div>
     </div>
@@ -382,26 +386,23 @@
             <div class="row">
                 <div class="col-md-3 mb-4">
                     <h5 class="fw-bold mb-3">Exclusive</h5>
-                    <p class="">Subscribe for updates</p>
-                    <div class="input-group">
-                        <input type="email" class="form-control" placeholder="Enter email">
-                        <button class="btn btn-primary">Subscribe</button>
-                    </div>
+                    <p class="">Podcraze@gmail.com</p>
+                    
                 </div>
                 <div class="col-md-3 mb-4">
                     <h5 class="fw-bold mb-3">Support</h5>
                     <ul class="list-unstyled">
                         <li class="mb-2"><a href="#" class="text-white text-decoration-none">Help Center</a></li>
-                        <li class="mb-2"><a href="#" class="text-white text-decoration-none">Contact Us</a></li>
+                        <li class="mb-2"><a href="{% url 'about' %}" class="text-white text-decoration-none">About</a></li>
                         <li class="mb-2"><a href="#" class="text-white text-decoration-none">FAQs</a></li>
                     </ul>
                 </div>
                 <div class="col-md-3 mb-4">
                     <h5 class="fw-bold mb-3">Account</h5>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><a href="#" class="text-white text-decoration-none">My Account</a></li>
-                        <li class="mb-2"><a href="#" class="text-white text-decoration-none">Orders</a></li>
-                        <li class="mb-2"><a href="#" class="text-white text-decoration-none">Wishlist</a></li>
+                        <li class="mb-2"><a href="{% url 'myprofile' %}" class="text-white text-decoration-none">My Account</a></li>
+                        <li class="mb-2"><a href="{% url 'myorder' %}" class="text-white text-decoration-none">Orders</a></li>
+                        <li class="mb-2"><a href="{% url 'userwishlist' %}" class="text-white text-decoration-none">Wishlist</a></li>
                     </ul>
                 </div>
                 <div class="col-md-3 mb-4">
@@ -409,7 +410,7 @@
                     <ul class="list-unstyled">
                         <li class="mb-2"><a href="#" class="text-white text-decoration-none">Privacy Policy</a></li>
                         <li class="mb-2"><a href="#" class="text-white text-decoration-none">Terms of Service</a></li>
-                        <li class="mb-2"><a href="#" class="text-white text-decoration-none">Shipping</a></li>
+                        
                     </ul>
                 </div>
             </div>
