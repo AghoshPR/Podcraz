@@ -1,5 +1,6 @@
 from decouple import config
-from pathlib import Path,os
+from pathlib import Path
+import os
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
@@ -135,9 +136,9 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'Podcraze',  
         'USER': 'root',     
-        'PASSWORD': '1234',  
-        # 'HOST': '127.0.0.1', 
-        'HOST': 'db', 
+        'PASSWORD': '12345',  
+        'HOST': '127.0.0.1', 
+        # 'HOST': 'db', 
         'PORT': '3306',      
     }
 }

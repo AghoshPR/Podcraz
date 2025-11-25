@@ -167,9 +167,9 @@ document.querySelector('form').addEventListener('submit', function(e) {
     })
     .then(response => response.text())
     .then(html => {
-        // Replace the entire page content with the response
+        
         document.documentElement.innerHTML = html;
-        // Update the URL to reflect the new page
+        
         history.pushState({}, '', '{% url "order_success" %}');
     })
     .catch(error => {
