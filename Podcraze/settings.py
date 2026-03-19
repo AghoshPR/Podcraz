@@ -134,15 +134,13 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_REDIRECT_URI = 'https://podcraze.app-demo.live/account
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'Podcraze',  
-        'USER': 'root',     
-        'PASSWORD': '12345',  
-        'HOST': '127.0.0.1', 
-        # 'HOST': 'db', 
-        'PORT': '3306',      
+        'NAME': config('DB_NAME'),
+        'USER': config('DB_USER'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST'),
+        'PORT': config('DB_PORT'),
     }
 }
-
 
 
 
