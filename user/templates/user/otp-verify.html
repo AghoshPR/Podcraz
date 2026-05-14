@@ -21,6 +21,8 @@
                     clearInterval(interval);
                     countdownElement.innerHTML = "<span class='text-danger'>OTP Expired</span>";
                     document.getElementById('resend-button').style.display = "block";
+                    document.getElementById('mail-otp').disabled = true;
+                    document.getElementById('submit-button').disabled = true;
                 } else {
                     countdownElement.innerHTML = remainingTime + " seconds remaining";
                     remainingTime--;
@@ -36,6 +38,8 @@
             } else {
                 document.getElementById('countdown').innerHTML = "<span class='text-danger'>OTP Expired</span>";
                 document.getElementById('resend-button').style.display = "block";
+                document.getElementById('mail-otp').disabled = true;
+                document.getElementById('submit-button').disabled = true;
             }
         };
     </script>
@@ -100,9 +104,16 @@
                 transition: all 0.3s ease;
             }
         
-            .btn-primary:hover {
+            .btn-primary:hover:not(:disabled) {
                 background: linear-gradient(45deg, #00a0dc, #0056b3);
                 transform: translateY(-2px);
+            }
+
+            .btn-primary:disabled {
+                background: rgba(255, 255, 255, 0.2);
+                color: rgba(255, 255, 255, 0.5);
+                cursor: not-allowed;
+                transform: none;
             }
         
             .btn-outline-secondary {
@@ -132,9 +143,11 @@
         </style>
     
             {% if messages %}
-            <div class="alert alert-danger">
+            <div class="alert-container w-100 text-center mb-3">
                 {% for message in messages %}
-                    <p class="mb-0">{{ message }}</p>
+                    <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %} p-2">
+                        <p class="mb-0">{{ message }}</p>
+                    </div>
                 {% endfor %}
             </div>
             {% endif %}
@@ -154,7 +167,7 @@
                 </div>
 
                 <div class="text-center">
-                    <button type="submit" class="btn btn-primary w-100 mb-2" name="action" value="submit">Submit</button>
+                    <button type="submit" class="btn btn-primary w-100 mb-2" name="action" value="submit" id="submit-button">Submit</button>
                     <button type="submit" class="btn btn-outline-secondary w-100" name="action" value="resend" id="resend-button" style="display: none;">Resend OTP</button>
                 </div>
             </form>

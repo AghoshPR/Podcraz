@@ -1243,15 +1243,20 @@ def request_handle(request, order_item_id):
                
                 
                 order = order_item.order
-                total_items = order.items.count()
-
                 
-                per_item_discount = Decimal(str(order.discount)) / Decimal(str(total_items))
-
+                # Calculate total order value before discount
+                order_subtotal = sum(Decimal(str(item.price)) * Decimal(str(item.quantity)) for item in order.items.all())
                 
+                # Calculate this item's total
                 item_total = Decimal(str(order_item.price)) * Decimal(str(order_item.quantity))
                 
-                refund_amount = item_total - per_item_discount
+                if order_subtotal > 0:
+                    proportional_discount = (item_total / order_subtotal) * Decimal(str(order.discount))
+                else:
+                    proportional_discount = Decimal('0')
+                    
+                refund_amount = item_total - proportional_discount
+                refund_amount = refund_amount.quantize(Decimal('0.01'))
 
                 
                 wallet, created = Wallet.objects.get_or_create(

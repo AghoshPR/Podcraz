@@ -7,6 +7,9 @@ import random,time
 from email.message import EmailMessage
 import smtplib
 from django.contrib import messages
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 #forgot password otp
@@ -31,11 +34,25 @@ def send_otp(request):
             config('EMAIL_HOST_PASSWORD')
         )
 
+        try:
+            user_obj = User.objects.get(email=mail)
+            name = user_obj.first_name or "User"
+        except User.DoesNotExist:
+            name = "User"
+
         msg = EmailMessage()
-        msg['Subject'] = 'OTP Verification'
+        msg['Subject'] = 'Podcraze - Password Reset OTP'
         msg['From'] = config('EMAIL_HOST_USER')
         msg['To'] = mail
-        msg.set_content(f'Your OTP is: {otp}')
+        msg.set_content(
+            f'Hello {name},\n\n'
+            f'We received a request to reset the password for your Podcraze account.\n\n'
+            f'Your OTP for password reset is: {otp}\n\n'
+            f'If you did not request a password reset, please ignore this email or contact support if you have concerns. '
+            f'This code will expire in 1 minute. Do not share this OTP with anyone.\n\n'
+            f'Best regards,\n'
+            f'The Podcraze Team'
+        )
         
         server.send_message(msg)
 
@@ -45,16 +62,21 @@ def send_otp(request):
     return render(request, 'user/forgot_password.html')
 
 def otp_verify(request):
+    time_otp=request.session.get('forgotpass_otp_time')
+    otp_time_parsed=parse_datetime(time_otp) if time_otp else None
+
+    if otp_time_parsed:
+        elapsed=(now() - otp_time_parsed).seconds
+        remaining_time=max(60 - elapsed,0)
+    else:
+        remaining_time=0
 
     if request.POST:
         action=request.POST.get('action')
         entered_otp = request.POST.get('mail-otp')
         original_otp= request.session.get('forgotpass_otp')
-        time_otp=request.session.get('forgotpass_otp_time')
 
-        otp_time_parsed=parse_datetime(time_otp)
-
-        if not otp_time_parsed or now() > otp_time_parsed + timedelta(minutes=1):
+        if not otp_time_parsed or remaining_time <= 0:
             if action=='resend':
                 new_otp = ''.join(str(random.randint(0,9)) for _ in range(4))
                 request.session['forgotpass_otp'] = new_otp
@@ -68,11 +90,25 @@ def otp_verify(request):
                 server.starttls()
                 server.login(config('EMAIL_HOST_USER'), config('EMAIL_HOST_PASSWORD'))
 
+                try:
+                    user_obj = User.objects.get(email=mail)
+                    name = user_obj.first_name or "User"
+                except User.DoesNotExist:
+                    name = "User"
+
                 msg = EmailMessage()
-                msg['Subject'] = 'Forgot Password OTP Verification'
+                msg['Subject'] = 'Podcraze - New Password Reset OTP'
                 msg['From'] = config('EMAIL_HOST_USER')
                 msg['To'] = mail
-                msg.set_content(f'Your new OTP is: {new_otp}')
+                msg.set_content(
+                    f'Hello {name},\n\n'
+                    f'You have requested a new OTP to reset the password for your Podcraze account.\n\n'
+                    f'Your new OTP is: {new_otp}\n\n'
+                    f'If you did not request a password reset, please ignore this email. '
+                    f'This code will expire in 1 minute. Do not share this OTP with anyone.\n\n'
+                    f'Best regards,\n'
+                    f'The Podcraze Team'
+                )
 
                 server.send_message(msg)
                 server.quit()
@@ -88,30 +124,21 @@ def otp_verify(request):
 
         if not entered_otp:
             messages.error(request, 'Please enter the OTP.')
-            return render(request, 'user/otp-verify.html')
+            return render(request, 'user/otp-verify.html', {'remaining_time': remaining_time})
 
         if not entered_otp.isdigit():
             messages.error(request, 'OTP must contain only numbers.')
-            return render(request, 'user/otp-verify.html')
+            return render(request, 'user/otp-verify.html', {'remaining_time': remaining_time})
         
         if len(entered_otp) != 4:
             messages.error(request, 'OTP must be exactly 4 digits.')
-            return render(request, 'user/otp-verify.html')
+            return render(request, 'user/otp-verify.html', {'remaining_time': remaining_time})
 
         if entered_otp == original_otp:
             return redirect('reset_password')
         else:
             messages.error(request,'Invalid OTP. Please try again')
-
-    
-    time_otp=request.session.get('forgotpass_otp_time')
-    otp_time_parsed=parse_datetime(time_otp)
-
-    if otp_time_parsed:
-        elapsed=(now() - otp_time_parsed).seconds
-        remaining_time=max(60 - elapsed,0)
-    else:
-        remaining_time=0
+            return render(request, 'user/otp-verify.html', {'remaining_time': remaining_time})
 
     return render(request,'user/otp-verify.html',{'remaining_time': remaining_time})
 

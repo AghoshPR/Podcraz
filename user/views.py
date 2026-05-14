@@ -167,10 +167,18 @@ def signup(request):
             server.login(config('EMAIL_HOST_USER'), config('EMAIL_HOST_PASSWORD'))
 
             msg = EmailMessage()
-            msg['Subject'] = 'Signup OTP Verification'
+            msg['Subject'] = 'Podcraze - Signup OTP Verification'
             msg['From'] = config('EMAIL_HOST_USER')
             msg['To'] = usrEmail  
-            msg.set_content(f'Your OTP is: {otp}')
+            msg.set_content(
+                f'Hello {fname},\n\n'
+                f'Welcome to Podcraze! We are excited to have you on board.\n\n'
+                f'Your OTP for account registration is: {otp}\n\n'
+                f'Please use this OTP to complete your signup process. This code will expire in 1 minute. '
+                f'Do not share this OTP with anyone.\n\n'
+                f'Best regards,\n'
+                f'The Podcraze Team'
+            )
 
             server.send_message(msg)
             server.quit()
@@ -183,29 +191,33 @@ def signup(request):
 
 
 def signup_otp(request):
+    otp_time = request.session.get('reg_otp_time')
+    otp_time_parsed = parse_datetime(otp_time) if otp_time else None
+    if otp_time_parsed:
+        elapsed = (now() - otp_time_parsed).seconds
+        remaining_time = max(60 - elapsed, 0)
+    else:
+        remaining_time = 0
 
     if request.POST:
-
         action=request.POST.get('action')
         if action=='submit':
             entered_otp=request.POST.get('signup-otp')
             original_otp=request.session.get('reg_otp')
-            otp_time=request.session.get('reg_otp_time')
 
             if not entered_otp:
                 messages.error(request, 'OTP field is required.')
-                return render(request, 'user/otp-signup.html')
+                return render(request, 'user/otp-signup.html', {'remaining_time': remaining_time})
             
             if not entered_otp.isdigit():
                 messages.error(request, 'OTP must contain only numbers.')
-                return render(request, 'user/otp-signup.html')
+                return render(request, 'user/otp-signup.html', {'remaining_time': remaining_time})
             
             if len(entered_otp) != 4:
                 messages.error(request, 'OTP must be exactly 4 digits.')
-                return render(request, 'user/otp-signup.html')
+                return render(request, 'user/otp-signup.html', {'remaining_time': remaining_time})
 
-            otp_time_parsed = parse_datetime(otp_time)
-            if not otp_time_parsed or now() > otp_time_parsed + timedelta(minutes=1):
+            if not otp_time_parsed or remaining_time <= 0:
                 messages.error(request, 'OTP has expired. Please resend OTP.')
                 return render(request, 'user/otp-signup.html', {'remaining_time': 0})
 
@@ -230,8 +242,8 @@ def signup_otp(request):
                 return redirect('userlogin')
                 
             else:
-                messages.error(request,'Ivalid OTP. Please Try Again')
-                return render(request, 'user/otp-signup.html')
+                messages.error(request,'Invalid OTP. Please Try Again')
+                return render(request, 'user/otp-signup.html', {'remaining_time': remaining_time})
             
         elif action == 'resend':
             otp = ''.join(str(random.randint(0, 9)) for _ in range(4))
@@ -246,11 +258,20 @@ def signup_otp(request):
             server.starttls()
             server.login(config('EMAIL_HOST_USER'), config('EMAIL_HOST_PASSWORD'))
 
+            fname = request.session.get('reg_firstname', 'User')
             msg = EmailMessage()
-            msg['Subject'] = 'New Signup OTP'
+            msg['Subject'] = 'Podcraze - New Signup OTP'
             msg['From'] = config('EMAIL_HOST_USER')
             msg['To'] = request.session.get('reg_email')
-            msg.set_content(f'Your new OTP is: {otp}')
+            msg.set_content(
+                f'Hello {fname},\n\n'
+                f'You have requested a new OTP for your Podcraze account registration.\n\n'
+                f'Your new OTP is: {otp}\n\n'
+                f'Please use this OTP to complete your signup process. This code will expire in 1 minute. '
+                f'Do not share this OTP with anyone.\n\n'
+                f'Best regards,\n'
+                f'The Podcraze Team'
+            )
 
             server.send_message(msg)
             server.quit()
@@ -258,15 +279,6 @@ def signup_otp(request):
             messages.success(request, 'A new OTP has been sent to your email.')
             return redirect('signup_otp')
         
-    otp_time = request.session.get('reg_otp_time')
-    otp_time_parsed = parse_datetime(otp_time)
-    if otp_time_parsed:
-        elapsed = (now() - otp_time_parsed).seconds
-        remaining_time = max(60 - elapsed, 0)
-    else:
-        remaining_time = 0
-
-
     return render(request,'user/otp-signup.html',{'remaining_time': remaining_time})
 
 ########### user login and signup ###############
@@ -2007,17 +2019,22 @@ def cancel_order_item(request, item_id):
                 product_variant.save()
 
 
-                # Calculate refund amount
+                # Calculate refund amount proportionally
                 order = order_item.order
-                total_items = order.items.count()
-
-                # Calculate per-item discount (divide total discount equally)
-                per_item_discount = Decimal(str(order.discount)) / Decimal(str(total_items))
-
-                # Calculate final refund amount (item price - per item discount)
+                
+                # Calculate total order value before discount
+                order_subtotal = sum(Decimal(str(item.price)) * Decimal(str(item.quantity)) for item in order.items.all())
+                
+                # Calculate this item's total
                 item_total = Decimal(str(order_item.price)) * Decimal(str(order_item.quantity))
                 
-                refund_amount = item_total - per_item_discount
+                if order_subtotal > 0:
+                    proportional_discount = (item_total / order_subtotal) * Decimal(str(order.discount))
+                else:
+                    proportional_discount = Decimal('0')
+                    
+                refund_amount = item_total - proportional_discount
+                refund_amount = refund_amount.quantize(Decimal('0.01'))
 
                 # Handle refund through wallet
                 try:

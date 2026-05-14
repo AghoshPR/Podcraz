@@ -66,12 +66,18 @@
             margin-bottom: 1rem;
         }
 
-        .form-control:focus {
+        .form-control:focus:not(:disabled) {
             background: rgba(255, 255, 255, 0.15);
             border-color: rgba(255, 255, 255, 0.3);
             color: white;
             outline: none;
             box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.1);
+        }
+
+        .form-control:disabled {
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.3);
+            cursor: not-allowed;
         }
 
         .btn-primary {
@@ -87,9 +93,16 @@
             margin-bottom: 0.5rem;
         }
 
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             background: linear-gradient(45deg, #00a0dc, #0056b3);
             transform: translateY(-2px);
+        }
+
+        .btn-primary:disabled {
+            background: rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.5);
+            cursor: not-allowed;
+            transform: none;
         }
 
         .btn-secondary {
@@ -125,11 +138,22 @@
         }
 
         .alert {
-            background-color: rgba(255, 0, 0, 0.1);
-            color: #ff6b6b;
             padding: 0.5rem;
             border-radius: 0.25rem;
             text-align: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .alert-danger {
+            background-color: rgba(255, 0, 0, 0.1);
+            color: #ff6b6b;
+            border: 1px solid #ff6b6b;
+        }
+
+        .alert-success {
+            background-color: rgba(0, 255, 0, 0.1);
+            color: #28a745;
+            border: 1px solid #28a745;
         }
     </style>
     <script>
@@ -143,6 +167,8 @@
                     clearInterval(interval);
                     countdownElement.innerHTML = "<span class='text-danger'>OTP Expired</span>";
                     document.getElementById('resend-button').style.display = "block";
+                    document.getElementById('signup-otp').disabled = true;
+                    document.getElementById('submit-button').disabled = true;
                 } else {
                     countdownElement.innerHTML = remainingTime + " seconds remaining";
                     remainingTime--;
@@ -157,15 +183,17 @@
             } else {
                 document.getElementById('countdown').innerHTML = "<span class='text-danger'>OTP Expired</span>";
                 document.getElementById('resend-button').style.display = "block";
+                document.getElementById('signup-otp').disabled = true;
+                document.getElementById('submit-button').disabled = true;
             }
         };
     </script>
 </head>
 <body>
     {% if messages %}
-    <div class="alert-container">
+    <div class="alert-container" style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 500px; z-index: 100;">
         {% for message in messages %}
-        <div class="alert">
+        <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %}">
             {{ message }}
         </div>
         {% endfor %}
@@ -181,7 +209,7 @@
                 {% csrf_token %}
                 <label for="signup-otp">Enter OTP:</label>
                 <input type="text" name="signup-otp" id="signup-otp" class="form-control">
-                <button type="submit" class="btn-primary" name="action" value="submit">Submit</button>
+                <button type="submit" class="btn-primary" name="action" value="submit" id="submit-button">Submit</button>
                 <button type="submit" class="btn-secondary" name="action" value="resend" id="resend-button" style="display: none;">Resend OTP</button>
             </form>
 
