@@ -1,4 +1,4 @@
-from decouple import config
+from decouple import config,Csv
 from pathlib import Path
 import os
 import cloudinary
@@ -18,14 +18,17 @@ SECRET_KEY = config('SECRET_KEY')
 RAZORPAY_KEY_ID = config('RAZORPAY_KEY_ID')
 RAZORPAY_KEY_SECRET = config('RAZORPAY_KEY_SECRET')
 
-CSRF_TRUSTED_ORIGINS = ['https://podcraze.app-demo.live', 'http://127.0.0.1:8000' ,'https://api.razorpay.com']
+CSRF_TRUSTED_ORIGINS = [ 'https://podcraze.aghosh.site' ,'https://api.razorpay.com']
 
 
-DEBUG = False
+DEBUG = config("DEBUG", default=False, cast=bool)
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost','13.201.73.133','podcraze.app-demo.live']
+ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=Csv())
 
+USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+
 
 
 INSTALLED_APPS = [

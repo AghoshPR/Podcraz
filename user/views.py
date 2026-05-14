@@ -93,51 +93,58 @@ def signup(request):
             usrPassword = request.POST.get('usr_password', '').strip()
             usrConfirmPassword = request.POST.get('usr_cpassword', '').strip()
 
+            context = {
+                'fname': fname,
+                'lname': lname,
+                'usrPhone': usrPhone,
+                'usrEmail': usrEmail,
+            }
+
             if not all([fname,lname,usrPhone,usrEmail,usrPassword,usrConfirmPassword]):
                 messages.error(request,"all fileds are Required!")
-                return render(request,'user/signup.html')
+                return render(request,'user/signup.html', context)
             
             if not fname.isalpha():
                 messages.error(request,"First name must only contain alphabets.")
-                return render(request,'user/signup.html')
+                return render(request,'user/signup.html', context)
             
             if not lname.isalpha():
                 messages.error(request,"Last name must only contain alphabets.")
-                return render(request,'user/signup.html')
+                return render(request,'user/signup.html', context)
             
             email_validate=r'^[\w\.-]+@[\w\.-]+\.\w+$'
             if not re.match(email_validate,usrEmail):
                 messages.error(request,"Invalid Email format.")
-                return render(request,'user/signup.html')
+                return render(request,'user/signup.html', context)
 
             if User.objects.filter(email=usrEmail).exists():
                 messages.error(request, "User with this email already exists.")
-                return render(request,'user/signup.html')
+                return render(request,'user/signup.html', context)
             
             phone_validate = r'^[1-9]\d{9}$'
             if not re.match(phone_validate, usrPhone):
                 messages.error(request, "Invalid phone number. Must be 10 digits and cannot start with 0.")
-                return render(request, 'user/signup.html')
+                return render(request, 'user/signup.html', context)
 
             if usrPassword != usrConfirmPassword:
                 messages.error(request,'Enter password correctly')
-                return render(request,'user/signup.html')
+                return render(request,'user/signup.html', context)
             
             if len(usrPassword) < 8:
                 messages.error(request, "Password must be at least 8 characters long.")
-                return render(request, 'user/signup.html')
+                return render(request, 'user/signup.html', context)
             
             if not re.search(r'[A-Za-z]', usrPassword):
                 messages.error(request, "Password must contain at least one letter.")
-                return render(request, 'user/signup.html')
+                return render(request, 'user/signup.html', context)
             
             if not re.search(r'[0-9]', usrPassword):
                 messages.error(request, "Password must contain at least one number.")
-                return render(request, 'user/signup.html')
+                return render(request, 'user/signup.html', context)
             
             if not re.search(r'[!@#$%^&*(),.?":{}|<>]', usrPassword):
                 messages.error(request, "Password must contain at least one special character.")
-                return render(request, 'user/signup.html')
+                return render(request, 'user/signup.html', context)
             
             
             
@@ -219,7 +226,7 @@ def signup_otp(request):
                     phone=phone
                 )            
                 usr.save()
-                messages.error(request,'User Registered Successfully')
+                messages.success(request,'User Registered Successfully')
                 return redirect('userlogin')
                 
             else:
@@ -816,23 +823,39 @@ def myprofile(request):
             return redirect('myprofile')
 
         try:
+            updated_fields = []
             
-            user.first_name = first_name
-            user.last_name = last_name
-            user.save()
-
-            
+            if user.first_name != first_name:
+                user.first_name = first_name
+                updated_fields.append('First name')
+                
+            if user.last_name != last_name:
+                user.last_name = last_name
+                updated_fields.append('Last name')
+                
+            if updated_fields:
+                user.save()
+                
             if default_address:
-                default_address.city = city
-                default_address.save()
+                if default_address.city != city:
+                    default_address.city = city
+                    default_address.save()
+                    updated_fields.append('City')
             elif city:
                 Address.objects.create(
                     user=user,
                     city=city,
                     is_default=True
                 )
+                updated_fields.append('City')
 
-            messages.success(request, 'Profile updated successfully!')
+            if updated_fields:
+                msg = " and ".join(updated_fields) if len(updated_fields) <= 2 else ", ".join(updated_fields[:-1]) + " and " + updated_fields[-1]
+                msg += " edited successfully!"
+                messages.success(request, msg)
+            else:
+                messages.info(request, "No changes were made.")
+                
         except Exception as e:
             messages.error(request, 'An error occurred while updating your profile.')
             

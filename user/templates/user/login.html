@@ -15,15 +15,15 @@
     <link rel="icon" type="image/jpg" href="{% static 'images/back_remove_logo.png' %}">
 </head>
 <body>
-        {% if messages %}
+    {% if messages %}
     <div class="alert-container">
         {% for message in messages %}
-            <div class="alert alert-danger">
+            <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %}">
                 {{ message }}
             </div>
         {% endfor %}
     </div>
-        {% endif %}
+    {% endif %}
       
 
     <div class="container">
