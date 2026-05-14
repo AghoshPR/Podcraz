@@ -80,7 +80,15 @@
                                             {% elif item.status == 'return_rejected' %}fas fa-ban
                                             {% endif %}">
                                         </i>
-                                        {{ item.status|title }}
+                                        {% if item.status == 'return_pending' %}
+                                            Return Requested
+                                        {% elif item.status == 'return_approved' %}
+                                            Return Approved
+                                        {% elif item.status == 'return_rejected' %}
+                                            Return Rejected
+                                        {% else %}
+                                            {{ item.status|title }}
+                                        {% endif %}
                                     </span>
                                 </div>
                             </div>
@@ -332,6 +340,7 @@
     font-size: 0.9rem;
     font-weight: 500;
     gap: 8px;
+    white-space: nowrap;
 }
 
 .status-icon {

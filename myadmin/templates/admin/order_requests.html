@@ -43,7 +43,10 @@
                 <td>{{ item.return_reason }}</td>
                 <td>
                     <span class="status-badge status-{{ item.status|lower }}">
-                        {{ item.status|title }}
+                        {% if item.status == 'return_pending' %}Return Requested
+                        {% elif item.status == 'return_approved' %}Return Approved
+                        {% elif item.status == 'return_rejected' %}Return Rejected
+                        {% else %}{{ item.status|title }}{% endif %}
                     </span>
                 </td>
                 <td>
@@ -88,10 +91,13 @@
     }
 
     .status-badge {
-        padding: 4px 8px;
+        padding: 6px 12px;
         border-radius: 4px;
         font-size: 0.85em;
         font-weight: 500;
+        white-space: nowrap;
+        display: inline-block;
+        text-align: center;
     }
 
     .status-pending {

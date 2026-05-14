@@ -102,7 +102,10 @@
                             {% elif order_item.status == 'shipped' %}text-primary
                             {% elif order_item.status == 'delivered' %}text-success
                             {% endif %}">
-                            {{ order_item.status|title }}
+                            {% if order_item.status == 'return_pending' %}Return Requested
+                            {% elif order_item.status == 'return_approved' %}Return Approved
+                            {% elif order_item.status == 'return_rejected' %}Return Rejected
+                            {% else %}{{ order_item.status|title }}{% endif %}
                         </p>
                     </div>
 

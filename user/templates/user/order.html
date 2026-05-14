@@ -186,7 +186,12 @@
                                   <h6 class="product-name">{{ item.product_variant.product.name }}</h6>
                                   <p class="variant-details">Color: {{ item.product_variant.color }}</p>
                                   <p class="quantity">Quantity: {{ item.quantity }}</p>
-                                  <p class="item-status">Status: {{ item.status|title }}</p>
+                                  <p class="item-status">Status: 
+                                      {% if item.status == 'return_pending' %}Return Requested
+                                      {% elif item.status == 'return_approved' %}Return Approved
+                                      {% elif item.status == 'return_rejected' %}Return Rejected
+                                      {% else %}{{ item.status|title }}{% endif %}
+                                  </p>
                                   <p class="item-price">
                                       {% with offer_price=item.product_variant.get_offer_price %}
                                           {% if offer_price %}
