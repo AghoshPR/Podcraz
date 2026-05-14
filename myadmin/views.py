@@ -1121,7 +1121,9 @@ def adminorders(request):
         'order__payment_method',
         'product_variant',
         'product_variant__product'
-    ).all().order_by('-order__created_at')
+    ).exclude(
+        status__in=['cancelled', 'return_pending', 'return_approved', 'return_rejected']
+    ).order_by('-order__created_at')
 
     
     if search_query:

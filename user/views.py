@@ -2036,35 +2036,38 @@ def cancel_order_item(request, item_id):
                 refund_amount = item_total - proportional_discount
                 refund_amount = refund_amount.quantize(Decimal('0.01'))
 
-                # Handle refund through wallet
-                try:
-                    wallet, created = Wallet.objects.get_or_create(
-                        user=request.user,
-                        defaults={'balance': Decimal('0')}
-                    )
-                    
-                    # Update wallet balance
-                    wallet.balance += refund_amount
-                    wallet.save()
+                # Handle refund through wallet only if paid via prepaid methods
+                if order.payment_method.name in ['wallet', 'razorpay']:
+                    try:
+                        wallet, created = Wallet.objects.get_or_create(
+                            user=request.user,
+                            defaults={'balance': Decimal('0')}
+                        )
+                        
+                        # Update wallet balance
+                        wallet.balance += refund_amount
+                        wallet.save()
 
-                    # Create wallet transaction
-                    WalletTransaction.objects.create(
-                        wallet=wallet,
-                        type='credit',
-                        amount=refund_amount,
-                        product=order_item.product_variant.product,
-                        order=order_item.order
-                    )
+                        # Create wallet transaction
+                        WalletTransaction.objects.create(
+                            wallet=wallet,
+                            type='credit',
+                            amount=refund_amount,
+                            product=order_item.product_variant.product,
+                            order=order_item.order
+                        )
 
-                    messages.success(
-                        request, 
-                        f'Item cancelled successfully. Rs {refund_amount:.2f} refunded to wallet.'
-                    )
-                except Exception as e:
-                    messages.error(
-                        request, 
-                        f'Item cancelled but refund failed. Please contact support. Error: {str(e)}'
-                    )
+                        messages.success(
+                            request, 
+                            f'Item cancelled successfully. Rs {refund_amount:.2f} refunded to wallet.'
+                        )
+                    except Exception as e:
+                        messages.error(
+                            request, 
+                            f'Item cancelled but refund failed. Please contact support. Error: {str(e)}'
+                        )
+                else:
+                    messages.success(request, 'Item cancelled successfully.')
             else:
                 messages.error(request, 'This item cannot be cancelled.')
         else:
