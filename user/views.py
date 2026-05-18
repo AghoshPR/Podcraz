@@ -695,10 +695,12 @@ def add_to_cart(request):
 
             # Update quantity
             new_quantity = cart_item.quantity + quantity
-            if new_quantity > 4:
+            
+            max_allowed = min(4, product_variant.stock)
+            if new_quantity > max_allowed:
                 return JsonResponse({
                     'status': 'error',
-                    'message': 'Cannot add more than 4 items of this product'
+                    'message': f'Cannot add more than {max_allowed} items of this product'
                 })
             
             if new_quantity < 1:
@@ -737,9 +739,10 @@ def update_cart_item(request):
 
         if action == 'increase':
             
-            if cart_item.quantity + 1 > 4:
-                messages.error(request, 'cant add more than 4 product')
-                return JsonResponse({'status': 'error', 'message': 'You cannot add more than 4 of this product to the cart'}, status=400)
+            max_allowed = min(4, cart_item.product_variant.stock)
+            if cart_item.quantity + 1 > max_allowed:
+                messages.error(request, f'Cannot add more than {max_allowed} product(s)')
+                return JsonResponse({'status': 'error', 'message': f'You cannot add more than {max_allowed} of this product to the cart'}, status=400)
             cart_item.quantity += 1
 
         elif action == 'decrease' and cart_item.quantity > 1:

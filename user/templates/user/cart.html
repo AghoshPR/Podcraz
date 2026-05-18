@@ -10,11 +10,7 @@
             <span class="input-group-text bg-white border-end-0">
                 <i class="bi bi-search"></i>
             </span>
-            <input 
-                type="text" 
-                name="q" 
-                class="form-control border-start-0" 
-                placeholder="Search for products..."
+            <input type="text" name="q" class="form-control border-start-0" placeholder="Search for products..."
                 value="{{ request.GET.q|default:'' }}">
             <button type="submit" class="btn btn-dark px-4 rounded-end">Search</button>
         </div>
@@ -30,164 +26,172 @@
         <li class="breadcrumb-item"><a href="{% url 'userhome' %}" class="text-decoration-none">Home</a></li>
         <li class="breadcrumb-item"><a href="{% url 'userproducts' %}" class="text-decoration-none">Products</a></li>
         <li class="breadcrumb-item"><a href="{% url 'usercart' %}" class="text-decoration-none">Cart</a></li>
-        
+
     </ol>
-    </nav>
+</nav>
 
 {% csrf_token %}
 
 
 <body>
-{% csrf_token %}
-{% if messages %}
-<div class="alert-container">
-    {% for message in messages %}
+    {% csrf_token %}
+    {% if messages %}
+    <div class="alert-container">
+        {% for message in messages %}
         <div class="alert alert-success">
             {{ message }}
         </div>
-    {% endfor %}
-</div>
+        {% endfor %}
+    </div>
     {% endif %}
 
 
-<div class="cart-container">
-    <div class="container">
-        <h2 class="cart-header">Shopping Cart</h2>
-        
-        <div class="row">
-            <!-- Cart Items Section -->
-            <div class="col-lg-8">
-                <div class="product-section bg-white p-4 rounded shadow-sm">
-                    <table class="table product-table">
-                        <thead>
-                            <tr>
-                                <th scope="col" width="50%">Product</th>
-                                <th scope="col">Price</th>
-                                <th scope="col">Quantity</th>
-                                <th scope="col">Total</th>
-                            </tr>
-                        </thead>    
-                        <tbody>
-                            {% for item in cart_items %}
-                            <tr data-item-id="{{ item.id }}">
-                                <!-- Product Info -->
-                                <td>
-                                    <div class="product-info">
-                                        <img src="{{ item.product_variant.productimage_set.first.image_path.url }}" 
-                                             class="product-image" 
-                                             alt="{{ item.product_variant.product.name }}">
-                                        <div>
-                                            <h6 class="mb-1">{{ item.product_variant.product.name }}</h6>
+    <div class="cart-container">
+        <div class="container">
+            <h2 class="cart-header">Shopping Cart</h2>
+
+            <div class="row">
+                <!-- Cart Items Section -->
+                <div class="col-lg-8">
+                    <div class="product-section bg-white p-4 rounded shadow-sm">
+                        <table class="table product-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col" width="50%">Product</th>
+                                    <th scope="col">Price</th>
+                                    <th scope="col">Quantity</th>
+                                    <th scope="col">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in cart_items %}
+                                <tr data-item-id="{{ item.id }}">
+                                    <!-- Product Info -->
+                                    <td>
+                                        <div class="product-info">
+                                            <img src="{{ item.product_variant.productimage_set.first.image_path.url }}"
+                                                class="product-image" alt="{{ item.product_variant.product.name }}">
+                                            <div>
+                                                <h6 class="mb-1">{{ item.product_variant.product.name }}</h6>
                                                 {% if item.product_variant.stock == 0 %}
                                                 <small class="text-danger">Out of stock</small><br>
-                                                {% elif item.quantity > item.product_variant.stock %}
-                                                    <small class="text-warning">Only {{ item.product_variant.stock }} available</small><br>
+                                                {% elif item.product_variant.stock <= 10 %}
+                                                <small class="text-warning">Limited Stock ({{ item.product_variant.stock }} left)</small><br>
                                                 {% else %}
-                                                    <small class="text-success">In stock</small><br>
+                                                <small class="text-success">In stock</small><br>
                                                 {% endif %}
-                                                <a href="#" class="remove-link" data-item-id="{{ item.id }}">Remove</a>             
+                                                <a href="#" class="remove-link" data-item-id="{{ item.id }}">Remove</a>
                                             </div>
-                                    </div>
-                                </td>
-                                <!-- Price -->
-                                <td class="item-price">
-                                    {% with offer_price=item.product_variant.get_offer_price %}
+                                        </div>
+                                    </td>
+                                    <!-- Price -->
+                                    <td class="item-price">
+                                        {% with offer_price=item.product_variant.get_offer_price %}
                                         {% if offer_price %}
-                                            <span class="current-price">₹{{ offer_price|floatformat:2 }}</span>
-                                            <span class="original-price text-decoration-line-through ms-2">₹{{ item.product_variant.price }}</span>
-                                            
-                                        {% else %}
-                                            ₹{{ item.product_variant.price }}
-                                        {% endif %}
-                                    {% endwith %}
-                                </td>
-                                <!-- Quantity Control -->
-                                <td>
-                                    <div class="quantity-control">
-                                        <button class="decrease-quantity" data-item-id="{{ item.id }}">-</button>
-                                        <input type="text" value="{{ item.quantity }}" class="item-quantity" readonly>
-                                        <button class="increase-quantity" data-item-id="{{ item.id }}">+</button>
-                                    </div>
-                                </td>
-                                <!-- Total Price -->
-                                <td class="item-total">
-                                    {% with offer_price=item.product_variant.get_offer_price %}
-                                        {% if offer_price %}
-                                            ₹{{ item.get_total_price|floatformat:2 }}
-                                        {% else %}
-                                            ₹{{ item.get_total_price|floatformat:2 }}
-                                        {% endif %}
-                                    {% endwith %}
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="4" class="text-center py-4">
-                                    <p class="mb-3">Your cart is empty!</p>
-                                    <a href="{% url 'userhome' %}" class="btn btn-primary">Continue Shopping</a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                                        <span class="current-price">₹{{ offer_price|floatformat:2 }}</span>
+                                        <span class="original-price text-decoration-line-through ms-2">₹{{
+                                            item.product_variant.price }}</span>
 
-            <!-- Order Summary Section -->
-            <div class="col-lg-4">
-                <div class="order-summary">
-                    <div class="summary-title">ORDER SUMMARY</div>
-                    <div class="summary-row">
-                        <span>Item Subtotal</span>
-                        <span class="cart-subtotal">₹{{ total_price|floatformat:2 }}</span>
+                                        {% else %}
+                                        ₹{{ item.product_variant.price }}
+                                        {% endif %}
+                                        {% endwith %}
+                                    </td>
+                                    <!-- Quantity Control -->
+                                    <td>
+                                        <div class="quantity-control">
+                                            <button class="decrease-quantity" data-item-id="{{ item.id }}">-</button>
+                                            <input type="text" value="{{ item.quantity }}" class="item-quantity"
+                                                readonly>
+                                            <button class="increase-quantity" data-item-id="{{ item.id }}"
+                                                data-stock="{{ item.product_variant.stock }}">+</button>
+                                        </div>
+                                    </td>
+                                    <!-- Total Price -->
+                                    <td class="item-total">
+                                        {% with offer_price=item.product_variant.get_offer_price %}
+                                        {% if offer_price %}
+                                        ₹{{ item.get_total_price|floatformat:2 }}
+                                        {% else %}
+                                        ₹{{ item.get_total_price|floatformat:2 }}
+                                        {% endif %}
+                                        {% endwith %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-4">
+                                        <p class="mb-3">Your cart is empty!</p>
+                                        <a href="{% url 'userhome' %}" class="btn btn-primary">Continue Shopping</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
-                    <div class="summary-row">
-                        <span>Shipping</span>
-                        <span class="text-success">Free</span>
+                </div>
+
+                <!-- Order Summary Section -->
+                <div class="col-lg-4">
+                    <div class="order-summary">
+                        <div class="summary-title">ORDER SUMMARY</div>
+                        <div class="summary-row">
+                            <span>Item Subtotal</span>
+                            <span class="cart-subtotal">₹{{ total_price|floatformat:2 }}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Shipping</span>
+                            <span class="text-success">Free</span>
+                        </div>
+                        <hr>
+                        <div class="summary-row">
+                            <strong>Total</strong>
+                            <strong class="cart-total">₹{{ total_price|floatformat:2 }}</strong>
+                        </div>
+                        <a href="{% url 'usercheckout' %}"><button class="place-order-btn">PLACE ORDER</button></a>
                     </div>
-                    <hr>
-                    <div class="summary-row">
-                        <strong>Total</strong>
-                        <strong class="cart-total">₹{{ total_price|floatformat:2 }}</strong>
-                    </div>
-                    <a href="{% url 'usercheckout' %}"><button class="place-order-btn">PLACE ORDER</button></a>
                 </div>
             </div>
         </div>
     </div>
-</div>
 </body>
 
 
 <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
 
-    <div id="removeItemToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div id="removeItemToast" class="toast align-items-center text-white bg-success border-0" role="alert"
+        aria-live="assertive" aria-atomic="true">
         <div class="d-flex">
             <div class="toast-body">
                 Item removed from cart successfully
             </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                aria-label="Close"></button>
         </div>
     </div>
 
 
     <!-- Toast for maximum quantity -->
-    <div id="maxQuantityToast" class="toast align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div id="maxQuantityToast" class="toast align-items-center text-white bg-danger border-0" role="alert"
+        aria-live="assertive" aria-atomic="true">
         <div class="d-flex">
             <div class="toast-body">
                 Cannot add more than 4 products
             </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                aria-label="Close"></button>
         </div>
     </div>
 
     <!-- Toast for minimum quantity -->
-    <div id="minQuantityToast" class="toast align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div id="minQuantityToast" class="toast align-items-center text-white bg-danger border-0" role="alert"
+        aria-live="assertive" aria-atomic="true">
         <div class="d-flex">
             <div class="toast-body">
                 Quantity cannot be less than 1
             </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                aria-label="Close"></button>
         </div>
     </div>
 </div>
@@ -195,7 +199,7 @@
 
 
 <script>
-    
+
     document.addEventListener('DOMContentLoaded', function () {
         // Handle increase and decrease quantity buttons
         document.querySelectorAll('.increase-quantity, .decrease-quantity').forEach(button => {
@@ -203,17 +207,23 @@
                 const itemId = this.dataset.itemId;
                 const action = this.classList.contains('increase-quantity') ? 'increase' : 'decrease';
                 const row = this.closest('tr');
-                
+
 
                 const currentQuantity = parseInt(row.querySelector('.item-quantity').value);
-                
+
                 // Check maximum quantity
-                if (action === 'increase' && currentQuantity >= 4) {
-                    const toast = new bootstrap.Toast(document.getElementById('maxQuantityToast'));
-                    toast.show();
-                    return;
+                if (action === 'increase') {
+                    const stock = parseInt(this.dataset.stock);
+                    const maxQuantity = Math.min(4, stock);
+                    if (currentQuantity >= maxQuantity) {
+                        const toastElement = document.getElementById('maxQuantityToast');
+                        toastElement.querySelector('.toast-body').textContent = `Cannot add more than ${maxQuantity} product(s)`;
+                        const toast = new bootstrap.Toast(toastElement);
+                        toast.show();
+                        return;
+                    }
                 }
-                
+
                 // Check minimum quantity
                 if (action === 'decrease' && currentQuantity <= 1) {
                     const toast = new bootstrap.Toast(document.getElementById('minQuantityToast'));
@@ -226,7 +236,7 @@
                 formData.append('item_id', itemId);
                 formData.append('action', action);
                 formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
-        
+
                 fetch('/update-cart-item/', {
                     method: 'POST',
                     body: formData,
@@ -235,12 +245,12 @@
                     .then(data => {
                         if (data.status === 'success') {
                             // Update the quantity
-                            
+
                             row.querySelector('.item-quantity').value = data.quantity;
-        
+
                             // Update the item's total price
                             row.querySelector('.item-total').textContent = `₹${parseFloat(data.item_total).toFixed(2)}`;
-        
+
                             // Update the cart's subtotal and total in the summary section
                             document.querySelector('.cart-subtotal').textContent = `₹${parseFloat(data.cart_total).toFixed(2)}`;
                             document.querySelector('.cart-total').textContent = `₹${parseFloat(data.cart_total).toFixed(2)}`;
@@ -254,7 +264,7 @@
             });
         });
     });
-    
+
 
 
 
@@ -263,14 +273,14 @@
         document.querySelectorAll('.remove-link').forEach(link => {
             link.addEventListener('click', function (e) {
                 e.preventDefault();
-                
+
                 const itemId = this.dataset.itemId;
                 const row = this.closest('tr');
-    
+
                 const formData = new FormData();
                 formData.append('item_id', itemId);
                 formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
-    
+
                 fetch('/remove-cart-item/', {
                     method: 'POST',
                     body: formData,
@@ -278,23 +288,23 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'success') {
-                            
+
                             const toast = new bootstrap.Toast(document.getElementById('removeItemToast'));
                             toast.show();
-    
-                           
+
+
                             row.style.transition = 'opacity 0.3s ease-out';
                             row.style.opacity = '0';
                             setTimeout(() => {
                                 row.remove();
-    
-                               
+
+
                                 const cartTotalElements = document.querySelectorAll('.cart-subtotal, .cart-total');
                                 cartTotalElements.forEach(element => {
                                     element.textContent = `₹${parseFloat(data.cart_total).toFixed(2)}`;
                                 });
-    
-                                
+
+
                                 if (data.item_count === 0) {
                                     document.querySelector('.product-table tbody').innerHTML = `
                                         <tr>
@@ -307,14 +317,14 @@
                                 }
                             }, 300);
                         } else {
-                            
+
                             const toast = new bootstrap.Toast(document.getElementById('errorToast'));
                             toast.show();
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
-                       
+
                         const toast = new bootstrap.Toast(document.getElementById('errorToast'));
                         toast.show();
                     });
