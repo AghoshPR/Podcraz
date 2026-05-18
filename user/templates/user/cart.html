@@ -89,8 +89,7 @@
                                         {% with offer_price=item.product_variant.get_offer_price %}
                                         {% if offer_price %}
                                         <span class="current-price">₹{{ offer_price|floatformat:2 }}</span>
-                                        <span class="original-price text-decoration-line-through ms-2">₹{{
-                                            item.product_variant.price }}</span>
+                                        <span class="original-price text-decoration-line-through ms-2">₹{{ item.product_variant.price }}</span>
 
                                         {% else %}
                                         ₹{{ item.product_variant.price }}

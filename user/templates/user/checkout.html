@@ -120,7 +120,17 @@
                             <h6>{{ item.product_variant.product.name }}</h6>
                             <small>Color: {{ item.product_variant.color }}</small><br>
                             <small>Quantity: {{ item.quantity }}</small><br>
-                            <strong>₹ {{ item.get_total_price|floatformat:2 }}</strong>
+                            <div class="price-info mb-1" style="font-size: 0.9rem;">
+                                {% with offer_price=item.product_variant.get_offer_price %}
+                                {% if offer_price %}
+                                    <span class="current-price text-dark fw-semibold">₹{{ offer_price|floatformat:2 }}</span>
+                                    <span class="original-price text-decoration-line-through text-muted ms-2" style="font-size: 0.85em;">₹{{ item.product_variant.price }}</span>
+                                {% else %}
+                                    <span class="text-dark">₹{{ item.product_variant.price }}</span>
+                                {% endif %}
+                                {% endwith %}
+                            </div>
+                            <strong>Total: ₹{{ item.get_total_price|floatformat:2 }}</strong>
                         </div>
                     </div>
                     {% endfor %}

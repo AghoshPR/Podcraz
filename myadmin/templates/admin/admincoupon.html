@@ -96,6 +96,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <div class="alert alert-danger d-none modal-error-alert" role="alert"></div>
                 <form method="POST" action="{% url 'addcoupon' %}">
                     {% csrf_token %}
                     <div class="row">
@@ -154,6 +155,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <div class="alert alert-danger d-none modal-error-alert" role="alert"></div>
                 <form method="POST" action="{% url 'edit_coupon' coupon.id %}">
                     {% csrf_token %}
                     <div class="row">
@@ -211,5 +213,64 @@
     </div>
 </div>
 {% endfor %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const forms = document.querySelectorAll("div.modal form");
+    forms.forEach(form => {
+        form.addEventListener("submit", function (event) {
+            event.preventDefault(); // Prevent standard submission
+
+            const formData = new FormData(form);
+            const actionUrl = form.getAttribute("action") || window.location.href;
+            const modalElement = form.closest(".modal");
+            const errorAlert = modalElement.querySelector(".modal-error-alert");
+
+            // Hide previous errors
+            if (errorAlert) {
+                errorAlert.classList.add("d-none");
+                errorAlert.textContent = "";
+            }
+
+            fetch(actionUrl, {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    // Redirect to the success url
+                    window.location.href = data.redirect_url || window.location.href;
+                } else {
+                    // Show error inside modal
+                    if (errorAlert) {
+                        errorAlert.textContent = data.message || "An error occurred.";
+                        errorAlert.classList.remove("d-none");
+                        
+                        // Scroll the modal body/content to top so the error alert is visible
+                        const modalBody = modalElement.querySelector(".modal-body");
+                        if (modalBody) {
+                            modalBody.scrollTop = 0;
+                        }
+                        modalElement.scrollTop = 0;
+                    } else {
+                        alert(data.message || "An error occurred.");
+                    }
+                }
+            })
+            .catch(error => {
+                console.error("Error submitting form:", error);
+                if (errorAlert) {
+                    errorAlert.textContent = "A network error occurred. Please try again.";
+                    errorAlert.classList.remove("d-none");
+                }
+            });
+        });
+    });
+});
+</script>
 
 {% endblock %}

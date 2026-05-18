@@ -117,10 +117,8 @@
                         {% with offer_price=product_variants.get_offer_price %}
                         {% if offer_price %}
                         <h3 class="mb-2">
-                            <span class="current-price" style="font-size: 1.5rem">Price: ₹{{ offer_price|floatformat:2
-                                }}</span>
-                            <span class="original-price text-decoration-line-through ms-2">₹{{ product_variants.price
-                                }}</span>
+                            <span class="current-price" style="font-size: 1.5rem">Price: ₹{{ offer_price|floatformat:2 }}</span>
+                            <span class="original-price text-decoration-line-through ms-2">₹{{ product_variants.price }}</span>
                         </h3>
                         {% with active_offer=product_variants.get_active_offer %}
                         {% if active_offer %}
@@ -295,9 +293,9 @@
         // Quantity Control
         let quantity = 1;
         const quantityInput = document.querySelector('.quantity-input');
-        const stockLimit = {{ product_variants.stock|default: 0 }};
+        const stockLimit = {{ product_variants.stock|default:0 }};
         const maxQuantity = Math.min(4, stockLimit);
-        const cartQuantity = {{ cart_quantity|default: 0 }};
+        const cartQuantity = {{ cart_quantity|default:0 }};
 
         document.querySelector('.decrease-quantity').addEventListener('click', () => {
             if (quantity > 1) {

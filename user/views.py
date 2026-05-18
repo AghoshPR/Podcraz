@@ -577,12 +577,25 @@ def userproductview(request, variant_id):
 
     return render(request, 'user/productview.html', context)
 
+def get_or_create_wishlist(user):
+    wishlists = Wishlist.objects.filter(user=user)
+    if wishlists.exists():
+        wishlist = wishlists.first()
+        if wishlists.count() > 1:
+            for extra_wishlist in wishlists[1:]:
+                for variant in extra_wishlist.product_variants.all():
+                    wishlist.product_variants.add(variant)
+                extra_wishlist.delete()
+        return wishlist
+    else:
+        return Wishlist.objects.create(user=user)
+
 def userwishlist(request):
 
     if not request.user.is_authenticated: 
         return redirect('userlogin')
     
-    wishlist, _ = Wishlist.objects.get_or_create(user=request.user)
+    wishlist = get_or_create_wishlist(request.user)
     products =  wishlist.product_variants.all()
     
     for product in products:
@@ -605,7 +618,7 @@ def toggle_wishlist(request):
         action = data.get('action')
 
         try:
-            wishlist, _ = Wishlist.objects.get_or_create(user=request.user)
+            wishlist = get_or_create_wishlist(request.user)
             product_variant = ProductVariant.objects.get(id=variant_id)
 
             if action == 'add':

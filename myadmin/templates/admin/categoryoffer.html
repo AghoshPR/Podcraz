@@ -72,6 +72,7 @@
                 <form method="POST" action="">
                     {% csrf_token %}
                     <div class="modal-body">
+                        <div class="alert alert-danger d-none modal-error-alert" role="alert"></div>
                         <div class="mb-3">
                             <label for="offerName" class="form-label">Offer Name</label>
                             <input type="text" class="form-control" maxlength="20" id="offerName" name="name" required>
@@ -97,7 +98,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="discountValue" class="form-label">Discount Value</label>
-                            <input type="number" class="form-control" min="30" max="9999" id="discountValue" name="discount_value" step="0.01" required>
+                            <input type="number" class="form-control" min="1" id="discountValue" name="discount_value" step="0.01" required>
                         </div>
                         <div class="mb-3">
                             <label for="validFrom" class="form-label">Valid From</label>
@@ -132,6 +133,7 @@
             <form method="POST" action="{% url 'edit_categoryoffer' offer.id %}">
                 {% csrf_token %}
                 <div class="modal-body">
+                    <div class="alert alert-danger d-none modal-error-alert" role="alert"></div>
                     <div class="mb-3">
                         <label class="form-label">Offer Name</label>
                         <input type="text" class="form-control" name="name" value="{{ offer.name }}" required>
@@ -190,6 +192,65 @@
     </div>
 </div>
 {% endfor %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const forms = document.querySelectorAll("div.modal form");
+    forms.forEach(form => {
+        form.addEventListener("submit", function (event) {
+            event.preventDefault(); // Prevent standard submission
+
+            const formData = new FormData(form);
+            const actionUrl = form.getAttribute("action") || window.location.href;
+            const modalElement = form.closest(".modal");
+            const errorAlert = modalElement.querySelector(".modal-error-alert");
+
+            // Hide previous errors
+            if (errorAlert) {
+                errorAlert.classList.add("d-none");
+                errorAlert.textContent = "";
+            }
+
+            fetch(actionUrl, {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    // Redirect to the success url
+                    window.location.href = data.redirect_url || window.location.href;
+                } else {
+                    // Show error inside modal
+                    if (errorAlert) {
+                        errorAlert.textContent = data.message || "An error occurred.";
+                        errorAlert.classList.remove("d-none");
+                        
+                        // Scroll the modal body/content to top so the error alert is visible
+                        const modalBody = modalElement.querySelector(".modal-body");
+                        if (modalBody) {
+                            modalBody.scrollTop = 0;
+                        }
+                        modalElement.scrollTop = 0;
+                    } else {
+                        alert(data.message || "An error occurred.");
+                    }
+                }
+            })
+            .catch(error => {
+                console.error("Error submitting form:", error);
+                if (errorAlert) {
+                    errorAlert.textContent = "A network error occurred. Please try again.";
+                    errorAlert.classList.remove("d-none");
+                }
+            });
+        });
+    });
+});
+</script>
 
     <div class="pagination">
         <div class="page-item">Previous</div>

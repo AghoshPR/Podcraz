@@ -28,6 +28,8 @@ import calendar
 from django.db.models import Min
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import inch
+from django.urls import reverse
+
 
 
 User = get_user_model
@@ -1319,39 +1321,29 @@ def productoffer(request):
                 datetime.strptime(request.POST.get('valid_until'), '%Y-%m-%dT%H:%M')
             )
 
-           
             if not name or len(name.strip()) < 3:
-                messages.error(request, "Offer name must be at least 3 characters long")
-                return redirect('productoffer')
+                return JsonResponse({'status': 'error', 'message': "Offer name must be at least 3 characters long"})
             if len(name) > 20:
-                messages.error(request, "Offer name cannot exceed 20 characters")
-                return redirect('productoffer')
+                return JsonResponse({'status': 'error', 'message': "Offer name cannot exceed 20 characters"})
             
             if valid_until <= valid_from:
-                messages.error(request, "Valid Until date must be after Valid From date")
-                return redirect('productoffer')
+                return JsonResponse({'status': 'error', 'message': "Valid Until date must be after Valid From date"})
 
-           
             try:
                 discount_value = float(discount_value)
                 if discount_type == 'percentage':
                     if not (1 <= discount_value <= 90):
-                        messages.error(request, "Percentage discount must be between 1 and 90")
-                        return redirect('productoffer')
+                        return JsonResponse({'status': 'error', 'message': "Percentage discount must be between 1 and 90"})
                 elif discount_type == 'fixed':
                     if not (1 <= discount_value <= 10000):
-                        messages.error(request, "Fixed discount must be between 1 and 10000")
-                        return redirect('productoffer')
+                        return JsonResponse({'status': 'error', 'message': "Fixed discount must be between 1 and 10000"})
             except (ValueError, TypeError):
-                messages.error(request, "Invalid discount value")
-                return redirect('productoffer')
+                return JsonResponse({'status': 'error', 'message': "Invalid discount value"})
 
-           
             if Offer.objects.filter(
                 product_id=product_id, is_active=True, valid_until__gt=now()
             ).exists():
-                messages.error(request, "Selected product already has an active offer")
-                return redirect('productoffer')
+                return JsonResponse({'status': 'error', 'message': "Selected product already has an active offer"})
 
             # Create the offer
             Offer.objects.create(
@@ -1364,11 +1356,10 @@ def productoffer(request):
                 is_active=True
             )
             messages.success(request, 'Product offer added successfully')
+            return JsonResponse({'status': 'success', 'redirect_url': reverse('productoffer')})
         except Exception as e:
-            messages.error(request, f'Error: {str(e)}')
-        return redirect('productoffer')
+            return JsonResponse({'status': 'error', 'message': f'Error: {str(e)}'})
 
-    
     offers = Offer.objects.filter(product__isnull=False)  
     products = Product.objects.all() 
 
@@ -1385,7 +1376,6 @@ def edit_offer(request, offer_id):
         try:
             offer = get_object_or_404(Offer, id=offer_id)
             
-            
             offer.name = request.POST.get('name')
             offer.discount_type = request.POST.get('discount_type')
             offer.discount_value = request.POST.get('discount_value')
@@ -1401,52 +1391,43 @@ def edit_offer(request, offer_id):
             offer.valid_from = valid_from
             offer.valid_until = valid_until
 
-            
             if not offer.name or len(offer.name.strip()) < 3:
-                messages.error(request, "Offer name must be at least 3 characters long")
-                return redirect('productoffer')
+                return JsonResponse({'status': 'error', 'message': "Offer name must be at least 3 characters long"})
             if len(offer.name) > 20:
-                messages.error(request, "Offer name cannot exceed 20 characters")
-                return redirect('productoffer')
+                return JsonResponse({'status': 'error', 'message': "Offer name cannot exceed 20 characters"})
             
             try:
                 discount_value = float(offer.discount_value)
                 if offer.discount_type == 'percentage':
                     if discount_value < 1 or discount_value > 90:
-                        messages.error(request, "Percentage discount must be between 1 and 90")
-                        return redirect('productoffer')
+                        return JsonResponse({'status': 'error', 'message': "Percentage discount must be between 1 and 90"})
                 else:  # fixed amount
                     if discount_value < 1 or discount_value > 10000:
-                        messages.error(request, "Fixed discount must be between 1 and 10000")
-                        return redirect('productoffer')
+                        return JsonResponse({'status': 'error', 'message': "Fixed discount must be between 1 and 10000"})
             except (ValueError, TypeError):
-                messages.error(request, "Invalid discount value")
-                return redirect('productoffer')
+                return JsonResponse({'status': 'error', 'message': "Invalid discount value"})
             
             if offer.valid_until <= offer.valid_from:
-                messages.error(request, "Valid Until date must be after Valid From date")
-                return redirect('productoffer')
-            
+                return JsonResponse({'status': 'error', 'message': "Valid Until date must be after Valid From date"})
             
             if Offer.objects.filter(
                 product_id=product_id,
                 is_active=True,
                 valid_until__gt=timezone.now()
             ).exclude(id=offer_id).exists():
-                messages.error(request, "Selected product already has another active offer")
-                return redirect('productoffer')
-            
+                return JsonResponse({'status': 'error', 'message': "Selected product already has another active offer"})
             
             offer.product_id = request.POST.get('product')
             offer.is_active = request.POST.get('is_active') == 'True'
             
             offer.save()
             messages.success(request, 'Offer updated successfully')
-            
+            return JsonResponse({'status': 'success', 'redirect_url': reverse('productoffer')})
         except Exception as e:
-            messages.error(request, f'Error updating offer: {str(e)}')
+            return JsonResponse({'status': 'error', 'message': f'Error updating offer: {str(e)}'})
             
     return redirect('productoffer')
+
 
 
 
@@ -1469,52 +1450,41 @@ def categoryoffer(request):
             category_id = request.POST.get('category')
 
             if not name or len(name.strip()) < 3:
-                messages.error(request, "Offer name must be at least 3 characters long")
-                return redirect('categoryoffer')
+                return JsonResponse({'status': 'error', 'message': "Offer name must be at least 3 characters long"})
 
             if len(name) > 20:
-                messages.error(request, "Offer name cannot exceed 20 characters")
-                return redirect('categoryoffer')
+                return JsonResponse({'status': 'error', 'message': "Offer name cannot exceed 20 characters"})
 
             try:
                 discount_value = float(discount_value)
 
                 if discount_type == 'percentage' and not (1 <= discount_value <= 90):
-                    messages.error(request, "Percentage discount must be between 1 and 90")
-                    return redirect('categoryoffer')
+                    return JsonResponse({'status': 'error', 'message': "Percentage discount must be between 1 and 90"})
                 
                 elif discount_type == 'fixed':
 
                     if not (1 <= discount_value <= 10000):
-                        messages.error(request, "Fixed discount must be between 1 and 10000")
-                        return redirect('categoryoffer')
+                        return JsonResponse({'status': 'error', 'message': "Fixed discount must be between 1 and 10000"})
 
-                    
                     min_price = ProductVariant.objects.filter(product__product_category_id=category_id).aggregate(
                         min_price=Min('price')
                     )['min_price']
 
                     if min_price is not None and discount_value > min_price:
-                        messages.error(request, f"Fixed discount cannot be greater than the lowest product variant price ({min_price})")
-                        return redirect('categoryoffer')
+                        return JsonResponse({'status': 'error', 'message': f"Fixed discount cannot be greater than the lowest product variant price ({min_price})"})
                 
             except (ValueError, TypeError):
-                messages.error(request, "Invalid discount value")
-                return redirect('categoryoffer')
+                return JsonResponse({'status': 'error', 'message': "Invalid discount value"})
 
-            
-            
             if Offer.objects.filter(
                 product_category_id=category_id,
                 is_active=True,
                 valid_until__gt=now()
             ).exists():
-                messages.error(request, "Selected category already has an active offer")
-                return redirect('categoryoffer')
+                return JsonResponse({'status': 'error', 'message': "Selected category already has an active offer"})
             
             if valid_from >= valid_until:
-                    messages.error(request, "Valid from date must be before valid until date")
-                    return redirect('categoryoffer')
+                return JsonResponse({'status': 'error', 'message': "Valid from date must be before valid until date"})
 
             Offer.objects.create(
                 name=name,
@@ -1527,9 +1497,9 @@ def categoryoffer(request):
             )
 
             messages.success(request, 'Category offer added successfully')
+            return JsonResponse({'status': 'success', 'redirect_url': reverse('categoryoffer')})
         except Exception as e:
-            messages.error(request, f'Error: {str(e)}')
-        return redirect('categoryoffer')
+            return JsonResponse({'status': 'error', 'message': f'Error: {str(e)}'})
 
     offers = Offer.objects.filter(product_category__isnull=False)
     categories = ProductCategory.objects.filter(status='Active')
@@ -1562,65 +1532,50 @@ def edit_categoryoffer(request, offer_id):
             offer.valid_until = valid_until
 
             if not offer.name or len(offer.name.strip()) < 3:
-                messages.error(request, "Offer name must be at least 3 characters long")
-                return redirect('categoryoffer')
+                return JsonResponse({'status': 'error', 'message': "Offer name must be at least 3 characters long"})
             
             if len(offer.name) > 20:
-                messages.error(request, "Offer name cannot exceed 20 characters")
-                return redirect('categoryoffer')
+                return JsonResponse({'status': 'error', 'message': "Offer name cannot exceed 20 characters"})
             
             try:
                 discount_value = float(offer.discount_value)
                 if offer.discount_type == 'percentage':
                     if discount_value < 1 or discount_value > 90:
-                        messages.error(request, "Percentage discount must be between 1 and 90")
-                        return redirect('categoryoffer')
+                        return JsonResponse({'status': 'error', 'message': "Percentage discount must be between 1 and 90"})
                     
                 elif offer.discount_type == 'fixed':
                     
                     if not (1 <= discount_value <= 10000):
-                        messages.error(request, "Fixed discount must be between 1 and 10000")
-                        return redirect('categoryoffer')
+                        return JsonResponse({'status': 'error', 'message': "Fixed discount must be between 1 and 10000"})
 
-                    
                     min_price = ProductVariant.objects.filter(product__product_category_id=category_id).aggregate(
                         min_price=Min('price')
                     )['min_price']
 
                     if min_price is not None and discount_value > min_price:
-                        messages.error(request, f"Fixed discount cannot be greater than the lowest product variant price ({min_price})")
-                        return redirect('categoryoffer')
+                        return JsonResponse({'status': 'error', 'message': f"Fixed discount cannot be greater than the lowest product variant price ({min_price})"})
                     
             except (ValueError, TypeError):
-                messages.error(request, "Invalid discount value")
-                return redirect('categoryoffer')
+                return JsonResponse({'status': 'error', 'message': "Invalid discount value"})
             
             if valid_from >= valid_until:
-                    messages.error(request, "Valid from date must be before valid until date")
-                    return redirect('categoryoffer')
-
-            
+                return JsonResponse({'status': 'error', 'message': "Valid from date must be before valid until date"})
 
             if Offer.objects.filter(
                 product_category_id=category_id,
                 is_active=True,
                 valid_until__gt=timezone.now()
             ).exclude(id=offer_id).exists():
-                messages.error(request, "Selected category already has another active offer")
-                return redirect('categoryoffer')
-            
+                return JsonResponse({'status': 'error', 'message': "Selected category already has another active offer"})
             
             offer.product_category_id = request.POST.get('category')
             offer.is_active = request.POST.get('is_active') == 'True'
 
-
-            
-            
             offer.save()
             messages.success(request, 'Category offer updated successfully')
-            
+            return JsonResponse({'status': 'success', 'redirect_url': reverse('categoryoffer')})
         except Exception as e:
-            messages.error(request, f'Error updating offer: {str(e)}')
+            return JsonResponse({'status': 'error', 'message': f'Error updating offer: {str(e)}'})
             
     return redirect('categoryoffer')
 
@@ -1677,29 +1632,20 @@ def addcoupon(request):
                 datetime.strptime(request.POST.get('valid_until'), '%Y-%m-%dT%H:%M')
             )
 
-
-
             if not code or len(code.strip()) < 3:
-                messages.error(request, "Coupon code must be at least 3 characters long")
-                return redirect('admincoupon')
+                return JsonResponse({'status': 'error', 'message': "Coupon code must be at least 3 characters long"})
             
             if len(code) > 20:
-                messages.error(request, "Coupon code cannot exceed 20 characters")
-                return redirect('admincoupon')
+                return JsonResponse({'status': 'error', 'message': "Coupon code cannot exceed 20 characters"})
 
-            
             if Coupon.objects.filter(code=code).exists():
-                messages.error(request, 'Coupon Code Already Exists!')
-                return redirect('admincoupon')
+                return JsonResponse({'status': 'error', 'message': 'Coupon Code Already Exists!'})
 
-            
             if not description or len(description.strip()) < 3:
-                messages.error(request, "Description must be at least 3 characters long")
-                return redirect('admincoupon')
+                return JsonResponse({'status': 'error', 'message': "Description must be at least 3 characters long"})
             
             if len(description) > 30:
-                messages.error(request, "Description cannot exceed 30 characters")
-                return redirect('admincoupon')
+                return JsonResponse({'status': 'error', 'message': "Description cannot exceed 30 characters"})
             
             try:
                 discount_value = float(discount_value)
@@ -1707,45 +1653,36 @@ def addcoupon(request):
 
                 if discount_type == 'percentage':
                     if discount_value < 1 or discount_value > 90:
-                        messages.error(request, "Percentage discount must be between 1 and 90")
-                        return redirect('admincoupon')
+                        return JsonResponse({'status': 'error', 'message': "Percentage discount must be between 1 and 90"})
                 else:  
                     if discount_value < 1 or discount_value > min_purchase_amount:
-                        messages.error(request, f"Fixed discount cannot exceed minimum purchase amount (₹{min_purchase_amount})")
-                        return redirect('admincoupon')
+                        return JsonResponse({'status': 'error', 'message': f"Fixed discount cannot exceed minimum purchase amount (₹{min_purchase_amount})"})
 
                 if min_purchase_amount < 0 or min_purchase_amount > 99999:
-                    messages.error(request, "Minimum purchase amount must be between 0 and 99999")
-                    return redirect('admincoupon')
+                    return JsonResponse({'status': 'error', 'message': "Minimum purchase amount must be between 0 and 99999"})
 
             except (ValueError, TypeError):
-                messages.error(request, "Invalid discount value or minimum purchase amount")
-                return redirect('admincoupon')
+                return JsonResponse({'status': 'error', 'message': "Invalid discount value or minimum purchase amount"})
             
             if valid_from >= valid_until:
-                messages.error(request, "End date must be after start date")
-                return redirect('admincoupon')
-            
-            
-            
+                return JsonResponse({'status': 'error', 'message': "End date must be after start date"})
 
             coupon = Coupon.objects.create(
-
-            code = code,
-            discount_type = discount_type,
-            discount_value = discount_value,
-            min_purchase_amount = min_purchase_amount,
-            valid_from = valid_from,
-            valid_until = valid_until,
-            is_active = True,
-            description=description
-
+                code = code,
+                discount_type = discount_type,
+                discount_value = discount_value,
+                min_purchase_amount = min_purchase_amount,
+                valid_from = valid_from,
+                valid_until = valid_until,
+                is_active = True,
+                description=description
             )
             
             coupon.save()
             messages.success(request, 'Coupon added successfully!')
+            return JsonResponse({'status': 'success', 'redirect_url': reverse('admincoupon')})
         except Exception as e:
-            messages.error(request, f'Error adding coupon: {str(e)}')
+            return JsonResponse({'status': 'error', 'message': f'Error adding coupon: {str(e)}'})
 
     return redirect('admincoupon')
 
@@ -1754,7 +1691,6 @@ def edit_coupon(request, coupon_id):
     if request.method == 'POST':
         try:
             coupon = get_object_or_404(Coupon, id=coupon_id)
-            
             
             new_code = request.POST.get('code')
             coupon.code = new_code
@@ -1774,26 +1710,20 @@ def edit_coupon(request, coupon_id):
             coupon.valid_until = valid_until
             coupon.is_active = request.POST.get('is_active') == 'True'
 
-
             if not new_code or len(new_code.strip()) < 3:
-                messages.error(request, "Coupon code must be at least 3 characters long")
-                return redirect('admincoupon')
+                return JsonResponse({'status': 'error', 'message': "Coupon code must be at least 3 characters long"})
             
             if len(new_code) > 20:
-                messages.error(request, "Coupon code cannot exceed 20 characters")
-                return redirect('admincoupon')
+                return JsonResponse({'status': 'error', 'message': "Coupon code cannot exceed 20 characters"})
             
             if Coupon.objects.filter(code=new_code).exclude(id=coupon_id).exists():
-                messages.error(request, 'Coupon Code Already Exists!')
-                return redirect('admincoupon')
+                return JsonResponse({'status': 'error', 'message': 'Coupon Code Already Exists!'})
             
             if not coupon.description or len(coupon.description.strip()) < 3:
-                messages.error(request, "Description must be at least 3 characters long")
-                return redirect('admincoupon')
+                return JsonResponse({'status': 'error', 'message': "Description must be at least 3 characters long"})
             
             if len(coupon.description) > 30:
-                messages.error(request, "Description cannot exceed 30 characters")
-                return redirect('admincoupon')
+                return JsonResponse({'status': 'error', 'message': "Description cannot exceed 30 characters"})
             
             try:
                 discount_value_float = float(coupon.discount_value)
@@ -1801,33 +1731,26 @@ def edit_coupon(request, coupon_id):
 
                 if coupon.discount_type == 'percentage':
                     if discount_value_float < 1 or discount_value_float > 90:
-                        messages.error(request, "Percentage discount must be between 1 and 90")
-                        return redirect('admincoupon')
+                        return JsonResponse({'status': 'error', 'message': "Percentage discount must be between 1 and 90"})
                     
                 elif coupon.discount_type == 'fixed':
                     if discount_value_float < 1 or discount_value_float > min_purchase_float:
-                        messages.error(request, f"Fixed discount cannot exceed minimum purchase amount (₹{min_purchase_float})")
-                        return redirect('admincoupon')
+                        return JsonResponse({'status': 'error', 'message': f"Fixed discount cannot exceed minimum purchase amount (₹{min_purchase_float})"})
 
-                
                 if min_purchase_float < 0 or min_purchase_float > 99999:
-                    messages.error(request, "Minimum purchase amount must be between 0 and 99999")
-                    return redirect('admincoupon')
+                    return JsonResponse({'status': 'error', 'message': "Minimum purchase amount must be between 0 and 99999"})
 
             except (ValueError, TypeError):
-                messages.error(request, "Invalid discount value or minimum purchase amount")
-                return redirect('admincoupon')
+                return JsonResponse({'status': 'error', 'message': "Invalid discount value or minimum purchase amount"})
             
             if valid_from >= valid_until:
-                messages.error(request, "End date must be after start date")
-                return redirect('admincoupon')
-            
+                return JsonResponse({'status': 'error', 'message': "End date must be after start date"})
 
             coupon.save()
             messages.success(request, 'Coupon updated successfully!')
-            
+            return JsonResponse({'status': 'success', 'redirect_url': reverse('admincoupon')})
         except Exception as e:
-            messages.error(request, f'Error updating coupon: {str(e)}')
+            return JsonResponse({'status': 'error', 'message': f'Error updating coupon: {str(e)}'})
             
     return redirect('admincoupon')
 
