@@ -516,7 +516,7 @@ def userproducts(request):
     page = request.GET.get('page', 1)
     
     # Create paginator
-    paginator = Paginator(product_variants, 10)  # Show 10 products per page
+    paginator = Paginator(product_variants, 9)  # Show 9 products per page
     
     try:
         product_variants = paginator.page(page)
@@ -1218,7 +1218,8 @@ def usercheckout(request):
         'default_address': default_address,
         'other_addresses': other_addresses,
         'applied_coupon': cart.coupon,
-        'available_coupons': available_coupons
+        'available_coupons': available_coupons,
+        'discount': cart.discount
     }
 
     return render(request,'user/checkout.html',context)

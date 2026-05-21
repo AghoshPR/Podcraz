@@ -10,11 +10,7 @@
             <span class="input-group-text bg-white border-end-0">
                 <i class="bi bi-search"></i>
             </span>
-            <input 
-                type="text" 
-                name="q" 
-                class="form-control border-start-0" 
-                placeholder="Search for products..."
+            <input type="text" name="q" class="form-control border-start-0" placeholder="Search for products..."
                 value="{{ request.GET.q|default:'' }}">
             <button type="submit" class="btn btn-dark px-4 rounded-end">Search</button>
         </div>
@@ -31,244 +27,259 @@
         <li class="breadcrumb-item"><a href="{% url 'userproducts' %}" class="text-decoration-none">Products</a></li>
         <li class="breadcrumb-item"><a href="{% url 'usercart' %}" class="text-decoration-none">Cart</a></li>
         <li class="breadcrumb-item"><a href="{% url 'usercheckout' %}" class="text-decoration-none">Checkout</a></li>
-        
+
     </ol>
-    </nav>
+</nav>
 
 {% csrf_token %}
 
 </head>
+
 <body>
     {% if messages %}
     <div class="messages">
         {% for message in messages %}
-            <div class="alert alert-success">{{ message }}</div>
+        <div class="alert alert-success">{{ message }}</div>
         {% endfor %}
     </div>
     {% endif %}
-<div class="checkout-container">
-    <h2 class="mb-4">Delivery Address</h2>
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-8">
-                
-                
-                <div class="address-container">
-                    <a href="{% url 'checkout_address' %}">
-                        <button class="add-address-btn">+ ADD NEW ADDRESS</button>
-                    </a>
-                    
-                    {% if default_address %}
-                    <div class="address-card">
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio"  value="{{ default_address.id }}" name="address" checked>
-                            <label class="form-check-label">
-                                <div class="default-badge mb-2">DEFAULT ADDRESS</div>
-                                <strong>{{ default_address.address }}</strong><br>
-                                {{ default_address.city }}<br>
-                                {{ default_address.state }}<br>
-                                {{ default_address.pin_code }}<br>
-                                Mobile: {{ default_address.phone }}
-                            </label>
-                        </div>
-                    </div>
-                    {% endif %}
+    <div class="checkout-container">
+        <h2 class="mb-4">Delivery Address</h2>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8">
 
-                    {% if other_addresses %}
-                    <h6 class="mt-4 mb-3">Saved Addresses</h6>
 
-                    {% for address in other_addresses %}
-                    <div class="address-card">
-                        <div class="form-check">
-                            <input class="form-check-input" 
-                                   type="radio" 
-                                   name="address" 
-                                   value="{{ address.id }}">
-                            <label class="form-check-label">
-                                <strong>{{ address.address }}</strong><br>
-                                {{ address.city }}<br>
-                                {{ address.state }}<br>
-                                {{ address.pin_code }}<br>
-                                Mobile: {{ address.phone }}
-                            </label>
-                        </div>
-                    </div>
-                    {% endfor %}
-                    {% endif %}
+                    <div class="address-container">
+                        <a href="{% url 'checkout_address' %}">
+                            <button class="add-address-btn">+ ADD NEW ADDRESS</button>
+                        </a>
 
-                    {% if not default_address and not other_addresses %}
-                    <div class="alert alert-warning">
-                        No addresses found. Please add an address to continue.
-                    </div>
-                    {% endif %}
-
-                </div>
-            </div>
-
-            <div class="col-lg-4">
-                <div class="product-summary">
-                    <h5 class="mb-4">Products</h5>
-
-                    {% for item in cart_items %}
-
-                    <div class="product-item">
-                        <img src="{{ item.product_variant.productimage_set.first.image_path.url }}" 
-                             alt="{{ item.product_variant.product.name }}" 
-                             class="product-image">
-                        
-                        <div class="product-details">
-                            <h6>{{ item.product_variant.product.name }}</h6>
-                            <small>Color: {{ item.product_variant.color }}</small><br>
-                            <small>Quantity: {{ item.quantity }}</small><br>
-                            <div class="price-info mb-1" style="font-size: 0.9rem;">
-                                {% with offer_price=item.product_variant.get_offer_price %}
-                                {% if offer_price %}
-                                    <span class="current-price text-dark fw-semibold">₹{{ offer_price|floatformat:2 }}</span>
-                                    <span class="original-price text-decoration-line-through text-muted ms-2" style="font-size: 0.85em;">₹{{ item.product_variant.price }}</span>
-                                {% else %}
-                                    <span class="text-dark">₹{{ item.product_variant.price }}</span>
-                                {% endif %}
-                                {% endwith %}
+                        {% if default_address %}
+                        <div class="address-card">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" value="{{ default_address.id }}"
+                                    name="address" checked>
+                                <label class="form-check-label">
+                                    <div class="default-badge mb-2">DEFAULT ADDRESS</div>
+                                    <strong>{{ default_address.address }}</strong><br>
+                                    {{ default_address.city }}<br>
+                                    {{ default_address.state }}<br>
+                                    {{ default_address.pin_code }}<br>
+                                    Mobile: {{ default_address.phone }}
+                                </label>
                             </div>
-                            <strong>Total: ₹{{ item.get_total_price|floatformat:2 }}</strong>
-                        </div>
-                    </div>
-                    {% endfor %}
-
-
-
-                    <div class="coupon-section">
-                        
-                        <h6>Available Coupons</h6>
-
-                        {% if available_coupons %}
-                        <form method="POST" class="coupon-form">
-                            {% csrf_token %}
-                            <select name="coupon" class="form-select mb-2">
-                                <option value="">Select a coupon</option>
-                                {% for coupon in available_coupons %}
-                                    <option value="{{ coupon.id }}" {% if applied_coupon.id == coupon.id %}selected{% endif %}>
-                                        {{ coupon.code }} - 
-                                        {% if coupon.discount_type == 'percentage' %}
-                                            {{ coupon.discount_value }}% OFF
-                                        {% else %}
-                                            ₹{{ coupon.discount_value }} OFF
-                                        {% endif %}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                            {% if applied_coupon %}
-                                <button type="submit" name="remove_coupon" class="btn btn-danger btn-sm">Remove Coupon</button>
-                            {% else %}
-                                <button type="submit" name="apply_coupon" class="btn btn-primary btn-sm">Apply Coupon</button>
-                            {% endif %}
-                        </form>
-                    {% else %}
-                        <p class="text-black">No coupons available for this order</p>
-                    {% endif %}
-
-                    </div>
-
-
-
-                    <div class="price-details">
-                        <div class="price-row">
-                            <span>Item Sub Total</span>
-                            <span>₹ {{ total_price|floatformat:2 }}</span>
-                        </div>
-
-                        {% if discount %}
-                        <div class="price-row">
-                            <span>Discount</span>
-                            <span style="color: #28a745;">- ₹ {{ cart.discount|floatformat:2 }}</span>
                         </div>
                         {% endif %}
 
-                        <div class="price-row">
-                            <span>Shipping</span>
-                            <span style="color: #28a745;">Free</span>
-                        </div>
-                        <hr>
-                        <div class="price-row">
-                            <strong>Total</strong>
-                            <strong>₹ {{ subtotal|floatformat:2 }}</strong>
-                        </div>
-                    </div>
+                        {% if other_addresses %}
+                        <h6 class="mt-4 mb-3">Saved Addresses</h6>
 
-                    <button class="continue-btn" id="placeOrderBtn" name="place_order">CONTINUE</button>
+                        {% for address in other_addresses %}
+                        <div class="address-card">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="address" value="{{ address.id }}">
+                                <label class="form-check-label">
+                                    <strong>{{ address.address }}</strong><br>
+                                    {{ address.city }}<br>
+                                    {{ address.state }}<br>
+                                    {{ address.pin_code }}<br>
+                                    Mobile: {{ address.phone }}
+                                </label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% endif %}
+
+                        {% if not default_address and not other_addresses %}
+                        <div class="alert alert-warning">
+                            No addresses found. Please add an address to continue.
+                        </div>
+                        {% endif %}
+
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="product-summary">
+                        <h5 class="mb-4">Products</h5>
+
+                        {% for item in cart_items %}
+
+                        <div class="product-item">
+                            <img src="{{ item.product_variant.productimage_set.first.image_path.url }}"
+                                alt="{{ item.product_variant.product.name }}" class="product-image">
+
+                            <div class="product-details">
+                                <h6>{{ item.product_variant.product.name }}</h6>
+                                <small>Color: {{ item.product_variant.color }}</small><br>
+                                <small>Quantity: {{ item.quantity }}</small><br>
+                                <div class="price-info mb-1" style="font-size: 0.9rem;">
+                                    {% with offer_price=item.product_variant.get_offer_price %}
+                                    {% if offer_price %}
+                                    <span class="current-price text-dark fw-semibold">₹{{ offer_price|floatformat:2
+                                        }}</span>
+                                    <span class="original-price text-decoration-line-through text-muted ms-2"
+                                        style="font-size: 0.85em;">₹{{ item.product_variant.price }}</span>
+                                    {% else %}
+                                    <span class="text-dark">₹{{ item.product_variant.price }}</span>
+                                    {% endif %}
+                                    {% endwith %}
+                                </div>
+                                <strong>Total: ₹{{ item.get_total_price|floatformat:2 }}</strong>
+                            </div>
+                        </div>
+                        {% endfor %}
+
+
+
+                        <div class="coupon-section">
+
+                            <h6>Available Coupons</h6>
+
+                            {% if available_coupons or applied_coupon %}
+                            <form method="POST" class="coupon-form">
+                                {% csrf_token %}
+                                
+
+
+                                <select name="coupon" class="form-select mb-2">
+                                    <option value="">Select a coupon</option>
+                                    {% if applied_coupon and applied_coupon not in available_coupons %}
+                                    <option value="{{ applied_coupon.id }}" selected>
+                                        {{ applied_coupon.code }} -
+                                        {% if applied_coupon.discount_type == 'percentage' %}
+                                        {{ applied_coupon.discount_value }}% OFF
+                                        {% else %}
+                                        ₹{{ applied_coupon.discount_value }} OFF
+                                        {% endif %}
+                                    </option>
+                                    {% endif %}
+                                    {% for coupon in available_coupons %}
+                                    <option value="{{ coupon.id }}" {% if applied_coupon and applied_coupon.id == coupon.id %}selected{% endif %}>
+                                        {{ coupon.code }} -
+                                        {% if coupon.discount_type == 'percentage' %}
+                                        {{ coupon.discount_value }}% OFF
+                                        {% else %}
+                                        ₹{{ coupon.discount_value }} OFF
+                                        {% endif %}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                {% if applied_coupon %}
+                                <button type="submit" name="remove_coupon" class="btn btn-danger btn-sm">Remove
+                                    Coupon</button>
+                                {% else %}
+                                <button type="submit" name="apply_coupon" class="btn btn-primary btn-sm">Apply
+                                    Coupon</button>
+                                {% endif %}
+                            </form>
+                            {% else %}
+                            <p class="text-black">No coupons available for this order</p>
+                            {% endif %}
+
+                        </div>
+
+
+
+                        <div class="price-details">
+                            <div class="price-row">
+                                <span>Item Sub Total</span>
+                                <span>₹ {{ total_price|floatformat:2 }}</span>
+                            </div>
+
+                            {% if discount %}
+                            <div class="price-row">
+                                <span>Discount</span>
+                                <span style="color: #28a745;">- ₹ {{ discount|floatformat:2 }}</span>
+                            </div>
+                            {% endif %}
+
+                            <div class="price-row">
+                                <span>Shipping</span>
+                                <span style="color: #28a745;">Free</span>
+                            </div>
+                            <hr>
+                            <div class="price-row">
+                                <strong>Total</strong>
+                                <strong>₹ {{ subtotal|floatformat:2 }}</strong>
+                            </div>
+                        </div>
+
+                        <button class="continue-btn" id="placeOrderBtn" name="place_order">CONTINUE</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
-    <div id="wishlistToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="toast-body">
-            <span id="wishlistToastMessage"></span>
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="wishlistToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-body">
+                <span id="wishlistToastMessage"></span>
+            </div>
         </div>
     </div>
-</div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const placeOrderBtn = document.getElementById('placeOrderBtn');
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const placeOrderBtn = document.getElementById('placeOrderBtn');
 
-        function showToast(message, type = 'success') {
-            const toast = new bootstrap.Toast(document.getElementById('wishlistToast'));
-            const toastMessage = document.getElementById('wishlistToastMessage');
-            toastMessage.textContent = message;
-            toastMessage.className = type === 'success' ? 'text-success' : 'text-danger';
-            toast.show();
-        }
-        
-        placeOrderBtn.addEventListener('click', function() {
-            const selectedAddress = document.querySelector('input[name="address"]:checked');
-            
-            if (!selectedAddress) {
-                showToast('Please select a delivery address', 'error');
-                return;
+            function showToast(message, type = 'success') {
+                const toast = new bootstrap.Toast(document.getElementById('wishlistToast'));
+                const toastMessage = document.getElementById('wishlistToastMessage');
+                toastMessage.textContent = message;
+                toastMessage.className = type === 'success' ? 'text-success' : 'text-danger';
+                toast.show();
             }
-    
-            const formData = new FormData();
-            formData.append('address_id', selectedAddress.value);
-            formData.append('place_order', 'true'); 
-            
-        
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-            
-            fetch("", {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrfToken
-                },
-                body: formData,
-                credentials: 'same-origin'  
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.status === 'success') {
-                    window.location.href = data.redirect_url;
-                } else {
-                    showToast('Product is out of stock', 'error');
+
+            placeOrderBtn.addEventListener('click', function () {
+                const selectedAddress = document.querySelector('input[name="address"]:checked');
+
+                if (!selectedAddress) {
+                    showToast('Please select a delivery address', 'error');
                     return;
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                
-                showToast('Product is out of stock', 'error');
-                return;
+
+                const formData = new FormData();
+                formData.append('address_id', selectedAddress.value);
+                formData.append('place_order', 'true');
+
+
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+                fetch("", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: formData,
+                    credentials: 'same-origin'
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.status === 'success') {
+                            window.location.href = data.redirect_url;
+                        } else {
+                            showToast('Product is out of stock', 'error');
+                            return;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+
+                        showToast('Product is out of stock', 'error');
+                        return;
+                    });
             });
         });
-    });
-</script>
+    </script>
 
 
 
-{% endblock %}
+    {% endblock %}

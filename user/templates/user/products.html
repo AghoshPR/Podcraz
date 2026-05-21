@@ -241,39 +241,67 @@
             
             
             <!-- Pagination -->
-            <nav aria-label="Product navigation" class="mt-4">
-                <ul class="pagination justify-content-center">
-                    {% if product_variants.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ product_variants.previous_page_number }}" aria-label="Previous">
-                                <span aria-hidden="true">&laquo;</span>
-                            </a>
-                        </li>
-                    {% else %}
-                        <li class="page-item disabled">
-                            <span class="page-link">&laquo;</span>
-                        </li>
-                    {% endif %}
+            {% if product_variants.has_other_pages %}
+            <div class="pagination">
+                {% if product_variants.has_previous %}
+                    <a href="?page={{ product_variants.previous_page_number }}{% if query_params %}&{{ query_params }}{% endif %}" class="page-btn">Previous</a>
+                {% else %}
+                    <span class="page-btn disabled">Previous</span>
+                {% endif %}
 
-                    {% for i in product_variants.paginator.page_range %}
-                        <li class="page-item {% if product_variants.number == i %}active{% endif %}">
-                            <a class="page-link" href="?page={{ i }}">{{ i }}</a>
-                        </li>
-                    {% endfor %}
-
-                    {% if product_variants.has_next %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ product_variants.next_page_number }}" aria-label="Next">
-                                <span aria-hidden="true">&raquo;</span>
-                            </a>
-                        </li>
+                {% for num in product_variants.paginator.page_range %}
+                    {% if product_variants.number == num %}
+                        <span class="page-btn active">{{ num }}</span>
                     {% else %}
-                        <li class="page-item disabled">
-                            <span class="page-link">&raquo;</span>
-                        </li>
+                        <a href="?page={{ num }}{% if query_params %}&{{ query_params }}{% endif %}" class="page-btn">{{ num }}</a>
                     {% endif %}
-                </ul>
-            </nav>
+                {% endfor %}
+
+                {% if product_variants.has_next %}
+                    <a href="?page={{ product_variants.next_page_number }}{% if query_params %}&{{ query_params }}{% endif %}" class="page-btn">Next</a>
+                {% else %}
+                    <span class="page-btn disabled">Next</span>
+                {% endif %}
+            </div>
+
+            <style>
+            .pagination {
+                display: flex;
+                justify-content: center;
+                gap: 5px;
+                margin: 20px 0;
+            }
+
+            .page-btn {
+                padding: 8px 16px;
+                background-color: #333;
+                color: white;
+                text-decoration: none;
+                border-radius: 4px;
+                cursor: pointer;
+                transition: background-color 0.3s;
+            }
+
+            .page-btn.active {
+                background-color: #007bff;
+            }
+
+            .page-btn:hover:not(.active):not(.disabled) {
+                background-color: #555;
+            }
+
+            .page-btn.disabled {
+                background-color: #666;
+                cursor: not-allowed;
+                opacity: 0.6;
+            }
+
+            a.page-btn {
+                color: white;
+                text-decoration: none;
+            }
+            </style>
+            {% endif %}
         </div>
     </div>
 </div>
